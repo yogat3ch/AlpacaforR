@@ -24,7 +24,7 @@ get_positions(url, headers, ticker = NULL)
 
 "qty" The number of shares as a string.
 
-"side" long/short as a string.
+"side" long/short exposure as a string.
 
 "market_value"  Total dollar amount of the position as a string.
 
