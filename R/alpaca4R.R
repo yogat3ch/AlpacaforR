@@ -1,7 +1,7 @@
 # OUR URL & HEADER VARIABLES SENT IN EACH API REQUEST #
 #===================================================================================================
 #To connect to our paper.account. Live is -> https://api.alpaca.markets
-url <- "https://paper-api.alpaca.markets"
+url <- if(Sys.getenv("APCA-LIVE")) "https://api.alpaca.markets" else "https://paper-api.alpaca.markets"
 
 #To access data API
 url_data <- "https://data.alpaca.markets"
