@@ -1,21 +1,8 @@
-# OUR URL & HEADER VARIABLES SENT IN EACH API REQUEST #
-#===================================================================================================
-#To connect to our paper.account. Live is -> https://api.alpaca.markets
-url <- "https://paper-api.alpaca.markets"
-
-#To access data API
-url_data <- "https://data.alpaca.markets"
-
-#Create headers object to send our Key & Secret ID in our request.
-headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                             'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
-#===================================================================================================
-
-
-
 
 # PACKAGE FUNCTIONS #
 #===================================================================================================
+
+#----------------------------------------------------------------------------------------------
 #' Clean Text from Server Response function
 #' 
 #' Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
@@ -27,6 +14,9 @@ response_text_clean <- function(dat){
   dat = jsonlite::fromJSON(dat)
   return(dat)
 }
+#----------------------------------------------------------------------------------------------
+
+
 
 
 
@@ -34,11 +24,11 @@ response_text_clean <- function(dat){
 
 #Functions to interact with Alpaca API
 
+#----------------------------------------------------------------------------------------------
 #' Get Account function
 #'
 #' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
 #' @return "id" Account ID as a string.
 #' @return "status" Account Status as a string.
 #' @return "currency" USD as a string.
@@ -51,27 +41,36 @@ response_text_clean <- function(dat){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(url = url, headers = headers)
+#' get_account(paper = TRUE)
 #' @export
-get_account <- function(url, headers){
-  
-  account = httr::GET(url = paste0(url,"/v1/account",collapse = ""), headers)
+get_account <- function(paper = FALSE){
+  #Url
+  ifelse(paper == TRUE, 
+         url <- "https://paper-api.alpaca.markets",
+         url <- "https://api.alpaca.markets")
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                               'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Send Request
+  account = httr::GET(url = paste0(url,"/v1/account"), headers)
   account = response_text_clean(account)
   return(account)
 }
-#get_account(url = url, headers = headers)
+#----------------------------------------------------------------------------------------------
+
+#get_account(paper = TRUE)
 
 
 
 
 
 
-
+#----------------------------------------------------------------------------------------------
 #' Get Positions function
 #'
 #' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return "asset_id"  Asset ID as a string.
 #' @return "symbol"  Symbol of the asset as a string.
 #' @return "exchange"  Exchange name of the asset as a string.
@@ -89,15 +88,24 @@ get_account <- function(url, headers){
 #' @return "lastday_price"  Last day’s asset price per share as a string.
 #' @return "change_today"  Percent change from last day price (by a factor of 1) as a string.
 #' @examples 
-#' get_positions(url = url, headers = headers) 
+#' get_positions(paper = TRUE, ticker = "AAPL")
 #' @export
-get_positions <- function(url, headers, ticker = NULL){
-  
-  positions = httr::GET(url = paste0(url,"/v1/positions",collapse = ""), headers) 
+get_positions <- function(paper = FALSE, ticker = NULL){
+  #Url
+  ifelse(paper == TRUE, 
+         url <- "https://paper-api.alpaca.markets",
+         url <- "https://api.alpaca.markets")
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Send Request
+  positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
   if (is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
 }
-#get_positions(url = url, headers = headers) 
+#----------------------------------------------------------------------------------------------
+
+#get_positions(paper = TRUE, ticker = "AAPL") 
 
 
 
@@ -106,12 +114,11 @@ get_positions <- function(url, headers, ticker = NULL){
 
 
 
-
+#----------------------------------------------------------------------------------------------
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
 #' @return "id" order id as a string.
@@ -135,20 +142,29 @@ get_positions <- function(url, headers, ticker = NULL){
 #' @return "stop_price" Stop price as a string.
 #' @return "status" Status of the order as a string.
 #' @examples 
-#' get_orders(url = url, headers = headers, status = "open")
+#' get_orders(paper = TRUE)
 #' @export
-get_orders <- function(url, headers, status, from=NULL){
-  
+get_orders <- function(paper = FALSE, status = "open", from=NULL){
+  #Url
+  ifelse(paper == TRUE, 
+         url <- "https://paper-api.alpaca.markets",
+         url <- "https://api.alpaca.markets")
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Send Request
   if(is.null(from)){
-    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,collapse = ""), headers)
+    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
     orders = response_text_clean(orders)
   } else {
-    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00",collapse = ""), headers)
+    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
     orders = response_text_clean(orders)
   }
   return(orders)
 }
-get_orders(url = url, headers = headers, status = "open")
+#----------------------------------------------------------------------------------------------
+
+#get_orders(paper = TRUE)
 
 
 
@@ -157,31 +173,43 @@ get_orders(url = url, headers = headers, status = "open")
 
 
 
+
+
+#----------------------------------------------------------------------------------------------
 #' Submit Order function
 #' 
 #' Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
 #' @param ticker The stock's symbol as a string.
 #' @param qty The amount of shares to trade as a string.
 #' @param side The side of the trade. I.E buy or sell as a string.
 #' @param type The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.
-#' @param time_in_force The type of time order. I.E day, gtc, etc as a string.
+#' @param time_in_force The type of time order. I.E day, gtc, etc as a string. Defaults to "day".
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
 #' @examples 
-#' submit_order(url = url, headers = headers, ticker = "AMZN", qty = "10", side = "buy", type = "limit", time_in_force = "day", limit_price = "1000")
+#' submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 #' @export
-submit_order <- function(url, headers, ticker, qty, side, type, time_in_force, limit_price = NULL, stop_price = NULL){
+submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
+  #Url
+  ifelse(paper == TRUE, 
+         url <- "https://paper-api.alpaca.markets",
+         url <- "https://api.alpaca.markets")
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
   
   #Create body with order details, most common is a named list 
   bodyl <- list(symbol=ticker, qty=qty, side = side, type = type, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
   
-  orders = httr::POST(url = paste0(url,"/v1/orders",collapse = ""), body = bodyl, encode = "json",headers)
+  #Send Request
+  orders = httr::POST(url = paste0(url,"/v1/orders"), body = bodyl, encode = "json",headers)
   orders = response_text_clean(orders)
   return(orders)
 }
-#submit_order(url = url, headers = headers, ticker = "AMZN", qty = "100", side = "buy", type = "limit", time_in_force = "day", limit_price = "120")
+#----------------------------------------------------------------------------------------------
+
+#submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
 
 
 
@@ -190,36 +218,48 @@ submit_order <- function(url, headers, ticker, qty, side, type, time_in_force, l
 
 
 
+
+#----------------------------------------------------------------------------------------------
 #' Cancel Order function
 #' 
 #' Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
 #' @param ticker The stock's symbol as a string.
+#' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
 #' @examples 
-#' cancel_order(url = url, headers = headers, ticker = "AMZN")
+#' cancel_order(paper = TRUE, ticker = "AAPL")
 #' @export
-cancel_order <- function(url, headers, ticker){
-
+cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
+  #Url
+  ifelse(paper == TRUE, 
+         url <- "https://paper-api.alpaca.markets",
+         url <- "https://api.alpaca.markets")
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  
   #Gather the open order ID for the symbol specified
-  open_orders = get_orders(url = url, headers, status = "open")
+  open_orders = get_orders(paper, status = "open")
   order_id = subset(open_orders, symbol == ticker)$id
   
-  #Cancel the order through the order_id
-  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id,collapse = ""), headers)
+  #Send Request & Cancel the order through the order_id
+  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
   cat(paste("Order ID", order_id, "was successfully canceled"))
 }
-#cancel_order(url = url, headers = headers, ticker = "AMZN")
+#----------------------------------------------------------------------------------------------
+
+#cancel_order(paper = TRUE, ticker = "AAPL")
 
 
 
 
 
+
+
+#----------------------------------------------------------------------------------------------
 #' Get Assets function
 #' 
 #' The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
 #' @param ticker The stock's symbol as a string.
 #' @return "id Asset" ID as a string.
 #' @return "asset_class" us_equity as a string.
@@ -228,21 +268,30 @@ cancel_order <- function(url, headers, ticker){
 #' @return "status" active or inactive as a string.
 #' @return "tradeable" Asset is tradable on Alpaca or not as a boolean.
 #' @examples 
-#' get_assets(url = url, headers = headers)
+#' get_assets()
 #' @export
-get_assets <- function(url, headers, ticker = NULL){
+get_assets <- function(ticker = NULL){
+  #Url
+  url <- "https://api.alpaca.markets"
   
-  #We could specify symbols instead of getting all assets
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  
+  #Send Request
   if(is.null(ticker)){
-    assets = httr::GET(url = paste0(url,"/v1/assets",collapse = ""), headers)
+    assets = httr::GET(url = paste0(url,"/v1/assets"), headers)
     assets = response_text_clean(assets)
   } else{
-    assets = httr::GET(url = paste0(url,"/v1/assets/",ticker,collapse = ""), headers)
+    assets = httr::GET(url = paste0(url,"/v1/assets/",ticker), headers)
     assets = response_text_clean(assets)
   } 
   return(assets)
 }
-#get_assets(url = url, headers = headers)
+#----------------------------------------------------------------------------------------------
+
+
+#get_assets()
 
 
 
@@ -251,51 +300,74 @@ get_assets <- function(url, headers, ticker = NULL){
 
 
 
-
+#----------------------------------------------------------------------------------------------
 #' Get Calendar function
 #' 
 #' The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
+#' @param from  Starting date of request. Default to NULL so it starts from 1970.
+#' @param to  Ending date of request. Default to NULL so it ends in 2029.
 #' @return "date" Date string. in date format as a string.
 #' @return "open" The time the market opens at on this date in hour:min format as a string.
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
-#' get_calendar(url = url, headers = headers)
+#' get_calendar()
+#' @examples 
+#' get_calendar(from = "2019-01-01", to = "2019-04-01")
 #' @export
-get_calendar <- function(url, headers){
+get_calendar <- function(from = NULL, to = NULL){
+  #Url
+  url <- "https://api.alpaca.markets"
   
-  calendar = httr::GET(url = paste0(url,"/v1/calendar",collapse = ""), headers)
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  
+  if(is.null(from) & is.null(to)){
+  calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
   calendar =  response_text_clean(calendar)
+  } else{ 
+  calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
+  calendar =  response_text_clean(calendar)
+  }
   return(calendar)
 }
-#get_calendar(url = url, headers = headers)
+#----------------------------------------------------------------------------------------------
+
+#get_calendar(from = "2019-01-01", to = "2019-04-01")
 
 
 
 
 
 
-
+#----------------------------------------------------------------------------------------------
 #' Get Clock function
 #' 
 #' The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
 #' @return "timestamp" Current timestamp as a string.
 #' @return "is_open" Whether or not the market is open as a boolean.
 #' @return "next_open" Next market open timestamp as a string.
 #' @return "next_close" Next market close timestamp as a string.
 #' @examples 
-#' get_clock(url = url, headers = headers)
+#' get_clock()
 #' @export
-get_clock <- function(url, headers){
-
-  clock = httr::GET(url = paste0(url,"/v1/clock",collapse = ""), headers)
+get_clock <- function(){
+  
+  #Url
+  url <- "https://api.alpaca.markets"
+  
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Send Request
+  clock = httr::GET(url = paste0(url,"/v1/clock"), headers)
   clock = response_text_clean(clock)
   return(clock)
 }
-#get_clock(url = url, headers = headers)
+#----------------------------------------------------------------------------------------------
+
+
+#get_clock()
 
 
 
@@ -304,15 +376,15 @@ get_clock <- function(url, headers){
 
 
 
-
-
+#----------------------------------------------------------------------------------------------
 #' Get Bars function
 #' 
 #' The bars API provides time-aggregated price and volume data for a single stock or multiple.
-#' @param url  URL to your user live or paper API.
-#' @param headers  Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.
 #' @param ticker The stock or stocks (in vector format) that you want.
-#' @param from The starting date for the pricing data
+#' @param from The starting date for the pricing data. Default is the last 5 trading days.
+#' @param to The ending date for the pricing data. Default is NULL so it returns most recent data point.
+#' @param timeframe One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
+#' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 100.
 #' @return "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
 #' @return "o" open price as a numberic object.
 #' @return "h" high price as a numberic object.
@@ -320,18 +392,30 @@ get_clock <- function(url, headers){
 #' @return "c" close price as a numberic object.
 #' @return "v" volume as a numberic object.
 #' @examples 
-#' get_bars(url_data = url_data, headers = headers, ticker = "INTC", from = "2019-03-20")
+#' get_bars(ticker = c("INTC","MSFT"))
+#' @examples 
+#' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 #' @export
-get_bars <- function(url_data, headers, ticker, from){
+get_bars <- function(ticker, from = Sys.Date()-7, to = NULL, timeframe = "1D", limit = 100){
+  #Url
+  url <- "https://data.alpaca.markets"
+  
+  #Headers
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
   
   #Check for multiple tickers or just one
   ticker <- ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
-                                                                                    #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
-  bars = httr::GET(url = paste0(url_data,"/v1/bars","/1D","?symbols=",ticker,"&start=",from,"T09:30:00-04:00",collapse = ""), headers)
+  
+  #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
+  bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
   bars = response_text_clean(bars)
   return(bars)
 }
-#get_bars(url_data = url_data, headers = headers, ticker = "INTC", from = "2019-03-20")
+#----------------------------------------------------------------------------------------------
+
+
+#get_bars(ticker = c("INTC","MSFT"))
 
 #===================================================================================================
-
+# PACKAGE FUNCTIONS END #
