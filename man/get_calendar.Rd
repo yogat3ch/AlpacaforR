@@ -4,12 +4,12 @@
 \alias{get_calendar}
 \title{Get Calendar function}
 \usage{
-get_calendar(url, headers)
+get_calendar(from = NULL, to = NULL)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
+\item{from}{Starting date of request. Default to NULL so it starts from 1970.}
 
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{to}{Ending date of request. Default to NULL so it ends in 2029.}
 }
 \value{
 "date" Date string. in date format as a string.
@@ -22,5 +22,6 @@ get_calendar(url, headers)
 The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures.
 }
 \examples{
-get_calendar(url = url, headers = headers)
+get_calendar()
+get_calendar(from = "2019-01-01", to = "2019-04-01")
 }

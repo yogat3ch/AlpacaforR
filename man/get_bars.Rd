@@ -4,16 +4,19 @@
 \alias{get_bars}
 \title{Get Bars function}
 \usage{
-get_bars(url_data, headers, ticker, from)
+get_bars(ticker, from = Sys.Date() - 7, to = NULL, timeframe = "1D",
+  limit = 100)
 }
 \arguments{
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
-
 \item{ticker}{The stock or stocks (in vector format) that you want.}
 
-\item{from}{The starting date for the pricing data}
+\item{from}{The starting date for the pricing data. Default is the last 5 trading days.}
 
-\item{url}{URL to your user live or paper API.}
+\item{to}{The ending date for the pricing data. Default is NULL so it returns most recent data point.}
+
+\item{timeframe}{One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.}
+
+\item{limit}{The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 100.}
 }
 \value{
 "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
@@ -32,5 +35,6 @@ get_bars(url_data, headers, ticker, from)
 The bars API provides time-aggregated price and volume data for a single stock or multiple.
 }
 \examples{
-get_bars(url_data = url_data, headers = headers, ticker = "INTC", from = "2019-03-20")
+get_bars(ticker = c("INTC","MSFT"))
+get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 }

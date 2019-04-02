@@ -4,12 +4,10 @@
 \alias{get_account}
 \title{Get Account function}
 \usage{
-get_account(url, headers)
+get_account(paper = FALSE)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
-
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
 }
 \value{
 "id" Account ID as a string.
@@ -38,5 +36,5 @@ get_account(url, headers)
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
 }
 \examples{
-get_account(url = url, headers = headers)
+get_account(paper = TRUE)
 }

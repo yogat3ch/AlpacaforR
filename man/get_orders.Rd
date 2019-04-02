@@ -4,12 +4,10 @@
 \alias{get_orders}
 \title{Get Orders function}
 \usage{
-get_orders(url, headers, status, from = NULL)
+get_orders(paper = FALSE, status = "open", from = NULL)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
-
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
 
 \item{status}{Order status to be queried "open, closed or all". Defaults to open as a string.}
 
@@ -60,5 +58,5 @@ get_orders(url, headers, status, from = NULL)
 The orders API allows a user to monitor, place and cancel their orders with Alpaca.
 }
 \examples{
-get_orders(url = url, headers = headers, status = "open")
+get_orders(paper = TRUE)
 }

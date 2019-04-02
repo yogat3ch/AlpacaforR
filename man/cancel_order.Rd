@@ -4,18 +4,18 @@
 \alias{cancel_order}
 \title{Cancel Order function}
 \usage{
-cancel_order(url, headers, ticker)
+cancel_order(paper = FALSE, ticker, order_id = NULL)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
-
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
 
 \item{ticker}{The stock's symbol as a string.}
+
+\item{order_id}{You can specify which order to cancel by entering order_id. Defaults to most recent open order.}
 }
 \description{
 Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
 }
 \examples{
-cancel_order(url = url, headers = headers, ticker = "AMZN")
+cancel_order(paper = TRUE, ticker = "AAPL")
 }

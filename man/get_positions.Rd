@@ -4,12 +4,12 @@
 \alias{get_positions}
 \title{Get Positions function}
 \usage{
-get_positions(url, headers, ticker = NULL)
+get_positions(paper = FALSE, ticker = NULL)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
 
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
 }
 \value{
 "asset_id"  Asset ID as a string.
@@ -48,5 +48,5 @@ get_positions(url, headers, ticker = NULL)
 The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
 }
 \examples{
-get_positions(url = url, headers = headers) 
+get_positions(paper = TRUE, ticker = "AAPL")
 }

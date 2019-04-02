@@ -4,12 +4,7 @@
 \alias{get_clock}
 \title{Get Clock function}
 \usage{
-get_clock(url, headers)
-}
-\arguments{
-\item{url}{URL to your user live or paper API.}
-
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+get_clock()
 }
 \value{
 "timestamp" Current timestamp as a string.
@@ -24,5 +19,5 @@ get_clock(url, headers)
 The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close.
 }
 \examples{
-get_clock(url = url, headers = headers)
+get_clock()
 }

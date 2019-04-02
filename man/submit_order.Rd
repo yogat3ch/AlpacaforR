@@ -4,13 +4,11 @@
 \alias{submit_order}
 \title{Submit Order function}
 \usage{
-submit_order(url, headers, ticker, qty, side, type, time_in_force,
-  limit_price = NULL, stop_price = NULL)
+submit_order(paper = FALSE, ticker, qty, side, type,
+  time_in_force = "day", limit_price = NULL, stop_price = NULL)
 }
 \arguments{
-\item{url}{URL to your user live or paper API.}
-
-\item{headers}{Header object containing your KeyID & SecretID to your user API. Use add_headers('APCA-API-KEY-ID' = value, 'APCA-API-SECRET-KEY' = value) from httr package.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
 
 \item{ticker}{The stock's symbol as a string.}
 
@@ -20,7 +18,7 @@ submit_order(url, headers, ticker, qty, side, type, time_in_force,
 
 \item{type}{The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.}
 
-\item{time_in_force}{The type of time order. I.E day, gtc, etc as a string.}
+\item{time_in_force}{The type of time order. I.E day, gtc, etc as a string. Defaults to "day".}
 
 \item{limit_price}{If order type was a limit, then enter the limit price here as a string.}
 
@@ -30,5 +28,5 @@ submit_order(url, headers, ticker, qty, side, type, time_in_force,
 Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
 }
 \examples{
-submit_order(url = url, headers = headers, ticker = "AMZN", qty = "10", side = "buy", type = "limit", time_in_force = "day", limit_price = "1000")
+submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 }
