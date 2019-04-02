@@ -17,6 +17,7 @@
 # RStudio files
 .Rproj.user/
 AlpacaforR.Rproj
+.Rbuildignore
 
 # produced vignettes
 vignettes/*.html
