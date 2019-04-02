@@ -23,23 +23,26 @@ response_text_clean <- function(dat){
 #' Get URL for Server Request function
 #' 
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
-#' @param paper A parameter used in functions that require knowledge of the account type.
+#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
-get_url <- function(paper){
+get_url <- function(paper=NULL){
     
-    if(exists("paper")){
-      if(paper) url <- "https://paper-api.alpaca.markets"
-      else url <- "https://api.alpaca.markets"
-  } 
-    else{
-    url <- "https://api.alpaca.markets" 
-  } 
+    if(is.null(paper)){
+      url <- "https://api.alpaca.markets"
+    } 
+      else{
+      url <- ifelse(paper, 
+                    "https://paper-api.alpaca.markets",
+                    "https://api.alpaca.markets")
+    }
   return(url)
 }
 #----------------------------------------------------------------------------------------------
 
 #get_url()
+
+
 
 
 
@@ -59,6 +62,7 @@ get_headers <- function(){
 
 
 #get_headers()
+
 
 
 
@@ -89,7 +93,7 @@ get_headers <- function(){
 #' @export
 get_account <- function(paper = FALSE){
   #Set URL & Headers
-  url = get_url()
+  url = get_url(paper)
   headers = get_headers()
   #Send Request
   account = httr::GET(url = paste0(url,"/v1/account"), headers)
@@ -132,7 +136,7 @@ get_account <- function(paper = FALSE){
 #' @export
 get_positions <- function(paper = FALSE, ticker = NULL){
   #Set URL & Headers
-  url = get_url()
+  url = get_url(paper)
   headers = get_headers()
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
@@ -182,7 +186,7 @@ get_positions <- function(paper = FALSE, ticker = NULL){
 #' @export
 get_orders <- function(paper = FALSE, status = "open", from=NULL){
   #Set URL & Headers
-  url = get_url()
+  url = get_url(paper)
   headers = get_headers()
   #Send Request
   if(is.null(from)){
@@ -224,7 +228,7 @@ get_orders <- function(paper = FALSE, status = "open", from=NULL){
 #' @export
 submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
   #Set URL & Headers
-  url = get_url()
+  url = get_url(paper)
   headers = get_headers()
   
   #Create body with order details, most common is a named list 
@@ -259,7 +263,7 @@ submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force =
 #' @export
 cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
   #Set URL & Headers
-  url = get_url()
+  url = get_url(paper)
   headers = get_headers()
   
   #Gather the open order ID for the symbol specified

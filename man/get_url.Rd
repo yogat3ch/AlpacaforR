@@ -4,10 +4,10 @@
 \alias{get_url}
 \title{Get URL for Server Request function}
 \usage{
-get_url(paper)
+get_url(paper = NULL)
 }
 \arguments{
-\item{paper}{A parameter used in functions that require knowledge of the account type.}
+\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.}
 }
 \value{
 The correct URL according to account type (live or paper) that will be sent in the API request.
