@@ -16,6 +16,7 @@
 
 # RStudio files
 .Rproj.user/
+AlpacaforR.Rproj
 
 # produced vignettes
 vignettes/*.html
