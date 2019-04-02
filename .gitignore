@@ -4,6 +4,7 @@
 
 # Session Data files
 .RData
+.DS_Store
 
 # Example code in package build process
 *-Ex.R
@@ -15,7 +16,7 @@
 /*.Rcheck/
 
 # RStudio files
-.Rproj.user/
+.Rproj.user
 AlpacaforR.Rproj
 .Rbuildignore
 
