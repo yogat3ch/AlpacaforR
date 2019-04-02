@@ -7,6 +7,7 @@
 #' 
 #' Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
 #' @param dat The response from our server GET request usually in a json format.
+#' @return The response in a readable format as a list.
 #' @export
 response_text_clean <- function(dat){
   
@@ -15,6 +16,49 @@ response_text_clean <- function(dat){
   return(dat)
 }
 #----------------------------------------------------------------------------------------------
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get URL for Server Request function
+#' 
+#' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
+#' @param paper A parameter used in functions that require knowledge of the account type.
+#' @return The correct URL according to account type (live or paper) that will be sent in the API request.
+#' @export
+get_url <- function(paper){
+    
+    if(exists("paper")){
+      if(paper) url <- "https://paper-api.alpaca.markets"
+      else url <- "https://api.alpaca.markets"
+  } 
+    else{
+    url <- "https://api.alpaca.markets" 
+  } 
+  return(url)
+}
+#----------------------------------------------------------------------------------------------
+
+#get_url()
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Headers for Server Request function
+#'
+#' @return The correct headers that will be sent in the API request.
+#' @export
+get_headers <- function(){
+  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))  
+  return(headers)
+}
+#----------------------------------------------------------------------------------------------
+
+
+#get_headers()
 
 
 
@@ -44,13 +88,9 @@ response_text_clean <- function(dat){
 #' get_account(paper = TRUE)
 #' @export
 get_account <- function(paper = FALSE){
-  #Url
-  ifelse(paper == TRUE, 
-         url <- "https://paper-api.alpaca.markets",
-         url <- "https://api.alpaca.markets")
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                               'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   #Send Request
   account = httr::GET(url = paste0(url,"/v1/account"), headers)
   account = response_text_clean(account)
@@ -91,13 +131,9 @@ get_account <- function(paper = FALSE){
 #' get_positions(paper = TRUE, ticker = "AAPL")
 #' @export
 get_positions <- function(paper = FALSE, ticker = NULL){
-  #Url
-  ifelse(paper == TRUE, 
-         url <- "https://paper-api.alpaca.markets",
-         url <- "https://api.alpaca.markets")
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
@@ -145,13 +181,9 @@ get_positions <- function(paper = FALSE, ticker = NULL){
 #' get_orders(paper = TRUE)
 #' @export
 get_orders <- function(paper = FALSE, status = "open", from=NULL){
-  #Url
-  ifelse(paper == TRUE, 
-         url <- "https://paper-api.alpaca.markets",
-         url <- "https://api.alpaca.markets")
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   #Send Request
   if(is.null(from)){
     orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
@@ -191,13 +223,9 @@ get_orders <- function(paper = FALSE, status = "open", from=NULL){
 #' submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 #' @export
 submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
-  #Url
-  ifelse(paper == TRUE, 
-         url <- "https://paper-api.alpaca.markets",
-         url <- "https://api.alpaca.markets")
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   
   #Create body with order details, most common is a named list 
   bodyl <- list(symbol=ticker, qty=qty, side = side, type = type, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
@@ -230,13 +258,9 @@ submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force =
 #' cancel_order(paper = TRUE, ticker = "AAPL")
 #' @export
 cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
-  #Url
-  ifelse(paper == TRUE, 
-         url <- "https://paper-api.alpaca.markets",
-         url <- "https://api.alpaca.markets")
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   
   #Gather the open order ID for the symbol specified
   open_orders = get_orders(paper, status = "open")
@@ -271,12 +295,9 @@ cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
 #' get_assets()
 #' @export
 get_assets <- function(ticker = NULL){
-  #Url
-  url <- "https://api.alpaca.markets"
-  
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   
   #Send Request
   if(is.null(ticker)){
@@ -315,12 +336,9 @@ get_assets <- function(ticker = NULL){
 #' get_calendar(from = "2019-01-01", to = "2019-04-01")
 #' @export
 get_calendar <- function(from = NULL, to = NULL){
-  #Url
-  url <- "https://api.alpaca.markets"
-  
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   
   if(is.null(from) & is.null(to)){
   calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
@@ -352,13 +370,10 @@ get_calendar <- function(from = NULL, to = NULL){
 #' get_clock()
 #' @export
 get_clock <- function(){
+  #Set URL & Headers
+  url = get_url()
+  headers = get_headers()
   
-  #Url
-  url <- "https://api.alpaca.markets"
-  
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
   #Send Request
   clock = httr::GET(url = paste0(url,"/v1/clock"), headers)
   clock = response_text_clean(clock)
@@ -397,12 +412,9 @@ get_clock <- function(){
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-7, to = NULL, timeframe = "1D", limit = 100){
-  #Url
-  url <- "https://data.alpaca.markets"
-  
-  #Headers
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  #Set Url & Headers
+  url <- "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
+  headers = get_headers()
   
   #Check for multiple tickers or just one
   ticker <- ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
