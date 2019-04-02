@@ -53,7 +53,7 @@ Sys.getenv('APCA-API-KEY-ID')
 Sys.getenv('APCA-API-SECRET-KEY')
 ```
 
-The output should be the key values you've entered. 
+The output should be the key values you've entered. Once you've set these to your environment, you should be able to use any of the **AlpacaforR** functions. 
 
 ## Start trading in R!
 You're all set! Now your ready to begin using **AlpacaforR** functions to send and recieve [Alpaca](https://alpaca.markets) API requests using R! See the help calls for details on each function. E.g `?get_account` 
