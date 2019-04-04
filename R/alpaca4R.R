@@ -23,18 +23,18 @@ response_text_clean <- function(dat){
 #' Get URL for Server Request function
 #' 
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.
+#' @param live TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
-get_url <- function(paper=NULL){
+get_url <- function(live=NULL){
     
-    if(is.null(paper)){
-      url <- "https://api.alpaca.markets"
+    if(is.null(live)){
+      url <- "https://paper-api.alpaca.markets"
     } 
       else{
-      url <- ifelse(paper, 
-                    "https://paper-api.alpaca.markets",
-                    "https://api.alpaca.markets")
+      url <- ifelse(live, 
+                    "https://api.alpaca.markets",
+                    "https://paper-api.alpaca.markets")
     }
   return(url)
 }
@@ -76,7 +76,7 @@ get_headers <- function(){
 #' Get Account function
 #'
 #' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @return "id" Account ID as a string.
 #' @return "status" Account Status as a string.
 #' @return "currency" USD as a string.
@@ -89,11 +89,11 @@ get_headers <- function(){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(paper = TRUE)
+#' get_account(live = FALSE)
 #' @export
-get_account <- function(paper = FALSE){
+get_account <- function(live = FALSE){
   #Set URL & Headers
-  url = get_url(paper)
+  url = get_url(live)
   headers = get_headers()
   #Send Request
   account = httr::GET(url = paste0(url,"/v1/account"), headers)
@@ -102,7 +102,7 @@ get_account <- function(paper = FALSE){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_account(paper = TRUE)
+#get_account()
 
 
 
@@ -113,7 +113,7 @@ get_account <- function(paper = FALSE){
 #' Get Positions function
 #'
 #' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return "asset_id"  Asset ID as a string.
 #' @return "symbol"  Symbol of the asset as a string.
@@ -132,11 +132,11 @@ get_account <- function(paper = FALSE){
 #' @return "lastday_price"  Last day’s asset price per share as a string.
 #' @return "change_today"  Percent change from last day price (by a factor of 1) as a string.
 #' @examples 
-#' get_positions(paper = TRUE, ticker = "AAPL")
+#' get_positions(live = FALSE, ticker = "AAPL")
 #' @export
-get_positions <- function(paper = FALSE, ticker = NULL){
+get_positions <- function(live = FALSE, ticker = NULL){
   #Set URL & Headers
-  url = get_url(paper)
+  url = get_url(live)
   headers = get_headers()
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
@@ -145,7 +145,7 @@ get_positions <- function(paper = FALSE, ticker = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_positions(paper = TRUE, ticker = "AAPL") 
+#get_positions() 
 
 
 
@@ -158,7 +158,7 @@ get_positions <- function(paper = FALSE, ticker = NULL){
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca.
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
 #' @return "id" order id as a string.
@@ -182,26 +182,31 @@ get_positions <- function(paper = FALSE, ticker = NULL){
 #' @return "stop_price" Stop price as a string.
 #' @return "status" Status of the order as a string.
 #' @examples 
-#' get_orders(paper = TRUE)
+#' get_orders(live = FALSE)
 #' @export
-get_orders <- function(paper = FALSE, status = "open", from=NULL){
+get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
   #Set URL & Headers
-  url = get_url(paper)
+  url = get_url(live)
   headers = get_headers()
+  
   #Send Request
   if(is.null(from)){
     orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
     orders = response_text_clean(orders)
   } else {
     orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-    orders = response_text_clean(orders)
+    orders <<- response_text_clean(orders)
   }
+  
+  if(!is.null(ticker)){
+    orders = dplyr::filter(orders, symbol %in% ticker)
+  } 
   return(orders)
 }
 #----------------------------------------------------------------------------------------------
 
-#get_orders(paper = TRUE)
 
+#get_orders
 
 
 
@@ -215,7 +220,7 @@ get_orders <- function(paper = FALSE, status = "open", from=NULL){
 #' Submit Order function
 #' 
 #' Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker The stock's symbol as a string.
 #' @param qty The amount of shares to trade as a string.
 #' @param side The side of the trade. I.E buy or sell as a string.
@@ -224,11 +229,11 @@ get_orders <- function(paper = FALSE, status = "open", from=NULL){
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
 #' @examples 
-#' submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
+#' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 #' @export
-submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
+submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
   #Set URL & Headers
-  url = get_url(paper)
+  url = get_url(live)
   headers = get_headers()
   
   #Create body with order details, most common is a named list 
@@ -241,7 +246,7 @@ submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force =
 }
 #----------------------------------------------------------------------------------------------
 
-#submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+#submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
 
 
 
@@ -255,19 +260,19 @@ submit_order <- function(paper = FALSE, ticker, qty, side, type, time_in_force =
 #' Cancel Order function
 #' 
 #' Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
-#' @param paper TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker The stock's symbol as a string.
 #' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
 #' @examples 
-#' cancel_order(paper = TRUE, ticker = "AAPL")
+#' cancel_order(ticker = "AAPL")
 #' @export
-cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
+cancel_order <- function(live = FALSE, ticker, order_id = NULL){
   #Set URL & Headers
-  url = get_url(paper)
+  url = get_url(live)
   headers = get_headers()
   
   #Gather the open order ID for the symbol specified
-  open_orders = get_orders(paper, status = "open")
+  open_orders = get_orders(live, status = "open")
   order_id = subset(open_orders, symbol == ticker)$id
   
   #Send Request & Cancel the order through the order_id
@@ -276,7 +281,7 @@ cancel_order <- function(paper = FALSE, ticker, order_id = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#cancel_order(paper = TRUE, ticker = "AAPL")
+#cancel_order(ticker = "AAPL")
 
 
 
@@ -343,6 +348,7 @@ get_calendar <- function(from = NULL, to = NULL){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
+  if(!is.null(to)) to <- as.character(as.Date(to)+1)
   
   if(is.null(from) & is.null(to)){
   calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
@@ -355,7 +361,7 @@ get_calendar <- function(from = NULL, to = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_calendar(from = "2019-01-01", to = "2019-04-01")
+#get_calendar()
 
 
 
@@ -415,7 +421,7 @@ get_clock <- function(){
 #' @examples 
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-7, to = NULL, timeframe = "1D", limit = 100){
+get_bars <- function(ticker, from = Sys.Date()-7, to = Sys.Date(), timeframe = "1D", limit = 100){
   #Set Url & Headers
   url <- "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
   headers = get_headers()
@@ -426,12 +432,20 @@ get_bars <- function(ticker, from = Sys.Date()-7, to = NULL, timeframe = "1D", l
   #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
   bars = response_text_clean(bars)
+  
+  #Get the trading days in between the sequence so we can create date column and return values
+  #SUBTRACT 1 FROM TO? DO WE NEED TO? WHEN MARKET CLOSES, SEE IF IT WILL RUN WITHOUT SUBTRACTING ONE. IF SO, WE WILL NEED TO ONLY SUBTRACT 1 WHEN GET_BARS HAS NOT YET UPDATED.
+  week_dates = as.Date(get_calendar(from,to-1)$date)
+  bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
 
 
-#get_bars(ticker = c("INTC","MSFT"))
+#get_bars(ticker = "MSFT")
 
 #===================================================================================================
 # PACKAGE FUNCTIONS END #
+
+
+
