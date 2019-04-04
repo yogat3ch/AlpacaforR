@@ -4,11 +4,11 @@
 \alias{submit_order}
 \title{Submit Order function}
 \usage{
-submit_order(paper = FALSE, ticker, qty, side, type,
+submit_order(live = FALSE, ticker, qty, side, type,
   time_in_force = "day", limit_price = NULL, stop_price = NULL)
 }
 \arguments{
-\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 
 \item{ticker}{The stock's symbol as a string.}
 
@@ -28,5 +28,8 @@ submit_order(paper = FALSE, ticker, qty, side, type,
 Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
 }
 \examples{
-submit_order(paper = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
+For market order:
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+Or you can submit a limit order:
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 }

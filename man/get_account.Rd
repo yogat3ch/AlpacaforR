@@ -4,10 +4,10 @@
 \alias{get_account}
 \title{Get Account function}
 \usage{
-get_account(paper = FALSE)
+get_account(live = FALSE)
 }
 \arguments{
-\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
 \value{
 "id" Account ID as a string.
@@ -36,5 +36,9 @@ get_account(paper = FALSE)
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
 }
 \examples{
-get_account(paper = TRUE)
+get_account(live = FALSE)
+Which is similar to:
+get_account()
+For access to live accounts, you must submit as live = TRUE
+get_account(live = TRUE)
 }

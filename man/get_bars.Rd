@@ -4,8 +4,8 @@
 \alias{get_bars}
 \title{Get Bars function}
 \usage{
-get_bars(ticker, from = Sys.Date() - 7, to = NULL, timeframe = "1D",
-  limit = 100)
+get_bars(ticker, from = Sys.Date() - 7, to = Sys.Date(),
+  timeframe = "1D", limit = 100)
 }
 \arguments{
 \item{ticker}{The stock or stocks (in vector format) that you want.}
@@ -35,6 +35,8 @@ get_bars(ticker, from = Sys.Date() - 7, to = NULL, timeframe = "1D",
 The bars API provides time-aggregated price and volume data for a single stock or multiple.
 }
 \examples{
+Getting one or more tickers: 
 get_bars(ticker = c("INTC","MSFT"))
+Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 }

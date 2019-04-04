@@ -4,10 +4,10 @@
 \alias{cancel_order}
 \title{Cancel Order function}
 \usage{
-cancel_order(paper = FALSE, ticker, order_id = NULL)
+cancel_order(live = FALSE, ticker, order_id = NULL)
 }
 \arguments{
-\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 
 \item{ticker}{The stock's symbol as a string.}
 
@@ -17,5 +17,7 @@ cancel_order(paper = FALSE, ticker, order_id = NULL)
 Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
 }
 \examples{
-cancel_order(paper = TRUE, ticker = "AAPL")
+cancel_order(ticker = "AAPL")
+Or you can instead cancel by the order_id:
+cancel_order(order_id = VALUE)
 }

@@ -4,10 +4,11 @@
 \alias{get_orders}
 \title{Get Orders function}
 \usage{
-get_orders(paper = FALSE, status = "open", from = NULL)
+get_orders(live = FALSE, status = "open", from = NULL,
+  ticker = NULL)
 }
 \arguments{
-\item{paper}{TRUE / FALSE if you are connecting to a paper account. Default to FALSE, so it will use the live url.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 
 \item{status}{Order status to be queried "open, closed or all". Defaults to open as a string.}
 
@@ -58,5 +59,8 @@ get_orders(paper = FALSE, status = "open", from = NULL)
 The orders API allows a user to monitor, place and cancel their orders with Alpaca.
 }
 \examples{
-get_orders(paper = TRUE)
+get_orders(live = FALSE)
+get_orders(status = "all")
+For a specific ticker:
+get_orders(status = "all", ticker = "AAPL")
 }

@@ -90,6 +90,10 @@ get_headers <- function(){
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
 #' get_account(live = FALSE)
+#' Which is similar to:
+#' get_account()
+#' For access to live accounts, you must submit as live = TRUE
+#' get_account(live = TRUE)
 #' @export
 get_account <- function(live = FALSE){
   #Set URL & Headers
@@ -133,6 +137,9 @@ get_account <- function(live = FALSE){
 #' @return "change_today"  Percent change from last day price (by a factor of 1) as a string.
 #' @examples 
 #' get_positions(live = FALSE, ticker = "AAPL")
+#' get_positions(ticker = "AAPL")
+#' This gets all positions:
+#' get_positions()
 #' @export
 get_positions <- function(live = FALSE, ticker = NULL){
   #Set URL & Headers
@@ -183,6 +190,9 @@ get_positions <- function(live = FALSE, ticker = NULL){
 #' @return "status" Status of the order as a string.
 #' @examples 
 #' get_orders(live = FALSE)
+#' get_orders(status = "all")
+#' For a specific ticker:
+#' get_orders(status = "all", ticker = "AAPL")
 #' @export
 get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
   #Set URL & Headers
@@ -229,6 +239,9 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
 #' @examples 
+#' For market order:
+#' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+#' Or you can submit a limit order:
 #' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 #' @export
 submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
@@ -265,6 +278,8 @@ submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = 
 #' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
 #' @examples 
 #' cancel_order(ticker = "AAPL")
+#' Or you can instead cancel by the order_id:
+#' cancel_order(order_id = VALUE)
 #' @export
 cancel_order <- function(live = FALSE, ticker, order_id = NULL){
   #Set URL & Headers
@@ -302,6 +317,8 @@ cancel_order <- function(live = FALSE, ticker, order_id = NULL){
 #' @return "tradeable" Asset is tradable on Alpaca or not as a boolean.
 #' @examples 
 #' get_assets()
+#' Get a specific asset:
+#' get_assets(ticker = "AAPL")
 #' @export
 get_assets <- function(ticker = NULL){
   #Set URL & Headers
@@ -340,8 +357,10 @@ get_assets <- function(ticker = NULL){
 #' @return "open" The time the market opens at on this date in hour:min format as a string.
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
+#' Get all dates:
 #' get_calendar()
 #' @examples 
+#' Get specific date range:
 #' get_calendar(from = "2019-01-01", to = "2019-04-01")
 #' @export
 get_calendar <- function(from = NULL, to = NULL){
@@ -416,9 +435,11 @@ get_clock <- function(){
 #' @return "l" low price as a numberic object.
 #' @return "c" close price as a numberic object.
 #' @return "v" volume as a numberic object.
-#' @examples 
+#' @examples
+#' Getting one or more tickers: 
 #' get_bars(ticker = c("INTC","MSFT"))
 #' @examples 
+#' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-7, to = Sys.Date(), timeframe = "1D", limit = 100){
