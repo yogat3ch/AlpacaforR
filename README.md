@@ -22,22 +22,8 @@ library(AlpacaforR)
 
 
 
-## URL & User Keys
+## User Keys & URL 
 
-#### Live or Paper URL?
-The user does not have to specify the URL, as the functions handle that on its own. The user only needs to specify whether or not they are interacting with a paper account. E.g:
-
-```r
-#If live account; user does not need to do anything since paper = FALSE is the default.
-get_account()
-
-#If paper account; user needs to set paper = TRUE
-get_account(paper = TRUE)
-```
-
-Not all functions require this since some functions use the same URL regardless of the account type. These functions are `get_assets`, `get_calendar`, `get_clock`, and `get_bars` since the same URL is used for each user.
-
-<br> 
 
 #### KEY-ID and SECRET-KEY
 
@@ -55,5 +41,163 @@ Sys.getenv('APCA-API-SECRET-KEY')
 
 The output should be the key values you've entered. Once you've set these to your environment, you should be able to use any of the **AlpacaforR** functions. 
 
+<br>
+
+#### Live or Paper URL?
+The user does not have to specify the URL, as the functions handle that on its own. The user only needs to specify whether or not they are interacting with a live account. E.g:
+
+```r
+#If paper account; user does not need to input anything since live = FALSE is the default.
+get_account()
+
+#If live account; user needs to set live = TRUE
+get_account(live = TRUE)
+```
+
+Not all functions require this since some functions use the same URL regardless of the account type. These functions are `get_assets`, `get_calendar`, `get_clock`, and `get_bars` since the same URL is used for each user.
+
+
+## Getting your Account
+This is made extremely easy through the `get_account` function, which will return account details such as account id, portfolio value, buying power, cash, cash withdrawable, etc. 
+> 🛑 You *MUST* have your user keys set as the appropietley named environment variables shown above!
+
+```r
+#If paper account: 
+get_account()
+
+#If live account:
+get_account(live = TRUE)
+```
+
+## Getting your current positions
+You can get all your current positions or only the positions specified by ticker by calling `get_positions()`
+
+```r
+#If paper account:
+get_positions()
+
+#By specific tickers:
+get_positions(ticker = c("AAPL","AMZN"))
+
+If live account:
+get_positions(live = TRUE, ticker = c("AAPL","AMZN"))
+```
+
+
+## Managing Orders
+Getting, Submiting, and Cancelling orders are also made extremeley easy through `get_orders()`,`submit_order()`,`cancel_order()` but require some specific arguements. See `?` for more details.
+
+
+#### Getting orders
+To get orders, use `get_orders()` and set the status to your desired option. Status options are "open", "closed", and "all". Default status is set to "open".
+
+```r
+#If paper account:
+get_orders(status = "all") 
+
+#If live account:
+get_orders(live = TRUE, status = "all") 
+```
+
+#### Submitting orders
+To submit orders, use `submit_order()` with the appropiate arguements. These arguements include ticker, qty, side, type, time_in_force, limit_price, stop price. You **MUST** set a ticker ("AAPL"), the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
+
+The options for time_in_force are ("day" or "gtc" or "opg") but the default is set to "day". If you select "limit" or "stop" as your order type, then you must provide the limit_price or stop_price as inputs as well. Please see [Alpacas Order](https://docs.alpaca.markets/orders/) page to learn more about types of orders and time_in_force options. 
+
+```r
+#If paper account:
+
+#A market order
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+
+#A market order with "gtc" time_in_force
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc")
+
+#A limit order
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+
+
+#If live account:
+#A market order
+submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "market")
+
+#A market order with "gtc" time_in_force
+submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc")
+
+#A limit order
+submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+```
+
+
+#### Cancelling Orders
+You can cancel any open order using `cancel_order` by either specifying the ticker or order_id. You can find order_id when using `get_orders()` or just enter the ticker for the order you want cancelled. The function will search for and cancel the most recent open order for the ticker specified.
+
+```r
+#If paper account:
+#Cancelling by ticker
+cancel_order(ticker = "AAPL")
+
+#Cancelling by order_id
+cancel_order(order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
+
+#If live account:
+#Cancelling by ticker
+cancel_order(live = TRUE, ticker = "AAPL")
+
+#Cancelling by order_id
+cancel_order(live = TRUE, order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
+```
+
+
+##Getting all assets available or specific assets
+To get all assets available or just a specific asset, we can use `get_assets()` and provide a stocks symbol to the ticker arguement for a specific asset. We do not need to specify account type with this function. See `?` for more details.
+
+```r
+#Return ALL assets available on Alpaca:
+get_account()
+
+#Return a specific asset:
+get_account(ticker = "AAPL")
+```
+
+##Get pricing data from alpacas API
+We can use the `get_bars()` function to get pricing data in OHLCV bar format for one or multiple tickers. You do not need to specify the account type for this function. The only input needed is the ticker(s) value, and it will return a list containing pricing data for the last 5 trading days of each ticker. You can easily change the date range as well as the timeframe of the OHLCV bars with the "from", "to", and "timeframe" arguements. 
+
+
+
+
+The options for the timeframe arguement include "minute", "1Min", "5Min", "15Min", "day" or "1D" and has a default value of "1D". The options for the limit arguement, which is the amount of bars to return per ticker, include 1 to 1000 and has a default value of 100 bars. See `?` for more details.
+
+```r
+#Getting daily pricing data for multiple tickers, and returning the default timeframe (last 5 trading days).
+get_bars(ticker = c("AAPL","AMZN"))
+
+#Getting daily pricing data since the start of 2019
+get_bars(ticker = c("AAPL","AMZN"), from = "2019-01-01")
+
+#Getting 15Min bar pricing data for the last 5 trading days.
+get_bars(ticker = c("AAPL","AMZN"), timeframe= "15Min")
+
+#Getting 1Min pricing data for the last 5 trading days with the bars returned limit set to the max of 1000.
+get_bars(ticker = c("AAPL","AMZN"), timeframe= "1Min", limit = 1000)
+```
+
+## Getting open market days and market clock data
+One of my favorite requests to make using the Alpaca API is the calendar and clock requests. Using the `get_calendar()` and `get_clock()` functions in this package, we can get all the dates and hours from the start of 1970 to the end of 2029 during which the stock market is open while accounting for market holiday's. It is as simple as:
+
+```r
+#Getting all dates from 1970 to 2029:
+get_calendar()
+
+#Getting specific dates using date ranges:
+get_calendar(from = "2000-01-01", to = "2020-01-01")
+
+
+#Get market clock and see if the market is currently open as well as the times of the next open and close.
+get_clock()
+```
+
+
+
 ## Start trading in R!
-You're all set! Now your ready to begin using **AlpacaforR** functions to send and recieve [Alpaca](https://alpaca.markets) API requests using R! See the help calls for details on each function. E.g `?get_account` 
+You're all set! Now your ready to begin using **AlpacaforR** functions to send and receive [Alpaca](https://alpaca.markets) API requests using R! See the help calls for details on each function. E.g `?get_account` 

@@ -18,7 +18,7 @@ submit_order(live = FALSE, ticker, qty, side, type,
 
 \item{type}{The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.}
 
-\item{time_in_force}{The type of time order. I.E day, gtc, etc as a string. Defaults to "day".}
+\item{time_in_force}{The type of time order. I.E day, gtc, opg as a string. Defaults to "day".}
 
 \item{limit_price}{If order type was a limit, then enter the limit price here as a string.}
 

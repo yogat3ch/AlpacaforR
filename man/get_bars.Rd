@@ -4,7 +4,7 @@
 \alias{get_bars}
 \title{Get Bars function}
 \usage{
-get_bars(ticker, from = Sys.Date() - 7, to = Sys.Date(),
+get_bars(ticker, from = Sys.Date() - 6, to = Sys.Date(),
   timeframe = "1D", limit = 100)
 }
 \arguments{
@@ -12,7 +12,7 @@ get_bars(ticker, from = Sys.Date() - 7, to = Sys.Date(),
 
 \item{from}{The starting date for the pricing data. Default is the last 5 trading days.}
 
-\item{to}{The ending date for the pricing data. Default is NULL so it returns most recent data point.}
+\item{to}{The ending date for the pricing data. Default is todays date.}
 
 \item{timeframe}{One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.}
 

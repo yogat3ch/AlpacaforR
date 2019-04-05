@@ -14,7 +14,7 @@ cancel_order(live = FALSE, ticker, order_id = NULL)
 \item{order_id}{You can specify which order to cancel by entering order_id. Defaults to most recent open order.}
 }
 \description{
-Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
+Attempts to cancel an open order.
 }
 \examples{
 cancel_order(ticker = "AAPL")

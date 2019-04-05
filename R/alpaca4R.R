@@ -216,7 +216,7 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #----------------------------------------------------------------------------------------------
 
 
-#get_orders
+#get_orders()
 
 
 
@@ -235,7 +235,7 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #' @param qty The amount of shares to trade as a string.
 #' @param side The side of the trade. I.E buy or sell as a string.
 #' @param type The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.
-#' @param time_in_force The type of time order. I.E day, gtc, etc as a string. Defaults to "day".
+#' @param time_in_force The type of time order. I.E day, gtc, opg as a string. Defaults to "day".
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
 #' @examples 
@@ -272,7 +272,7 @@ submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = 
 #----------------------------------------------------------------------------------------------
 #' Cancel Order function
 #' 
-#' Attempts to cancel an open order. If the order is no longer cancelable (example: status=order_filled), the server will respond with status 422, and reject the request.
+#' Attempts to cancel an open order. 
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker The stock's symbol as a string.
 #' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
@@ -288,11 +288,16 @@ cancel_order <- function(live = FALSE, ticker, order_id = NULL){
   
   #Gather the open order ID for the symbol specified
   open_orders = get_orders(live, status = "open")
-  order_id = subset(open_orders, symbol == ticker)$id
   
-  #Send Request & Cancel the order through the order_id
-  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-  cat(paste("Order ID", order_id, "was successfully canceled"))
+  #Check if any open orders before proceeding. 
+  if(purrr::is_empty(open_orders)){
+    cat("There are no orders to cancel!")
+  } else{
+    order_id = subset(open_orders, symbol == ticker)$id
+    #Send Request & Cancel the order through the order_id
+    cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
+    cat(paste("Order ID", order_id, "was successfully canceled"))
+  } 
 }
 #----------------------------------------------------------------------------------------------
 
@@ -368,6 +373,7 @@ get_calendar <- function(from = NULL, to = NULL){
   url = get_url()
   headers = get_headers()
   if(!is.null(to)) to <- as.character(as.Date(to)+1)
+  if(!is.null(from)) from <- as.character(as.Date(from))
   
   if(is.null(from) & is.null(to)){
   calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
@@ -426,7 +432,7 @@ get_clock <- function(){
 #' The bars API provides time-aggregated price and volume data for a single stock or multiple.
 #' @param ticker The stock or stocks (in vector format) that you want.
 #' @param from The starting date for the pricing data. Default is the last 5 trading days.
-#' @param to The ending date for the pricing data. Default is NULL so it returns most recent data point.
+#' @param to The ending date for the pricing data. Default is todays date.
 #' @param timeframe One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
 #' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 100.
 #' @return "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
@@ -442,28 +448,47 @@ get_clock <- function(){
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-7, to = Sys.Date(), timeframe = "1D", limit = 100){
+get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = 100){
+  
   #Set Url & Headers
-  url <- "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
+  url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
   headers = get_headers()
   
+  
   #Check for multiple tickers or just one
-  ticker <- ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
+  ticker = ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
+  
+  
+  #Get the trading days in between the sequence so we can create date column and return values
+  #SUBTRACT 1 FROM TO? DO WE NEED TO? WHEN MARKET CLOSES, SEE IF IT WILL RUN WITHOUT SUBTRACTING ONE. IF SO, WE WILL NEED TO ONLY SUBTRACT 1 WHEN GET_BARS HAS NOT YET UPDATED.
+  week_dates = as.Date(get_calendar(from,to)$date)
+  
+  
+  #Since the max bars requested limit is at 1000, we need to bring the 1000 most recent price dates to match.
+  if(length(week_dates) > 1000){
+    start <- length(week_dates) - 999
+    week_dates <- week_dates[start:length(week_dates)]
+  }
+  
+  #Set bar limit by the length of week_dates
+  limit = length(week_dates)
   
   #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
   bars = response_text_clean(bars)
   
-  #Get the trading days in between the sequence so we can create date column and return values
-  #SUBTRACT 1 FROM TO? DO WE NEED TO? WHEN MARKET CLOSES, SEE IF IT WILL RUN WITHOUT SUBTRACTING ONE. IF SO, WE WILL NEED TO ONLY SUBTRACT 1 WHEN GET_BARS HAS NOT YET UPDATED.
-  week_dates = as.Date(get_calendar(from,to-1)$date)
+  #Calendar already has future data so check if the price data was updated yet and if not then fix the calendar "to" date
+  if(length(week_dates) > nrow(bars[[1]])){
+    to <- as.Date(to)
+    week_dates <- get_calendar(from,to-1)$date
+  }
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
 
 
-#get_bars(ticker = "MSFT")
+get_bars(ticker = c("AAPL","MSFT"))
 
 #===================================================================================================
 # PACKAGE FUNCTIONS END #
