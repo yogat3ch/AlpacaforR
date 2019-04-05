@@ -4,15 +4,17 @@
 \alias{get_orders}
 \title{Get Orders function}
 \usage{
-get_orders(status = "open", from = NULL, ticker = NULL,
-  live = FALSE)
+get_orders(ticker = NULL, status = "open", from = NULL,
+  silent = FALSE, live = FALSE)
 }
 \arguments{
+\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+
 \item{status}{Order status to be queried "open, closed or all". Defaults to open as a string.}
 
 \item{from}{The response will include only orders submitted after this date exclusive as a timestamp object.}
 
-\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+\item{silent}{A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.}
 
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
@@ -64,5 +66,5 @@ The orders API allows a user to monitor, place and cancel their orders with Alpa
 get_orders(live = FALSE)
 get_orders(status = "all")
 For a specific ticker:
-get_orders(status = "all", ticker = "AAPL")
+get_orders(ticker = "AAPL", status = "all")
 }

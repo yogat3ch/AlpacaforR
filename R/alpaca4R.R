@@ -19,6 +19,7 @@ response_text_clean <- function(dat){
 
 
 
+
 #----------------------------------------------------------------------------------------------
 #' Get URL for Server Request function
 #' 
@@ -71,7 +72,6 @@ get_headers <- function(){
 
 
 #Functions to interact with Alpaca API
-
 #----------------------------------------------------------------------------------------------
 #' Get Account function
 #'
@@ -105,6 +105,7 @@ get_account <- function(live = FALSE){
   return(account)
 }
 #----------------------------------------------------------------------------------------------
+
 
 
 
@@ -161,14 +162,14 @@ get_positions <- function(ticker = NULL, live = FALSE){
 
 
 
-
 #----------------------------------------------------------------------------------------------
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
-#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param silent A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @return "id" order id as a string.
 #' @return "client_order_id" client unique order id as a string.
@@ -194,30 +195,39 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' get_orders(live = FALSE)
 #' get_orders(status = "all")
 #' For a specific ticker:
-#' get_orders(status = "all", ticker = "AAPL")
+#' get_orders(ticker = "AAPL", status = "all")
 #' @export
-get_orders <- function(status = "open", from = NULL, ticker = NULL, live = FALSE){
+get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers()
   
   #Send Request
-  if(is.null(from)){
-    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
-    orders = response_text_clean(orders)
-  } else {
-    orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-    orders = response_text_clean(orders)
+  if(!is.null(ticker)){
+      if(!is.null(from)){
+        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+        orders = response_text_clean(orders)
+        if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+    } else {
+        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+        orders = response_text_clean(orders)
+        if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+    }
+  }else if(is.null(ticker)){
+      if(!is.null(from)){
+        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+        orders = response_text_clean(orders)
+    } else{
+        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+        orders = response_text_clean(orders)
+    }
   }
   
-  if(!is.null(ticker)){
-    orders = dplyr::filter(orders, symbol %in% ticker)
-  } else if(length(orders) == 0) cat('No orders are open at this time. Set status = "all" to see all orders.') else return(orders)
+  if(length(orders) == 0){
+    if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker))paste("for",ticker),"at this time.",'Set status = "all" to see all orders.'))
+  }  else return(orders)
 }
 #----------------------------------------------------------------------------------------------
-
-
-
 
 
 
@@ -268,8 +278,6 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 
 
 
-
-
 #----------------------------------------------------------------------------------------------
 #' Cancel Order function
 #' 
@@ -288,17 +296,20 @@ cancel_order <- function(ticker, order_id = NULL, live = FALSE){
   headers = get_headers()
   
   #Gather the open order ID for the symbol specified
-  open_orders = get_orders(live, status = "open")
+  open_orders = get_orders(status = "open", live = live, silent = TRUE)
   
   #Check if any open orders before proceeding. 
-  if(purrr::is_empty(open_orders)){
+  if(is.null(open_orders)){
     cat("There are no orders to cancel at this time.")
-  } else{
+  } else if(is.null(order_id)){
     order_id = subset(open_orders, symbol == ticker)$id
     #Send Request & Cancel the order through the order_id
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
+    cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled"))
+  } else{
+    cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
     cat(paste("Order ID", order_id, "was successfully canceled"))
-  } 
+  }
 }
 #----------------------------------------------------------------------------------------------
 
@@ -351,8 +362,6 @@ get_assets <- function(ticker = NULL){
 
 
 
-
-
 #----------------------------------------------------------------------------------------------
 #' Get Calendar function
 #' 
@@ -394,6 +403,7 @@ get_calendar <- function(from = NULL, to = NULL){
 
 
 
+
 #----------------------------------------------------------------------------------------------
 #' Get Clock function
 #' 
@@ -416,8 +426,6 @@ get_clock <- function(){
   return(clock)
 }
 #----------------------------------------------------------------------------------------------
-
-
 
 
 

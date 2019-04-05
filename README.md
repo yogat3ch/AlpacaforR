@@ -25,7 +25,7 @@ library(AlpacaforR)
 ## User Keys & URL 
 
 
-#### KEY-ID and SECRET-KEY
+### KEY-ID and SECRET-KEY
 
 You must set your KEY-ID 🔑 and SECRET-KEY 🗝 as specifically named environment variables. They *must* be named as the following:
 ```r
@@ -43,7 +43,7 @@ The output should be the key values you've entered. Once you've set these to you
 
 <br>
 
-#### Live or Paper URL?
+### Live or Paper URL?
 The user does not have to specify the URL, as the functions handle that on its own. The user only needs to specify whether or not they are interacting with a live account. E.g:
 
 ```r
@@ -98,7 +98,7 @@ Getting, submiting, and cancelling 🚫 orders are also made extremeley easy thr
 
 <br>
 
-#### Getting orders
+### Getting orders
 To get orders, use `get_orders()` and set the status to your desired option. Status options are "open", "closed", and "all". Default status is set to "open".
 
 ```r
@@ -111,7 +111,7 @@ get_orders(status = "all", live = TRUE)
 
 <br>
 
-#### Submitting orders
+### Submitting orders
 To submit orders, use `submit_order()` with the appropiate arguements and fire away 🚀. These arguements include ticker, qty, side, type, time_in_force, limit_price, stop price. The required arguements are ticker ("AAPL") 🍎, the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
 
 The options for time_in_force are ("day" or "gtc" or "opg") but the default is set to "day". If you select "limit" or "stop" as your order type, then you must provide the limit_price or stop_price as inputs as well. Please see [Alpacas Order](https://docs.alpaca.markets/orders/) page to learn more about types of orders and time_in_force options. 
@@ -142,7 +142,7 @@ submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_p
 
 <br>
 
-#### Cancelling Orders
+### Cancelling Orders
 You can cancel 🚫 any open order using `cancel_order()` by either specifying the ticker or order_id. order_id is one of the many columns when using `get_orders()`, or you just enter the ticker for the order that you want cancelled. The function will search 🕵 for and cancel the most recent open order for the ticker specified.
 
 ```r
@@ -176,7 +176,7 @@ get_assets(ticker = "AAPL")
 
 <br>
 
-## Get pricing data from alpacas API
+## Get pricing data from Alpacas API
 We can use the `get_bars()` function to get pricing data 📈 in OHLCV bar format 📊 for one or multiple tickers. You do not need to specify the account type for this function. The only input needed is the ticker(s) value, and it will return a list 📝 containing pricing data for the last 5 trading days of each ticker. You can easily change the date range as well as the timeframe of the OHLCV bars with the "from", "to", and "timeframe" arguements. 
 
 
