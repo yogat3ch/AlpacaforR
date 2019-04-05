@@ -461,7 +461,8 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   #Get the trading days in between the sequence so we can create date column and return values
   #SUBTRACT 1 FROM TO? DO WE NEED TO? WHEN MARKET CLOSES, SEE IF IT WILL RUN WITHOUT SUBTRACTING ONE. IF SO, WE WILL NEED TO ONLY SUBTRACT 1 WHEN GET_BARS HAS NOT YET UPDATED.
-  week_dates = as.Date(get_calendar(from,to)$date)
+  week_dates = get_calendar(from,to)$date
+  
   
   
   #Since the max bars requested limit is at 1000, we need to bring the 1000 most recent price dates to match.
@@ -477,11 +478,23 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
   bars = response_text_clean(bars)
   
-  #Calendar already has future data so check if the price data was updated yet and if not then fix the calendar "to" date
-  if(length(week_dates) > nrow(bars[[1]])){
-    to <- as.Date(to)
-    week_dates <- get_calendar(from,to-1)$date
+  
+  #Check if price data was updated yet and if not, show last 5 trading days ending yesterday.
+  if(nrow(bars[[1]]) < limit){
+    from = as.Date(from) - 1
+    bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
+    bars = response_text_clean(bars)
+    
+    to <- as.Date(to) - 1
+    week_dates <- get_calendar(from,to)$date
   }
+  
+  
+  #Calendar already has future data so check if the price data was updated yet and if not then fix the calendar "to" date
+  #if(length(week_dates) > nrow(bars[[1]])){
+  #  to <- as.Date(to)
+  #  week_dates <- get_calendar(from,to-1)$date
+  #}
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
 }
