@@ -117,8 +117,8 @@ get_account <- function(live = FALSE){
 #' Get Positions function
 #'
 #' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @return "asset_id"  Asset ID as a string.
 #' @return "symbol"  Symbol of the asset as a string.
 #' @return "exchange"  Exchange name of the asset as a string.
@@ -136,23 +136,24 @@ get_account <- function(live = FALSE){
 #' @return "lastday_price"  Last day’s asset price per share as a string.
 #' @return "change_today"  Percent change from last day price (by a factor of 1) as a string.
 #' @examples 
-#' get_positions(live = FALSE, ticker = "AAPL")
+#' get_positions(ticker = "AAPL", live = FALSE)
 #' get_positions(ticker = "AAPL")
 #' This gets all positions:
 #' get_positions()
 #' @export
-get_positions <- function(live = FALSE, ticker = NULL){
-  #Set URL & Headers
+get_positions <- function(ticker = NULL, live = FALSE){
+  #Set U, live = FALSERL & Headers
   url = get_url(live)
   headers = get_headers()
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
-  if (is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
+  if(length(positions) == 0) cat("No positions are open at this time")
+  else if(is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
 }
 #----------------------------------------------------------------------------------------------
 
-
+get_positions()
 
 
 
@@ -165,9 +166,10 @@ get_positions <- function(live = FALSE, ticker = NULL){
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @return "id" order id as a string.
 #' @return "client_order_id" client unique order id as a string.
 #' @return "created_at" nullable When the order was created as a timestamp object.
@@ -194,7 +196,7 @@ get_positions <- function(live = FALSE, ticker = NULL){
 #' For a specific ticker:
 #' get_orders(status = "all", ticker = "AAPL")
 #' @export
-get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
+get_orders <- function(status = "open", from = NULL, ticker = NULL, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers()
@@ -205,13 +207,12 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
     orders = response_text_clean(orders)
   } else {
     orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-    orders <<- response_text_clean(orders)
+    orders = response_text_clean(orders)
   }
   
   if(!is.null(ticker)){
     orders = dplyr::filter(orders, symbol %in% ticker)
-  } 
-  return(orders)
+  } else if(length(orders) == 0) cat('No orders are open at this time. Set status = "all" to see all orders.') else return(orders)
 }
 #----------------------------------------------------------------------------------------------
 
@@ -230,7 +231,6 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #' Submit Order function
 #' 
 #' Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker The stock's symbol as a string.
 #' @param qty The amount of shares to trade as a string.
 #' @param side The side of the trade. I.E buy or sell as a string.
@@ -238,13 +238,14 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #' @param time_in_force The type of time order. I.E day, gtc, opg as a string. Defaults to "day".
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @examples 
 #' For market order:
 #' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
 #' Or you can submit a limit order:
 #' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
 #' @export
-submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL){
+submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers()
@@ -273,15 +274,15 @@ submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = 
 #' Cancel Order function
 #' 
 #' Attempts to cancel an open order. 
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @param ticker The stock's symbol as a string.
 #' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
 #' @examples 
 #' cancel_order(ticker = "AAPL")
 #' Or you can instead cancel by the order_id:
 #' cancel_order(order_id = VALUE)
 #' @export
-cancel_order <- function(live = FALSE, ticker, order_id = NULL){
+cancel_order <- function(ticker, order_id = NULL, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers()
@@ -291,7 +292,7 @@ cancel_order <- function(live = FALSE, ticker, order_id = NULL){
   
   #Check if any open orders before proceeding. 
   if(purrr::is_empty(open_orders)){
-    cat("There are no orders to cancel!")
+    cat("There are no orders to cancel at this time.")
   } else{
     order_id = subset(open_orders, symbol == ticker)$id
     #Send Request & Cancel the order through the order_id
@@ -313,7 +314,7 @@ cancel_order <- function(live = FALSE, ticker, order_id = NULL){
 #' Get Assets function
 #' 
 #' The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag tradable=false.
-#' @param ticker The stock's symbol as a string.
+#' @param ticker Check for a specific stock and if its active on Alpaca by inputting ticker as a string.
 #' @return "id Asset" ID as a string.
 #' @return "asset_class" us_equity as a string.
 #' @return "exchange" AMEX, ARCA, BATS, NYSE, NASDAQ or NYSEARCA as a string.
@@ -434,7 +435,7 @@ get_clock <- function(){
 #' @param from The starting date for the pricing data. Default is the last 5 trading days.
 #' @param to The ending date for the pricing data. Default is todays date.
 #' @param timeframe One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
-#' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 100.
+#' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.
 #' @return "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
 #' @return "o" open price as a numberic object.
 #' @return "h" high price as a numberic object.
@@ -446,7 +447,7 @@ get_clock <- function(){
 #' get_bars(ticker = c("INTC","MSFT"))
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
-#' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
+#' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = 100){
   
@@ -471,8 +472,17 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   }
   
   
-  #Set bar limit by the length of week_dates
-  limit = length(week_dates)
+  #Set bar limit by the length of week_dates (for 1D timeframe)
+  if(timeframe == "1D" | timeframe == "day"){
+    limit = length(week_dates)
+  } else if(timeframe == "15Min"){
+    limit = 250
+  } else if(timeframe == "5Min"){
+    limit = 500
+  } else if(timeframe == "1Min" | timeframe == "minute" ){
+    limit = 1000
+  }
+  
   
   
   #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
@@ -488,8 +498,9 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     to <- as.Date(to) - 1
     week_dates <- get_calendar(from,to)$date
   }
+  if(timeframe == "1D"){
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
-  return(bars)
+  } else return(bars)
 }
 #----------------------------------------------------------------------------------------------
 

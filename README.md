@@ -88,7 +88,7 @@ get_positions()
 get_positions(ticker = c("AAPL","AMZN"))
 
 If live account:
-get_positions(live = TRUE, ticker = c("AAPL","AMZN"))
+get_positions(ticker = c("AAPL","AMZN"), live = TRUE)
 ```
 
 <br>
@@ -106,7 +106,7 @@ To get orders, use `get_orders()` and set the status to your desired option. Sta
 get_orders(status = "all") 
 
 #If live account:
-get_orders(live = TRUE, status = "all") 
+get_orders(status = "all", live = TRUE)
 ```
 
 <br>
@@ -131,13 +131,13 @@ submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_p
 
 #If live account:
 #A market order
-submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "market")
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", live = TRUE)
 
 #A market order with "gtc" time_in_force
-submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc")
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc", live = TRUE)
 
 #A limit order
-submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100", live = TRUE)
 ```
 
 <br>
@@ -155,10 +155,10 @@ cancel_order(order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
 
 #If live account:
 #Cancelling by ticker
-cancel_order(live = TRUE, ticker = "AAPL")
+cancel_order(ticker = "AAPL", live = TRUE)
 
 #Cancelling by order_id
-cancel_order(live = TRUE, order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
+cancel_order(order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae", live = TRUE)
 ```
 
 <br>
@@ -168,10 +168,10 @@ To get all assets 💰 available or just a specific asset 🍎, we can use `get_
 
 ```r
 #Return ALL assets available on Alpaca
-get_account()
+get_assets()
 
 #Return a specific asset
-get_account(ticker = "AAPL")
+get_assets(ticker = "AAPL")
 ```
 
 <br>
@@ -182,20 +182,21 @@ We can use the `get_bars()` function to get pricing data 📈 in OHLCV bar forma
 
 
 
-The options for the timeframe arguement include "minute", "1Min", "5Min", "15Min", "day" or "1D" and has a default value of "1D". The options for the limit arguement, which is the amount of bars to return per ticker, include 1 to 1000 and has a default value of 100 bars. The limit automatically adjusts to the appropiate value if above 100. If the date range includes more than 1000 bars, then it will return the 1000 most recent bars. See `?` for more details.
+The options for the timeframe arguement include "minute", "1Min", "5Min", "15Min", "day" or "1D" and has a default value of "1D". The bar limit arguement can range from 1 to 1000 and has various default values according to the timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000. If the date range includes more than 1000 bars, then it will return the 1000 most recent bars. Dates are returned as a column if a daily timeframe is set. See `?` for more details.
 
 ```r
 #Getting daily pricing data for multiple tickers, and returning the default timeframe (last 5 trading days).
-get_bars(ticker = c("AAPL","AMZN"))
+tickers <- c("AAPL","AMZN")
+get_bars(ticker = tickers)
 
 #Getting daily pricing data since the start of 2019
-get_bars(ticker = c("AAPL","AMZN"), from = "2019-01-01")
+get_bars(ticker = tickers, from = "2019-01-01")
 
-#Getting 15Min bar pricing data for the last 5 trading days.
-get_bars(ticker = c("AAPL","AMZN"), timeframe= "15Min")
+#Getting 15Min bar pricing data for the last 5 trading days. Default bar limit is set to the value of 250.
+get_bars(ticker = tickers, timeframe= "15Min")
 
-#Getting 1Min pricing data for the last 5 trading days with the bars returned limit set to the max of 1000.
-get_bars(ticker = c("AAPL","AMZN"), timeframe= "1Min", limit = 1000)
+#Getting 1Min pricing data for the last 5 trading days. Default bar limit is set to the max value of 1000.
+get_bars(ticker = tickers, timeframe= "1Min")
 ```
 
 <br>
