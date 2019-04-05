@@ -480,7 +480,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   #Check if price data was updated yet and if not, show last 5 trading days ending yesterday.
-  if(nrow(bars[[1]]) < limit){
+  if(nrow(bars[[1]]) < length(week_dates)){
     from = as.Date(from) - 1
     bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
     bars = response_text_clean(bars)
