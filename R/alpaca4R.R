@@ -153,7 +153,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 }
 #----------------------------------------------------------------------------------------------
 
-get_positions()
+
 
 
 
@@ -504,6 +504,6 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   } else return(bars)
 }
 #----------------------------------------------------------------------------------------------
-get_bars("AAPL", timeframe = "15Min")
+
 # PACKAGE FUNCTIONS END #
 
