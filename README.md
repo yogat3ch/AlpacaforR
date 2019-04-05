@@ -12,7 +12,7 @@ install.packages("devtools")
 library(devtools)
 ```
 
-Now, install **AlpacaforR** 🦙𝘙 � using devtools `install_github` and then load it in:
+Now, install **AlpacaforR** 🦙𝘙 using devtools `install_github` and then load it in:
 
 ```r
 install_github("jagg19/AlpacaforR")
@@ -39,7 +39,7 @@ Sys.getenv('APCA-API-KEY-ID')
 Sys.getenv('APCA-API-SECRET-KEY')
 ```
 
-The output should be the key values 🔑 you've entered. Once you've set these to your environment, you should be able to use any of the **AlpacaforR** 🦙𝘙 functions. 
+The output should be the key values you've entered. Once you've set these to your environment, you should be able to use any of the **AlpacaforR** 🦙𝘙 functions. 
 
 <br>
 
@@ -54,7 +54,7 @@ get_account()
 get_account(live = TRUE)
 ```
 
-Not all functions require this since some functions use the same URL regardless of the account type. These functions are `get_assets`, `get_calendar`, `get_clock`, and `get_bars` since the same URL is used for each user.
+Not all functions require this since some functions use the same URL regardless of the account type. These functions are `get_assets` 💰, `get_calendar` 🗓, `get_clock` ⏰, and `get_bars` 📊 since the same URL is used for each user.
 
 <br>
 
