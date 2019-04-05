@@ -500,9 +500,10 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   }
   if(timeframe == "1D"){
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
+  return(bars)
   } else return(bars)
 }
 #----------------------------------------------------------------------------------------------
-
+get_bars("AAPL", timeframe = "15Min")
 # PACKAGE FUNCTIONS END #
 
