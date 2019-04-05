@@ -1,4 +1,4 @@
-# AlpacaforR
+# AlpacaforR 🦙𝘙
 Connecting to [Alpacas](https://alpaca.markets) API and navigating it using R.
 
 ## Installation
@@ -39,7 +39,7 @@ Sys.getenv('APCA-API-KEY-ID')
 Sys.getenv('APCA-API-SECRET-KEY')
 ```
 
-The output should be the key values you've entered. Once you've set these to your environment, you should be able to use any of the **AlpacaforR** 🦙𝘙 functions. 
+The output should be the key values you've entered. Once you've set these to your environment, you will be able to use any of the **AlpacaforR** 🦙𝘙 functions. 
 
 <br>
 
@@ -109,6 +109,8 @@ get_orders(status = "all")
 get_orders(live = TRUE, status = "all") 
 ```
 
+<br>
+
 #### Submitting orders
 To submit orders, use `submit_order()` with the appropiate arguements and fire away 🚀. These arguements include ticker, qty, side, type, time_in_force, limit_price, stop price. The required arguements are ticker ("AAPL") 🍎, the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
 
@@ -138,6 +140,7 @@ submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "ma
 submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
 ```
 
+<br>
 
 #### Cancelling Orders
 You can cancel 🚫 any open order using `cancel_order()` by either specifying the ticker or order_id. order_id is one of the many columns when using `get_orders()`, or you just enter the ticker for the order that you want cancelled. The function will search 🕵 for and cancel the most recent open order for the ticker specified.

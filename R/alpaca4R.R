@@ -40,7 +40,7 @@ get_url <- function(live=NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_url()
+
 
 
 
@@ -61,7 +61,7 @@ get_headers <- function(){
 #----------------------------------------------------------------------------------------------
 
 
-#get_headers()
+
 
 
 
@@ -106,7 +106,7 @@ get_account <- function(live = FALSE){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_account()
+
 
 
 
@@ -152,7 +152,7 @@ get_positions <- function(live = FALSE, ticker = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_positions() 
+
 
 
 
@@ -216,7 +216,7 @@ get_orders <- function(live = FALSE, status = "open", from=NULL, ticker = NULL){
 #----------------------------------------------------------------------------------------------
 
 
-#get_orders()
+
 
 
 
@@ -259,7 +259,7 @@ submit_order <- function(live = FALSE, ticker, qty, side, type, time_in_force = 
 }
 #----------------------------------------------------------------------------------------------
 
-#submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+
 
 
 
@@ -301,7 +301,7 @@ cancel_order <- function(live = FALSE, ticker, order_id = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#cancel_order(ticker = "AAPL")
+
 
 
 
@@ -343,7 +343,7 @@ get_assets <- function(ticker = NULL){
 #----------------------------------------------------------------------------------------------
 
 
-#get_assets()
+
 
 
 
@@ -386,7 +386,7 @@ get_calendar <- function(from = NULL, to = NULL){
 }
 #----------------------------------------------------------------------------------------------
 
-#get_calendar()
+
 
 
 
@@ -417,7 +417,7 @@ get_clock <- function(){
 #----------------------------------------------------------------------------------------------
 
 
-#get_clock()
+
 
 
 
@@ -460,7 +460,6 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   #Get the trading days in between the sequence so we can create date column and return values
-  #SUBTRACT 1 FROM TO? DO WE NEED TO? WHEN MARKET CLOSES, SEE IF IT WILL RUN WITHOUT SUBTRACTING ONE. IF SO, WE WILL NEED TO ONLY SUBTRACT 1 WHEN GET_BARS HAS NOT YET UPDATED.
   week_dates = get_calendar(from,to)$date
   
   
@@ -471,8 +470,10 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     week_dates <- week_dates[start:length(week_dates)]
   }
   
+  
   #Set bar limit by the length of week_dates
   limit = length(week_dates)
+  
   
   #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
@@ -484,27 +485,13 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     from = as.Date(from) - 1
     bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
     bars = response_text_clean(bars)
-    
     to <- as.Date(to) - 1
     week_dates <- get_calendar(from,to)$date
   }
-  
-  
-  #Calendar already has future data so check if the price data was updated yet and if not then fix the calendar "to" date
-  #if(length(week_dates) > nrow(bars[[1]])){
-  #  to <- as.Date(to)
-  #  week_dates <- get_calendar(from,to-1)$date
-  #}
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
 
-
-#get_bars(ticker = c("AAPL","MSFT"))
-
-#===================================================================================================
 # PACKAGE FUNCTIONS END #
-
-
 
