@@ -100,7 +100,7 @@ get_orders(live = TRUE, status = "all")
 ```
 
 #### Submitting orders
-To submit orders, use `submit_order()` with the appropiate arguements. These arguements include ticker, qty, side, type, time_in_force, limit_price, stop price. You **MUST** set a ticker ("AAPL"), the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
+To submit orders, use `submit_order()` with the appropiate arguements. These arguements include ticker, qty, side, type, time_in_force, limit_price, stop price. The required arguements are ticker ("AAPL"), the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
 
 The options for time_in_force are ("day" or "gtc" or "opg") but the default is set to "day". If you select "limit" or "stop" as your order type, then you must provide the limit_price or stop_price as inputs as well. Please see [Alpacas Order](https://docs.alpaca.markets/orders/) page to learn more about types of orders and time_in_force options. 
 
@@ -130,7 +130,7 @@ submit_order(live = TRUE, ticker = "AAPL", qty = "100", side = "buy", type = "li
 
 
 #### Cancelling Orders
-You can cancel any open order using `cancel_order` by either specifying the ticker or order_id. You can find order_id when using `get_orders()` or just enter the ticker for the order you want cancelled. The function will search for and cancel the most recent open order for the ticker specified.
+You can cancel any open order using `cancel_order()` by either specifying the ticker or order_id. order_id is one of the many columns when using `get_orders()`, or you just enter the ticker for the order that you want cancelled. The function will search for and cancel the most recent open order for the ticker specified.
 
 ```r
 #If paper account:
@@ -149,24 +149,24 @@ cancel_order(live = TRUE, order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
 ```
 
 
-##Getting all assets available or specific assets
+## Getting all assets available or specific assets
 To get all assets available or just a specific asset, we can use `get_assets()` and provide a stocks symbol to the ticker arguement for a specific asset. We do not need to specify account type with this function. See `?` for more details.
 
 ```r
-#Return ALL assets available on Alpaca:
+#Return ALL assets available on Alpaca
 get_account()
 
-#Return a specific asset:
+#Return a specific asset
 get_account(ticker = "AAPL")
 ```
 
-##Get pricing data from alpacas API
+## Get pricing data from alpacas API
 We can use the `get_bars()` function to get pricing data in OHLCV bar format for one or multiple tickers. You do not need to specify the account type for this function. The only input needed is the ticker(s) value, and it will return a list containing pricing data for the last 5 trading days of each ticker. You can easily change the date range as well as the timeframe of the OHLCV bars with the "from", "to", and "timeframe" arguements. 
 
 
 
 
-The options for the timeframe arguement include "minute", "1Min", "5Min", "15Min", "day" or "1D" and has a default value of "1D". The options for the limit arguement, which is the amount of bars to return per ticker, include 1 to 1000 and has a default value of 100 bars. See `?` for more details.
+The options for the timeframe arguement include "minute", "1Min", "5Min", "15Min", "day" or "1D" and has a default value of "1D". The options for the limit arguement, which is the amount of bars to return per ticker, include 1 to 1000 and has a default value of 100 bars. The limit automatically adjusts to the appropiate value if above 100. If the date range includes more than 1000 bars, then it will return the 1000 most recent bars. See `?` for more details.
 
 ```r
 #Getting daily pricing data for multiple tickers, and returning the default timeframe (last 5 trading days).
@@ -183,17 +183,17 @@ get_bars(ticker = c("AAPL","AMZN"), timeframe= "1Min", limit = 1000)
 ```
 
 ## Getting open market days and market clock data
-One of my favorite requests to make using the Alpaca API is the calendar and clock requests. Using the `get_calendar()` and `get_clock()` functions in this package, we can get all the dates and hours from the start of 1970 to the end of 2029 during which the stock market is open while accounting for market holiday's. It is as simple as:
+One of my favorite requests to make while using the [Alpaca](https://alpaca.markets) API is the calendar and clock requests. Using the `get_calendar()` and `get_clock()` functions in this package, we can get all the dates and hours from the start of **1970** to the end of **2029** during which the stock market is open while accounting for market holiday's. It is as simple as:
 
 ```r
-#Getting all dates from 1970 to 2029:
+#Getting all dates from 1970 to 2029
 get_calendar()
 
-#Getting specific dates using date ranges:
+#Getting specific dates using date ranges
 get_calendar(from = "2000-01-01", to = "2020-01-01")
 
 
-#Get market clock and see if the market is currently open as well as the times of the next open and close.
+#Get market clock and see if the market is currently open as well as the times of the next open and close
 get_clock()
 ```
 
