@@ -7,7 +7,7 @@
 get_assets(ticker = NULL)
 }
 \arguments{
-\item{ticker}{The stock's symbol as a string.}
+\item{ticker}{Check for a specific stock and if its active on Alpaca by inputting ticker as a string.}
 }
 \value{
 "id Asset" ID as a string.

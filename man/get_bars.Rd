@@ -16,7 +16,7 @@ get_bars(ticker, from = Sys.Date() - 6, to = Sys.Date(),
 
 \item{timeframe}{One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.}
 
-\item{limit}{The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 100.}
+\item{limit}{The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.}
 }
 \value{
 "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
@@ -38,5 +38,5 @@ The bars API provides time-aggregated price and volume data for a single stock o
 Getting one or more tickers: 
 get_bars(ticker = c("INTC","MSFT"))
 Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
-get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 1000)
+get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 }

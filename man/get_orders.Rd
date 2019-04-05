@@ -4,15 +4,17 @@
 \alias{get_orders}
 \title{Get Orders function}
 \usage{
-get_orders(live = FALSE, status = "open", from = NULL,
-  ticker = NULL)
+get_orders(status = "open", from = NULL, ticker = NULL,
+  live = FALSE)
 }
 \arguments{
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
-
 \item{status}{Order status to be queried "open, closed or all". Defaults to open as a string.}
 
 \item{from}{The response will include only orders submitted after this date exclusive as a timestamp object.}
+
+\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
 \value{
 "id" order id as a string.

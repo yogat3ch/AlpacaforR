@@ -4,12 +4,10 @@
 \alias{submit_order}
 \title{Submit Order function}
 \usage{
-submit_order(live = FALSE, ticker, qty, side, type,
-  time_in_force = "day", limit_price = NULL, stop_price = NULL)
+submit_order(ticker, qty, side, type, time_in_force = "day",
+  limit_price = NULL, stop_price = NULL, live = FALSE)
 }
 \arguments{
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
-
 \item{ticker}{The stock's symbol as a string.}
 
 \item{qty}{The amount of shares to trade as a string.}
@@ -23,6 +21,8 @@ submit_order(live = FALSE, ticker, qty, side, type,
 \item{limit_price}{If order type was a limit, then enter the limit price here as a string.}
 
 \item{stop_price}{If order tyope was a stop, then enter the stop price here as a string.}
+
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
 \description{
 Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.

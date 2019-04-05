@@ -4,12 +4,12 @@
 \alias{get_positions}
 \title{Get Positions function}
 \usage{
-get_positions(live = FALSE, ticker = NULL)
+get_positions(ticker = NULL, live = FALSE)
 }
 \arguments{
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
-
 \item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
 \value{
 "asset_id"  Asset ID as a string.
@@ -48,7 +48,7 @@ get_positions(live = FALSE, ticker = NULL)
 The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
 }
 \examples{
-get_positions(live = FALSE, ticker = "AAPL")
+get_positions(ticker = "AAPL", live = FALSE)
 get_positions(ticker = "AAPL")
 This gets all positions:
 get_positions()

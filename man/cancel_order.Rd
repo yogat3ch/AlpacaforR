@@ -4,14 +4,14 @@
 \alias{cancel_order}
 \title{Cancel Order function}
 \usage{
-cancel_order(live = FALSE, ticker, order_id = NULL)
+cancel_order(ticker, order_id = NULL, live = FALSE)
 }
 \arguments{
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
-
 \item{ticker}{The stock's symbol as a string.}
 
 \item{order_id}{You can specify which order to cancel by entering order_id. Defaults to most recent open order.}
+
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
 }
 \description{
 Attempts to cancel an open order.
