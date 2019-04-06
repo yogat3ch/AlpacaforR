@@ -1,5 +1,5 @@
 # AlpacaforR 🦙𝘙
-Connecting to [Alpacas](https://alpaca.markets) API and navigating it using R. For general and authentication rules regarding Alpacas Web API can be found [here](https://docs.alpaca.markets/api-documentation/web-api/). If you have never heard of Alpaca, then you should visit [here!](https://docs.alpaca.markets/about-us/)
+Connecting to [Alpacas](https://alpaca.markets) API and navigating it using R. General and authentication rules regarding Alpacas Web API interaction can be found [here.](https://docs.alpaca.markets/api-documentation/web-api/) If you have never heard of Alpaca, then you should visit [here!](https://docs.alpaca.markets/about-us/)
 
 <br>
 
@@ -96,7 +96,7 @@ get_positions(ticker = c("AAPL","AMZN"), live = TRUE)
 <br>
 
 ## Managing Orders
-Getting, submiting, and cancelling 🚫 orders are also made extremeley easy through `get_orders()`,`submit_order()`,`cancel_order()` but require some specific arguements. Visit the [Orders API](https://docs.alpaca.markets/api-documentation/web-api/orders/) webpage to learn everything there is to know about the requests and responses for this API.
+Getting, submiting, and cancelling 🚫 orders are also made extremeley easy through `get_orders()`, `submit_order()`, `cancel_order()` but require some specific arguements. Visit the [Orders API](https://docs.alpaca.markets/api-documentation/web-api/orders/) webpage to learn everything there is to know about the requests and responses for this API.
 
 <br>
 
