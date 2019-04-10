@@ -149,7 +149,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
-  if(length(positions) == 0) cat("No positions are open at this time")
+  if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
 }
 #----------------------------------------------------------------------------------------------
@@ -305,10 +305,10 @@ cancel_order <- function(ticker, order_id = NULL, live = FALSE){
     order_id = subset(open_orders, symbol == ticker)$id
     #Send Request & Cancel the order through the order_id
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-    cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled"))
+    cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
   } else{
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-    cat(paste("Order ID", order_id, "was successfully canceled"))
+    cat(paste("Order ID", order_id, "was successfully canceled."))
   }
 }
 #----------------------------------------------------------------------------------------------
