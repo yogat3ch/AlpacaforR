@@ -1,4 +1,6 @@
 
+
+#Polygon support wrappers
 #---------------------------------------------------------------------------------------------------------------------
 get_url_poly <- function(live=NULL, polygon = NULL){
   url = "https://api.polygon.io" 
@@ -21,6 +23,14 @@ response_text_clean <- function(dat){
 
 
 
+
+
+#Please see the Polyogn API documentation for details. I will add details on these soon.
+
+
+
+#Please make sure that you have set the appropriate live Key ID. 
+#When you call 'Sys.getenv("APCA-API-KEY-ID")' the correct Key ID should be your output.
 
 
 
@@ -60,6 +70,7 @@ get_meta <- function(version="v1",ticker=NULL, endpoint=NULL, perpage=NULL){
 #All endpoints 
 #meta$endpoints
 
+#get_meta(ticker = "AMZN", endpoint = "company")
 
 
 
@@ -78,6 +89,7 @@ get_poly_exchanges <- function(){
   return(exchanges)
 }
 
+#get_poly_exchanges()
 
 
 
@@ -92,7 +104,7 @@ get_poly_exchanges <- function(){
 #offset - Timestamp offset, used for pagination. This is the offset at which to start the results. Using the timestamp of the last result as the offset will give you the next page of results.
 #limit - Limit the size of response, Max 50000
 #type - Get informaiton on either "trades" or "quotes".
-get_historic_info <- function(ticker=NULL,type=NULL,date=NULL,offset=NULL,limit=NULL){
+get_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
   if(is.null(ticker) | is.null(type) | is.null(date)){
     stop("Please enter a value for either ticker,type, or date.")
   }
@@ -103,6 +115,8 @@ get_historic_info <- function(ticker=NULL,type=NULL,date=NULL,offset=NULL,limit=
   return(historic)
 }
 
+
+#get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
 
 
 
@@ -124,9 +138,7 @@ get_poly_last_price <- function(ticker = NULL){
   return(last_price_details)
 }
 
-
-
-
+#get_poly_last_price("AMZN")
 
 
 
@@ -146,6 +158,7 @@ get_poly_last_trade <- function(ticker = NULL){
 }
 
 
+#get_poly_last_trade("AMZN")
 
 
 
@@ -160,7 +173,7 @@ get_poly_ohlc <- function(ticker=NULL, date=NULL){
     stop("Please enter the stocks ticker.")
   } 
   if(is.null(date)){
-    stop("Please enter a date in 'YYYY-MM-DD' format.")
+    date <- Sys.Date()
   }
   path_url = get_url_poly()
   full_path_url = paste0(path_url,"/v1/open-close/",ticker,"/",date,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
@@ -168,6 +181,11 @@ get_poly_ohlc <- function(ticker=NULL, date=NULL){
   open_close = response_text_clean(open_close)
   return(open_close)
 }
+
+
+#get_poly_ohlc("AMZN")
+#get_poly_ohlc("AMZN", date = "2019-03-20")
+
 
 
 
@@ -189,6 +207,8 @@ get_poly_all_tickers <- function(sort="ticker",type=NULL,market=NULL,locale=NULL
   return(all_tickers)
 }
 
+#get_poly_all_tickers()
+
 
 
 
@@ -206,6 +226,8 @@ get_poly_markets_information <- function(){
   return(market_info)
 }
 
+#get_poly_markets_information()
+
 
 
 
@@ -216,11 +238,14 @@ get_poly_markets_information <- function(){
 
 #Available Locales information
 get_poly_locales <- function(){
+  path_url = get_url_poly()
   full_path_url = paste0(path_url,"/v2/reference/locales?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
   locales_avail = last_price_details = httr::GET(url = full_path_url)
   locales_avail = response_text_clean(locales_avail)
   return(locales_avail)
 }
+
+#get_poly_locales()
 
 
 
@@ -232,11 +257,14 @@ get_poly_locales <- function(){
 
 #Types Mapping Information
 get_poly_types <- function(){
+  path_url = get_url_poly()
   full_path_url = paste0(path_url,"/v2/reference/types?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
   map = last_price_details = httr::GET(url = full_path_url)
   map = response_text_clean(map)
   return(map)
 }
+
+#get_poly_types()
 
 
 
@@ -251,16 +279,14 @@ get_poly_stock_splits <- function(ticker=NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
   }
+  path_url = get_url_poly()
   full_path_url = paste0(path_url,"/v2/reference/splits/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
   split_info = last_price_details = httr::GET(url = full_path_url)
   split_info = response_text_clean(split_info)
   return(split_info)
 }
 
-
-
-
-
+#get_poly_stock_splits("AMZN")
 
 
 
@@ -273,6 +299,8 @@ get_poly_all_us_tickers <- function(){
   all_us_tickers = response_text_clean(all_us_tickers)
   return(all_us_tickers)
 }
+
+#get_poly_all_us_tickers()
 
 
 
@@ -290,6 +318,8 @@ get_poly_ticker <- function(ticker=NULL){
   ticker = response_text_clean(ticker)
   return(ticker)
 }
+
+#get_poly_ticker("AMZN")
 
 
 
@@ -311,6 +341,9 @@ get_poly_top20 <- function(type=NULL){
   return(polytop20)
 }
 
+#get_poly_top20(type = "losers")
+#get_poly_top20(type = "gainers")
+
 
 
 
@@ -331,6 +364,8 @@ get_poly_prev_dayclose <- function(ticker=NULL){
   return(prev_close)
 }
 
+#get_poly_prev_dayclose("AMZN")
+
 
 
 
@@ -340,6 +375,8 @@ get_poly_prev_dayclose <- function(ticker=NULL){
 
 
 #Get Aggregate Pricing Data
+#Multiplier -> size of the timespan multiplier. Default to 1
+#Timespan -> size of the time window i.e "minute", "hour", "day", "week", month", "quarter", or "year". Default to day
 get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", from=NULL, to=NULL, unadjusted=FALSE){
   if(is.null(ticker)){
     stop("Please enter a stock ticker.")
@@ -354,6 +391,7 @@ get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", fro
   return(agg_quote)
 }
 
+#get_poly_agg_quote("AMZN", from = "2019-01-01", to = "2019-03-31", timespan = "hour")
 
 
 
@@ -362,7 +400,8 @@ get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", fro
 
 
 
-#Get Aggregate for overall markets
+
+#Get Aggregate daily data for overall markets on a selected date. Defaults to todays date
 get_poly_markets_agg_daily <- function(locale="US", market="STOCKS",date=Sys.Date(), unadjusted=FALSE){
   path_url = get_url_poly()
   full_path_url = paste0(path_url,"/v2/aggs/grouped/locale/",locale,"/market/",market,"/",date,"?unadjusted=",unadjusted,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
@@ -370,6 +409,12 @@ get_poly_markets_agg_daily <- function(locale="US", market="STOCKS",date=Sys.Dat
   markets_daily = response_text_clean(markets_daily)
   return(markets_daily)
 }
+
+#get_poly_markets_agg_daily()
+
+
+
+
 
 
 
