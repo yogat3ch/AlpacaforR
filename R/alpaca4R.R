@@ -457,7 +457,7 @@ get_clock <- function(){
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = 100){
+get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
   #Set Url & Headers
   url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
@@ -479,34 +479,49 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     week_dates <- week_dates[start:length(week_dates)]
   }
   
+  #If limit is null then set it according to timeframe.
   
   #Set bar limit by the length of week_dates (for 1D timeframe)
-  if(timeframe == "1D" | timeframe == "day"){
-    limit = length(week_dates)
-  } else if(timeframe == "15Min"){
-    limit = 250
-  } else if(timeframe == "5Min"){
-    limit = 500
-  } else if(timeframe == "1Min" | timeframe == "minute" ){
-    limit = 1000
+    if((timeframe == "1D" | timeframe == "day") & is.null(limit)){
+      limit = length(week_dates)
+    } else if(timeframe == "15Min" & is.null(limit)){
+      limit = 250
+    } else if(timeframe == "5Min" & is.null(limit)){
+      limit = 500
+    } else if((timeframe == "1Min" | timeframe == "minute") & is.null(limit)){
+      limit = 1000
+    }
+  
+  
+  #Time fix for min bars
+  if(!(timeframe == "1D" | timeframe == "day")){
+    from = paste0(from,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
+    to = paste0(to,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
+  } else {
+    from = paste0(from,"T09:30:00-04:00")
+    to = paste0(to,"T09:30:00-04:00")
   }
   
-  
-  
-  #Send Request                                                                                  #If summer, SUBTRACT 4 HOURS FROM UTC FOR NY, if Winter, SUBTRACT 5 HOURS FROM UTC FOR NY
-  bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
+  #Send Request                                                                                 
+  bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
   bars = response_text_clean(bars)
+  
   
   
   #Check if price data was updated yet and if not, show last 5 trading days ending yesterday.
   if(nrow(bars[[1]]) < limit){
     from = as.Date(from) - 1
-    bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"T09:30:00-04:00","&end=",to,"T09:30:00-04:00"), headers)
+    bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
     bars = response_text_clean(bars)
     to <- as.Date(to) - 1
     week_dates <- get_calendar(from,to)$date
   }
+  
+  
+  
   if(timeframe == "1D" | timeframe == "day"){
+  
+  #week_dates = week_dates[length(week_dates)-starting:length(week_dates)]
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
   } else return(bars)
@@ -514,4 +529,6 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
 #----------------------------------------------------------------------------------------------
 
 # PACKAGE FUNCTIONS END #
+
+
 
