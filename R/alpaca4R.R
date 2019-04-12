@@ -506,7 +506,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     to <- as.Date(to) - 1
     week_dates <- get_calendar(from,to)$date
   }
-  if(timeframe == "1D"){
+  if(timeframe == "1D" | timeframe == "day"){
   bars = lapply(bars, function(x) transform(x, dates = week_dates))
   return(bars)
   } else return(bars)
