@@ -99,6 +99,7 @@ get_account <- function(live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers()
+  
   #Send Request
   account = httr::GET(url = paste0(url,"/v1/account"), headers)
   account = response_text_clean(account)
@@ -143,12 +144,15 @@ get_account <- function(live = FALSE){
 #' get_positions()
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE){
-  #Set U, live = FALSERL & Headers
+  #Set URL, live = FALSE & Headers
   url = get_url(live)
   headers = get_headers()
+  
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
+  
+  #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
 }
@@ -202,9 +206,11 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
   url = get_url(live)
   headers = get_headers()
   
-  #Send Request
-  if(!is.null(ticker)){
-      if(!is.null(from)){
+  #Send Request according to the selected arguments.
+  
+  
+  if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
+      if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
         orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
         orders = response_text_clean(orders)
         if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
@@ -213,8 +219,11 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
         orders = response_text_clean(orders)
         if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     }
-  }else if(is.null(ticker)){
-      if(!is.null(from)){
+  
+    
+  
+  }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
+      if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
         orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
         orders = response_text_clean(orders)
     } else{
@@ -223,6 +232,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
   }
   
+  #Make sure there are orders to return before calling return.
   if(length(orders) == 0){
     if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker))paste("for",ticker),"at this time.",'Set status = "all" to see all orders.'))
   }  else return(orders)
@@ -260,8 +270,10 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   url = get_url(live)
   headers = get_headers()
   
+  
   #Create body with order details, most common is a named list 
   bodyl <- list(symbol=ticker, qty=qty, side = side, type = type, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
+  
   
   #Send Request
   orders = httr::POST(url = paste0(url,"/v1/orders"), body = bodyl, encode = "json",headers)
@@ -295,17 +307,22 @@ cancel_order <- function(ticker, order_id = NULL, live = FALSE){
   url = get_url(live)
   headers = get_headers()
   
+  
   #Gather the open order ID for the symbol specified
   open_orders = get_orders(status = "open", live = live, silent = TRUE)
+  
   
   #Check if any open orders before proceeding. 
   if(is.null(open_orders)){
     cat("There are no orders to cancel at this time.")
+  
   } else if(is.null(order_id)){
     order_id = subset(open_orders, symbol == ticker)$id
+    
     #Send Request & Cancel the order through the order_id
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
     cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
+  
   } else{
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
     cat(paste("Order ID", order_id, "was successfully canceled."))
@@ -342,7 +359,9 @@ get_assets <- function(ticker = NULL){
   url = get_url()
   headers = get_headers()
   
-  #Send Request
+  
+  
+  #Send Request and ticker if one was supplied. 
   if(is.null(ticker)){
     assets = httr::GET(url = paste0(url,"/v1/assets"), headers)
     assets = response_text_clean(assets)
@@ -382,10 +401,15 @@ get_calendar <- function(from = NULL, to = NULL){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
+  
+  
+  #If dates were given, make sure they are in a string format. I add plus 1 to the "to" date, or it will always return one day before the day "to"?
   if(!is.null(to)) to <- as.character(as.Date(to)+1)
   if(!is.null(from)) from <- as.character(as.Date(from))
   
-  if(is.null(from) & is.null(to)){
+  
+  
+  if(is.null(from) & is.null(to)){  #Check if any dates were given, and if not then return 
   calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
   calendar =  response_text_clean(calendar)
   } else{ 
@@ -457,18 +481,28 @@ get_clock <- function(){
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
+get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "5Min", limit = NULL){
   
   #Set Url & Headers
   url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
   headers = get_headers()
+  
+  if(!is.null(limit)){ #If a limit value was entered then;
+    #Ensure the limit is set to 1000 or under.
+    if(limit > 1000){
+      stop("Max limit is 1000!")
+    }
+  }
+  
+  
   
   
   #Check for multiple tickers or just one
   ticker = ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
   
   
-  #Get the trading days in between the sequence so we can create date column and return values
+  
+  #Get the trading days in between the sequence
   week_dates = get_calendar(from,to)$date
   
   
@@ -479,9 +513,9 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     week_dates <- week_dates[start:length(week_dates)]
   }
   
-  #If limit is null then set it according to timeframe.
   
-  #Set bar limit by the length of week_dates (for 1D timeframe)
+  
+  #If limit is null then set it according to timeframe.
     if((timeframe == "1D" | timeframe == "day") & is.null(limit)){
       limit = length(week_dates)
     } else if(timeframe == "15Min" & is.null(limit)){
@@ -493,42 +527,27 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
     }
   
   
-  #Time fix for min bars
+  
+  #Get date/time with HH:MM:SS for minute type bars
   if(!(timeframe == "1D" | timeframe == "day")){
     from = paste0(from,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
     to = paste0(to,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
   } else {
-    from = paste0(from,"T09:30:00-04:00")
-    to = paste0(to,"T09:30:00-04:00")
+    from = paste0(from,"T20:30:00-04:00")
+    to = paste0(to,"T20:30:00-04:00")
   }
+  
+  
   
   #Send Request                                                                                 
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
   bars = response_text_clean(bars)
   
   
-  
-  #Check if price data was updated yet and if not, show last 5 trading days ending yesterday.
-  if(nrow(bars[[1]]) < limit){
-    from = as.Date(from) - 1
-    bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
-    bars = response_text_clean(bars)
-    to <- as.Date(to) - 1
-    week_dates <- get_calendar(from,to)$date
-  }
-  
-  
-  
-  if(timeframe == "1D" | timeframe == "day"){
-  
-  #week_dates = week_dates[length(week_dates)-starting:length(week_dates)]
-  bars = lapply(bars, function(x) transform(x, dates = week_dates))
+  #Create a column for date/time
+  bars = lapply(bars,cbind,d = as.POSIXct(bars$AMZN$t, origin = "1970-01-01"))
   return(bars)
-  } else return(bars)
 }
 #----------------------------------------------------------------------------------------------
 
 # PACKAGE FUNCTIONS END #
-
-
-
