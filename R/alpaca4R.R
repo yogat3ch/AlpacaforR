@@ -219,6 +219,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' get_orders(status = "all")
 #' For a specific ticker:
 #' get_orders(ticker = "AAPL", status = "all")
+#' @importFrom dplyr filter
 #' @export
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
@@ -499,6 +500,7 @@ get_clock <- function(){
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
+#' @importFrom stringr str_extract 
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = NULL, limit = NULL){
   

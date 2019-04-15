@@ -7,7 +7,7 @@ Description: Interact with Alpacas API using R to send requests for account info
  information, market open / closing information, and many more. Build your strategies then implement them live on Alpacas 
  Brokerage account or on Alpacas paper trading account using the functions within. 
 Depends: R (>= 3.5.1)
-Imports: httr,jsonlite,magrittr
+Imports: httr,jsonlite,magrittr,dplyr,stringr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1.9000
