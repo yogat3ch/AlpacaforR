@@ -1,4 +1,6 @@
 
+
+
 # PACKAGE FUNCTIONS #
 #===================================================================================================
 
@@ -20,6 +22,8 @@ response_text_clean <- function(dat){
 
 
 
+
+
 #----------------------------------------------------------------------------------------------
 #' Get URL for Server Request function
 #' 
@@ -28,21 +32,36 @@ response_text_clean <- function(dat){
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
 get_url <- function(live=NULL){
-    
-    if(is.null(live)){
-      url <- "https://paper-api.alpaca.markets"
-    } 
-      else{
-      url <- ifelse(live, 
-                    "https://api.alpaca.markets",
-                    "https://paper-api.alpaca.markets")
-    }
+  
+  if(is.null(live)){
+    url <- "https://paper-api.alpaca.markets"
+  } 
+  else{
+    url <- ifelse(live, 
+                  "https://api.alpaca.markets",
+                  "https://paper-api.alpaca.markets")
+  }
   return(url)
 }
 #----------------------------------------------------------------------------------------------
 
 
 
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon URL for Server Request function
+#' 
+#' Get Polygon's URL for the Server Request that is sent to interact with the API.
+#' @return The correct URL for Polygon's API.
+#' @export
+get_url_poly <- function(){
+  url = "https://api.polygon.io" 
+  return(url)
+}
+#----------------------------------------------------------------------------------------------
 
 
 
@@ -210,25 +229,25 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
   
   
   if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
-      if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
-        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-        orders = response_text_clean(orders)
-        if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+    if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
+      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = response_text_clean(orders)
+      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     } else {
-        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
-        orders = response_text_clean(orders)
-        if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = response_text_clean(orders)
+      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     }
-  
     
-  
+    
+    
   }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
-      if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
-        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-        orders = response_text_clean(orders)
+    if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
+      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = response_text_clean(orders)
     } else{
-        orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
-        orders = response_text_clean(orders)
+      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = response_text_clean(orders)
     }
   }
   
@@ -315,14 +334,14 @@ cancel_order <- function(ticker, order_id = NULL, live = FALSE){
   #Check if any open orders before proceeding. 
   if(is.null(open_orders)){
     cat("There are no orders to cancel at this time.")
-  
+    
   } else if(is.null(order_id)){
     order_id = subset(open_orders, symbol == ticker)$id
     
     #Send Request & Cancel the order through the order_id
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
     cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
-  
+    
   } else{
     cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
     cat(paste("Order ID", order_id, "was successfully canceled."))
@@ -410,11 +429,11 @@ get_calendar <- function(from = NULL, to = NULL){
   
   
   if(is.null(from) & is.null(to)){  #Check if any dates were given, and if not then return 
-  calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
-  calendar =  response_text_clean(calendar)
+    calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
+    calendar =  response_text_clean(calendar)
   } else{ 
-  calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
-  calendar =  response_text_clean(calendar)
+    calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
+    calendar =  response_text_clean(calendar)
   }
   return(calendar)
 }
@@ -481,7 +500,7 @@ get_clock <- function(){
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "5Min", limit = NULL){
+get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = NULL, limit = NULL){
   
   #Set Url & Headers
   url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
@@ -516,15 +535,15 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   #If limit is null then set it according to timeframe.
-    if((timeframe == "1D" | timeframe == "day") & is.null(limit)){
-      limit = length(week_dates)
-    } else if(timeframe == "15Min" & is.null(limit)){
-      limit = 250
-    } else if(timeframe == "5Min" & is.null(limit)){
-      limit = 500
-    } else if((timeframe == "1Min" | timeframe == "minute") & is.null(limit)){
-      limit = 1000
-    }
+  if((timeframe == "1D" | timeframe == "day") & is.null(limit)){
+    limit = length(week_dates)
+  } else if(timeframe == "15Min" & is.null(limit)){
+    limit = 250
+  } else if(timeframe == "5Min" & is.null(limit)){
+    limit = 500
+  } else if((timeframe == "1Min" | timeframe == "minute") & is.null(limit)){
+    limit = 1000
+  }
   
   
   
@@ -544,10 +563,375 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   bars = response_text_clean(bars)
   
   
+  
   #Create a column for date/time
-  bars = lapply(bars,cbind,d = as.POSIXct(bars$AMZN$t, origin = "1970-01-01"))
+  dates = sapply(bars,"[[","t")
+  bars = lapply(bars,cbind,d = as.POSIXct(dates, origin = "1970-01-01"))
+  
+  
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+#Select Polygon Integration functions - Live Brokerage accounts are the only accounts with access to Polygon.
+
+#----------------------------------------------------------------------------------------------
+
+
+#Best function to use if you want to see a little more than just pricing data for you company. 
+#My favorite are the analyst estimates and news endpoints. I am not 100% sure how quickly the news links are updated, but I am very interested and will try to reach out regarding this. 
+#I decided to integrate all endpoints into one function and the user can either call a specific endpoint, or call none.
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Meta Data
+#' 
+#' This function provides more color on your stock through its available meta data endpoints from Polygon. These endpoints are company, analysts, dividends, earnings, and news.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param endpoint Select either company for a company profile, analysts for all kinds of analyst estimates, dividends to view historic and upcoming dividends, earnings for historic and current earning details , or news for news updates from CNBC, Seeking Alpha, etc.
+#' @param perpage This is only used if "news" was your selected endpoint. How many articles do you want to see perpage?
+#' @param version The current version for API. Defaults to v1 if no v2 available. 
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting default meta for AMZN: 
+#' get_meta(ticker = "AMZN")
+#' Getting news information on AMZN: 
+#' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
+#' @export
+get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
+  #Set URL 
+  path_url = get_url_poly()
+  
+  
+  if(is.null(ticker)){
+    stop("Please enter a ticker for the stock that you want.")
+  }
+  
+  #If no endpoint entered, then keep default behavior. If a endpoint was provided, then request a call to that endpoint.
+  if(is.null(endpoint)){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "company"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/company","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "analysts"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/analysts","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "dividends"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/dividends","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "earnings"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/earnings","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if (endpoint == "news"){
+    ifelse(is.null(perpage),
+           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=50","&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")),
+           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=",perpage,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")))
+  }
+  
+  #Send Request
+  meta = last_price_details = httr::GET(url = full_path_url)
+  meta = response_text_clean(meta)
+  return(meta)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Aggregate Pricing Data
+#' 
+#' This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param multiplier Size of the timespan multiplier. Default to 1.
+#' @param timespan Size of the time window i.e "minute", "hour", "day", "week", month", "quarter", or "year". Default to day.
+#' @param from The starting date for the pricing data. 
+#' @param to The ending date for the pricing data. 
+#' @param unadjusted Set to true if the results should NOT be adjusted for splits.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting default pricing data on AMZN (daily): 
+#' get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
+#' Getting minute pricing data on AMZN: 
+#' get_poly_agg_quote("AMZN", from = "2019-04-11", to = "2019-04-12", timespan = "minute")
+#' Getting quarterly pricing data on AMZN: 
+#' get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
+#' Getting yearly pricing data on AMZN: 
+#' get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
+#' @export
+get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", from=NULL, to=NULL, unadjusted=FALSE){
+  if(is.null(ticker)){
+    stop("Please enter a stock ticker.")
+  }
+  if(is.null(from) | is.null(to)){
+    stop("Please enter a date in the 'from' or 'to' arguement.")
+  }
+  
+  #Set URL
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v2/aggs/ticker/",ticker,"/range/",multiplier,"/",timespan,"/",from,"/",to,"?unadjusted=",unadjusted,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  agg_quote = httr::GET(url = full_path_url)
+  agg_quote = response_text_clean(agg_quote)
+  
+  #Create a column for date/time
+  agg_quote$results$t = as.POSIXct(agg_quote$results$t/1000, origin = "1970-01-01")
+  return(agg_quote)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Stock Split Information
+#' 
+#' This function provides stock split data for the specified ticker from Polygon.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting default pricing data on AMZN (daily): 
+#' get_poly_stock_splits(ticker = "AMZN")
+#' @export
+get_poly_stock_splits <- function(ticker=NULL){
+  if(is.null(ticker)){
+    stop("Please enter the stocks ticker.")
+  }
+  
+  #Set URL
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v2/reference/splits/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  split_info = last_price_details = httr::GET(url = full_path_url)
+  split_info = response_text_clean(split_info)
+  return(split_info)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Historic Trades Information
+#' 
+#' This function provides historic trade data form Polygon on the ticker specified. It returns a list with values such as date, bid size / ask size, the exchanges for bid / ask, latency, each trade/quote listed for that date, time, etc.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param type Get informaiton on either "trades" or "quotes".
+#' @param date Specify the date for which you are requesting.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting historic trade data on AMZN: 
+#' get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
+#' Getting historic pricing data on AMZN: 
+#' get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
+#' @export
+get_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
+  if(is.null(ticker) | is.null(type) | is.null(date)){
+    stop("Please enter values for ticker, type, and date.")
+  }
+  
+  #Set URL 
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v1/historic/",type,"/",ticker,"/",date,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  historic = last_price_details = httr::GET(url = full_path_url)
+  historic = response_text_clean(historic)
+  
+  
+  #Create a column for date/time
+  historic$ticks$t = as.POSIXct(historic$ticks$t/1000, origin = "1970-01-01")
+  return(historic)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Last Price
+#' 
+#' This function provides the last listed price from Polygon. A list is returned with values such as the last price, last size, last exchange, and last timestamp.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting the last listed price for AMZN: 
+#' get_poly_last_price("AMZN")
+#' @export
+get_poly_last_price <- function(ticker = NULL){
+  if(is.null(ticker)){
+    stop("Please enter the stocks ticker.")
+  }
+  
+  #Set URL 
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v1/last/stocks/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  last_price_details = httr::GET(url = full_path_url)
+  last_price_details = response_text_clean(last_price_details)
+  
+  #Convert unix epoch timestamp to readable date
+  last_price_details$last$timestamp = as.POSIXct(last_price_details$last$timestamp/1000, origin= "1970-01-01")
+  return(last_price_details)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Last Trade
+#' 
+#' This function provides the last listed trade from Polygon for the ticker specified. A list is returned with values such as the last bid / ask price, bid / ask size, bid / ask exchange, and last trade timestamp.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting the last listed trade for AMZN: 
+#' get_poly_last_trade("AMZN")
+get_poly_last_trade <- function(ticker = NULL){
+  if(is.null(ticker)){
+    stop("Please enter the stocks ticker.")
+  }
+  
+  #Set URL 
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v1/last_quote/stocks/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  last_trade_details = httr::GET(url = full_path_url)
+  last_trade_details = response_text_clean(last_trade_details)
+  
+  #Convert unix epoch timestamp to readable date
+  last_trade_details$last$timestamp = as.POSIXct(last_trade_details$last$timestamp/1000, origin= "1970-01-01")
+  return(last_trade_details)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Daily OHLCV & After Hours
+#' 
+#' This function provides the last OHLCV data, including after hours data from Polygon for the ticker specified. 
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param date Specify the date for which you are requesting.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting the last listed trade for AMZN: 
+#' get_poly_ohlc("AMZN", date = "2019-03-20")
+get_poly_ohlc <- function(ticker=NULL, date=NULL){
+  if(is.null(ticker)){
+    stop("Please enter the stocks ticker.")
+  } 
+  if(is.null(date)){
+    date <- Sys.Date()
+  }
+  
+  #Set URL 
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v1/open-close/",ticker,"/",date,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  open_close = httr::GET(url = full_path_url)
+  open_close = response_text_clean(open_close)
+  return(open_close)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Polygon Previous Day Close for Ticker
+#' 
+#' This function provides the Previous Day close data from Polygon for the ticker specified. 
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' Getting the last listed trade for AMZN: 
+#' get_poly_prev_dayclose("AMZN")
+get_poly_prev_dayclose <- function(ticker=NULL){
+  if(is.null(ticker)){
+    stop("Please enter the stocks ticker.")
+  }
+  
+  #Set URL
+  path_url = get_url_poly()
+  full_path_url = paste0(path_url,"/v2/aggs/ticker/",ticker,"/prev","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+  
+  #Send Request
+  prev_close = httr::GET(url = full_path_url)
+  prev_close = response_text_clean(prev_close)
+  
+  #Convert unix epoch timestamp to readable date
+  prev_close$results$t = as.POSIXct(prev_close$results$t/1000, origin= "1970-01-01")
+  return(prev_close)
+}
+#----------------------------------------------------------------------------------------------
+
+
+
 
 # PACKAGE FUNCTIONS END #
