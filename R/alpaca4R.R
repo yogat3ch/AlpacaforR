@@ -502,7 +502,7 @@ get_clock <- function(){
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
 #' @importFrom stringr str_extract 
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = NULL, limit = NULL){
+get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
   #Set Url & Headers
   url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
