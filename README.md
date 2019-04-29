@@ -1,5 +1,8 @@
 # AlpacaforR 🦙𝘙
-Connecting to [Alpaca's](https://alpaca.markets) API and navigating it using R. General and authentication rules regarding Alpaca's Web API interaction can be found [here.](https://docs.alpaca.markets/api-documentation/web-api/) If you have never heard of Alpaca, then you should visit [here!](https://docs.alpaca.markets/about-us/)
+Connecting to [Alpaca's](https://alpaca.markets) API and navigating it using R. General and authentication rules regarding Alpaca's Web API interaction can be found [here.](https://docs.alpaca.markets/api-documentation/web-api/) If you have never heard of Alpaca, then you should visit [here!](https://docs.alpaca.markets/about-us/)  
+
+
+Also, I've created a post that uses AlpacaforR to connect and implement both live and paper trades which can be [read here.](https://jagg19.github.io/2019/04/alpaca-for-r/)
 
 <br>
 
