@@ -28,7 +28,6 @@ response_text_clean <- function(dat){
 #' Get URL for Server Request function
 #' 
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
-#' @param live TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
 get_url <- function(live=NULL){
@@ -72,10 +71,21 @@ get_url_poly <- function(){
 #' Get Headers for Server Request function
 #'
 #' @return The correct headers that will be sent in the API request.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
 #' @export
-get_headers <- function(){
-  headers = httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                              'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))  
+get_headers <- function(live=NULL){
+  
+  if(is.null(live)){
+    headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
+  } 
+  else{
+    ifelse(live, 
+                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
+                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
+                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
+                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY")))
+  }
   return(headers)
 }
 #----------------------------------------------------------------------------------------------
@@ -95,7 +105,7 @@ get_headers <- function(){
 #' Get Account function
 #'
 #' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @return "id" Account ID as a string.
 #' @return "status" Account Status as a string.
 #' @return "currency" USD as a string.
@@ -117,7 +127,7 @@ get_headers <- function(){
 get_account <- function(live = FALSE){
   #Set URL & Headers
   url = get_url(live)
-  headers = get_headers()
+  headers = get_headers(live)
   
   #Send Request
   account = httr::GET(url = paste0(url,"/v1/account"), headers)
@@ -139,7 +149,7 @@ get_account <- function(live = FALSE){
 #'
 #' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @return "asset_id"  Asset ID as a string.
 #' @return "symbol"  Symbol of the asset as a string.
 #' @return "exchange"  Exchange name of the asset as a string.
@@ -165,7 +175,7 @@ get_account <- function(live = FALSE){
 get_positions <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
   url = get_url(live)
-  headers = get_headers()
+  headers = get_headers(live)
   
   #Send Request
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
@@ -193,7 +203,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
 #' @param silent A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @return "id" order id as a string.
 #' @return "client_order_id" client unique order id as a string.
 #' @return "created_at" nullable When the order was created as a timestamp object.
@@ -224,7 +234,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
-  headers = get_headers()
+  headers = get_headers(live)
   
   #Send Request according to the selected arguments.
   
@@ -278,7 +288,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' @param time_in_force The type of time order. I.E day, gtc, opg as a string. Defaults to "day".
 #' @param limit_price If order type was a limit, then enter the limit price here as a string.
 #' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
 #' For market order:
 #' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
@@ -288,7 +298,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
-  headers = get_headers()
+  headers = get_headers(live)
   
   
   #Create body with order details, most common is a named list 
@@ -313,19 +323,21 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #----------------------------------------------------------------------------------------------
 #' Cancel Order function
 #' 
-#' Attempts to cancel an open order. 
-#' @param ticker The stock's symbol as a string.
-#' @param order_id You can specify which order to cancel by entering order_id. Defaults to most recent open order.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.
+#' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
+#' @param ticker_id The ticker symbol or the order id.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
-#' cancel_order(ticker = "AAPL")
+#' cancel_order(ticker_id = "AAPL")
+#' cancel_order(ticker_id = "aapl")
 #' Or you can instead cancel by the order_id:
-#' cancel_order(order_id = VALUE)
+#' orders <- get_orders(status="open", silent = TRUE)
+#' cancel_order(ticker_id = orders$id[1])
+#' @importFrom lubridate with_tz
 #' @export
-cancel_order <- function(ticker, order_id = NULL, live = FALSE){
+cancel_order <- function(ticker_id,live = FALSE){
   #Set URL & Headers
   url = get_url(live)
-  headers = get_headers()
+  headers = get_headers(live)
   
   
   #Gather the open order ID for the symbol specified
@@ -336,20 +348,24 @@ cancel_order <- function(ticker, order_id = NULL, live = FALSE){
   if(is.null(open_orders)){
     cat("There are no orders to cancel at this time.")
     
-  } else if(is.null(order_id)){
-    order_id = subset(open_orders, symbol == ticker)$id
+  } else if (nchar(ticker_id) > 15) { #If order id supplied then do this
+    order_id <- ticker_id
+    ticker <- open_orders$symbol[open_orders$id == order_id]
+    # If more than one order is open print message to notify which order is being cancelled
+    if(length(open_orders$symbol %in% ticker) >1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders$id %in% order_id], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
     
-    #Send Request & Cancel the order through the order_id
-    cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-    cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
-    
-  } else{
-    cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-    cat(paste("Order ID", order_id, "was successfully canceled."))
+  } else { #If ticker supplied then do this
+    ticker <- ticker_id 
+    open_orders_sym <- grep(ticker, open_orders$symbol, ignore.case = T)
+    #If more than one order is open print message to notify which order is being cancelled
+    if(length(open_orders_sym) > 1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders_sym[1]], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
+    order_id <- open_orders[[open_orders_sym[1], "id"]]
   }
+  #Send Request & Cancel the order through the order_id
+  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
+  cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
 }
 #----------------------------------------------------------------------------------------------
-
 
 
 
