@@ -165,6 +165,8 @@ cancel_order(ticker_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
 orders <- get_orders()
 cancel_order(ticker_id = orders$id[1])
 
+
+
 #If live account:
 cancel_order(ticker_id = "AAPL", live = TRUE)
 
