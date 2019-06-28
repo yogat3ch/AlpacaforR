@@ -16,7 +16,7 @@ get_orders(ticker = NULL, status = "open", from = NULL,
 
 \item{silent}{A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
 "id" order id as a string.

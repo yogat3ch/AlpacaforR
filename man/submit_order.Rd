@@ -22,7 +22,7 @@ submit_order(ticker, qty, side, type, time_in_force = "day",
 
 \item{stop_price}{If order tyope was a stop, then enter the stop price here as a string.}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \description{
 Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.

@@ -4,7 +4,10 @@
 \alias{get_headers}
 \title{Get Headers for Server Request function}
 \usage{
-get_headers()
+get_headers(live = NULL)
+}
+\arguments{
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.}
 }
 \value{
 The correct headers that will be sent in the API request.

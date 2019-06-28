@@ -4,20 +4,20 @@
 \alias{cancel_order}
 \title{Cancel Order function}
 \usage{
-cancel_order(ticker, order_id = NULL, live = FALSE)
+cancel_order(ticker_id, live = FALSE)
 }
 \arguments{
-\item{ticker}{The stock's symbol as a string.}
+\item{ticker_id}{The ticker symbol or the order id.}
 
-\item{order_id}{You can specify which order to cancel by entering order_id. Defaults to most recent open order.}
-
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \description{
-Attempts to cancel an open order.
+Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
 }
 \examples{
-cancel_order(ticker = "AAPL")
+cancel_order(ticker_id = "AAPL")
+cancel_order(ticker_id = "aapl")
 Or you can instead cancel by the order_id:
-cancel_order(order_id = VALUE)
+orders <- get_orders(status="open", silent = TRUE)
+cancel_order(ticker_id = orders$id[1])
 }

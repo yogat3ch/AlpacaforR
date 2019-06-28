@@ -9,7 +9,7 @@ get_positions(ticker = NULL, live = FALSE)
 \arguments{
 \item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was specified.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
 "asset_id"  Asset ID as a string.

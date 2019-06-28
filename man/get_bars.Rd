@@ -5,7 +5,7 @@
 \title{Get Bars function}
 \usage{
 get_bars(ticker, from = Sys.Date() - 6, to = Sys.Date(),
-  timeframe = NULL, limit = NULL)
+  timeframe = "1D", limit = NULL)
 }
 \arguments{
 \item{ticker}{The stock or stocks (in vector format) that you want.}

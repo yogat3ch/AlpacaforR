@@ -6,9 +6,6 @@
 \usage{
 get_url(live = NULL)
 }
-\arguments{
-\item{live}{TRUE / FALSE if you are connecting to a paper account. Default to NULL, so it will use the live url if nothing is provided.}
-}
 \value{
 The correct URL according to account type (live or paper) that will be sent in the API request.
 }
