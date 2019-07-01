@@ -150,22 +150,28 @@ submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_p
 <br>
 
 ### Cancelling Orders
-You can cancel 🚫 any open order using `cancel_order()` by either specifying the ticker or order_id. order_id is one of the many columns when using `get_orders()`, or you can just enter the ticker for the order that you want cancelled. The function will search 🕵 for and cancel the most recent open order for the ticker specified. See `?cancel_order()` for more details.
+You can cancel 🚫 any open order using `cancel_order()` by providing either the ticker or the orders id. The orders id is one of the many columns returned when using `get_orders()`, or you can just enter the ticker for the order that you want cancelled. The function will search 🕵 for and cancel the most recent open order for the ticker specified. See `?cancel_order()` for more details.
 
 ```r
 #If paper account:
-#Cancelling by ticker
-cancel_order(ticker = "AAPL")
+#Cancelling by ticker, case insensitive
+cancel_order(ticker_id = "AAPL")
+cancel_order(ticker_id = "aapl")
 
 #Cancelling by order_id
-cancel_order(order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
+cancel_order(ticker_id = "1n0925a7-aq52-480d-t68f-01d5970182ae")
+
+#OR
+orders <- get_orders()
+cancel_order(ticker_id = orders$id[1])
+
+
 
 #If live account:
-#Cancelling by ticker
-cancel_order(ticker = "AAPL", live = TRUE)
+cancel_order(ticker_id = "AAPL", live = TRUE)
 
 #Cancelling by order_id
-cancel_order(order_id = "1n0925a7-aq52-480d-t68f-01d5970182ae", live = TRUE)
+cancel_order(ticker_id = orders$id[1], live = TRUE)
 ```
 
 <br>
