@@ -281,19 +281,19 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' Submit Order function
 #' 
 #' Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
-#' @param ticker The stock's symbol as a string.
-#' @param qty The amount of shares to trade as a string.
-#' @param side The side of the trade. I.E buy or sell as a string.
-#' @param type The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.
-#' @param time_in_force The type of time order. I.E day, gtc, opg as a string. Defaults to "day".
-#' @param limit_price If order type was a limit, then enter the limit price here as a string.
-#' @param stop_price If order tyope was a stop, then enter the stop price here as a string.
+#' @param ticker The stock's symbol.
+#' @param qty The amount of shares to trade.
+#' @param side The side of the trade. I.E "buy" or "sell"
+#' @param type The type of trade order. I.E "market","limit","stop","stoplimit", etc.
+#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". Default is "day".
+#' @param limit_price If order type was a limit, then enter the limit price here.
+#' @param stop_price If order tyope was a stop, then enter the stop price here.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
 #' For market order:
-#' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
 #' Or you can submit a limit order:
-#' submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
 #' @export
 submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
   #Set URL & Headers
@@ -301,9 +301,12 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   headers = get_headers(live)
   
   
+  #Convert ticker argument to upper if lower
+  if(grepl("^[[:lower:]]+$",ticker)){ticker <- toupper(ticker)}
+  
   #Create body with order details, most common is a named list 
   bodyl <- list(symbol=ticker, qty=qty, side = side, type = type, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
-  
+  bodyl <- lapply(bodyl, as.character)
   
   #Send Request
   orders = httr::POST(url = paste0(url,"/v1/orders"), body = bodyl, encode = "json",headers)
@@ -311,8 +314,6 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   return(orders)
 }
 #----------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -698,7 +699,7 @@ get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", fro
     stop("Please enter a stock ticker.")
   }
   if(is.null(from) | is.null(to)){
-    stop("Please enter a date in the 'from' or 'to' arguement.")
+    stop("Please enter a date in the 'from' or 'to' argument.")
   }
   
   #Set URL
