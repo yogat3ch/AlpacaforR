@@ -117,7 +117,7 @@ get_orders(status = "all", live = TRUE)
 <br>
 
 ### Submitting Orders
-To submit orders, use `submit_order()` with the appropriate arguments and fire away 🚀. These arguments include ticker, qty, side, type, time_in_force, limit_price, stop price. The required arguments are ticker ("AAPL") 🍎, the share qty ("50"), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
+To submit orders, use `submit_order()` with the appropriate arguments and fire away 🚀. These arguments include ticker, qty, side, type, time_in_force, limit_price, stop price. The required arguments are ticker ("AAPL") 🍎, the share qty (50), side of trade ("buy" or "sell"), and type of order ("market" or "limit" or "stop" or "stoplimit"). 
 
 The options for time_in_force are ("day" or "gtc" or "opg") but the default is set to "day". If you select "limit" or "stop" as your order type, then you must provide the limit_price or stop_price as inputs as well. See `?submit_order()` for more details.
 
@@ -125,26 +125,26 @@ The options for time_in_force are ("day" or "gtc" or "opg") but the default is s
 #If paper account:
 
 #A market order
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
 
 #A market order with "gtc" time_in_force
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", time_in_force = "gtc")
 
 #A limit order
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 100)
 
 
 
 
 #If live account:
 #A market order
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", live = TRUE)
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", live = TRUE)
 
 #A market order with "gtc" time_in_force
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market", time_in_force = "gtc", live = TRUE)
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", time_in_force = "gtc", live = TRUE)
 
 #A limit order
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "100", live = TRUE)
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 100, live = TRUE)
 ```
 
 <br>
