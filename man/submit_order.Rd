@@ -8,19 +8,19 @@ submit_order(ticker, qty, side, type, time_in_force = "day",
   limit_price = NULL, stop_price = NULL, live = FALSE)
 }
 \arguments{
-\item{ticker}{The stock's symbol as a string.}
+\item{ticker}{The stock's symbol.}
 
-\item{qty}{The amount of shares to trade as a string.}
+\item{qty}{The amount of shares to trade.}
 
-\item{side}{The side of the trade. I.E buy or sell as a string.}
+\item{side}{The side of the trade. I.E "buy" or "sell"}
 
-\item{type}{The type of trade order. I.E market,limit,stop,stoplimit,etc as a string.}
+\item{type}{The type of trade order. I.E "market","limit","stop","stoplimit", etc.}
 
-\item{time_in_force}{The type of time order. I.E day, gtc, opg as a string. Defaults to "day".}
+\item{time_in_force}{The type of time order. I.E "day", "gtc", "opg". Default is "day".}
 
-\item{limit_price}{If order type was a limit, then enter the limit price here as a string.}
+\item{limit_price}{If order type was a limit, then enter the limit price here.}
 
-\item{stop_price}{If order tyope was a stop, then enter the stop price here as a string.}
+\item{stop_price}{If order tyope was a stop, then enter the stop price here.}
 
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
@@ -29,7 +29,7 @@ Places a new order of the specified stock, quantity, buy / sell, type of order, 
 }
 \examples{
 For market order:
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "market")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
 Or you can submit a limit order:
-submit_order(ticker = "AAPL", qty = "100", side = "buy", type = "limit", limit_price = "120")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
 }
