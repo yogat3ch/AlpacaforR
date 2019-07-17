@@ -49,7 +49,6 @@ get_url <- function(live=NULL){
 
 
 
-
 #----------------------------------------------------------------------------------------------
 #' Get Polygon URL for Server Request function
 #' 
@@ -147,30 +146,31 @@ get_account <- function(live = FALSE){
 #----------------------------------------------------------------------------------------------
 #' Get Positions function
 #'
-#' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated.
+#' The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric.
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @return "asset_id"  Asset ID as a string.
-#' @return "symbol"  Symbol of the asset as a string.
-#' @return "exchange"  Exchange name of the asset as a string.
-#' @return "asset_class"  Asset class name as a string.
-#' @return "avg_entry_price"  Average entry price of the position as a string.
-#' @return "qty" The number of shares as a string.
-#' @return "side" long/short exposure as a string.
-#' @return "market_value"  Total dollar amount of the position as a string.
-#' @return "cost_basis"  Total cost basis in dollar as a string.
-#' @return "unrealized_pl"  Unrealized profit/loss in dollar as a string.
-#' @return "unrealized_plpc"  Unrealized profit/loss percent (by a factor of 1) as a string.
-#' @return "unrealized_intraday_pl"  Unrealized profit/loss in dollar for the day as a string.
-#' @return "unrealized_intraday_plpc"  Unrealized profit/loss percent (by a factor of 1) as a string.
-#' @return "current_price"  Current asset price per share as a string.
-#' @return "lastday_price"  Last day’s asset price per share as a string.
-#' @return "change_today"  Percent change from last day price (by a factor of 1) as a string.
+#' @return "asset_id"  Asset ID.
+#' @return "symbol"  Symbol of the asset.
+#' @return "exchange"  Exchange name of the asset.
+#' @return "asset_class"  Asset class name.
+#' @return "avg_entry_price"  Average entry price of the position.
+#' @return "qty" The number of shares.
+#' @return "side" long/short exposure.
+#' @return "market_value"  Total dollar amount of the position.
+#' @return "cost_basis"  Total cost basis in dollar.
+#' @return "unrealized_pl"  Unrealized profit/loss in dollar.
+#' @return "unrealized_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "unrealized_intraday_pl"  Unrealized profit/loss in dollar for the day.
+#' @return "unrealized_intraday_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "current_price"  Current asset price per share.
+#' @return "lastday_price"  Last day’s asset price per share.
+#' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
 #' get_positions(ticker = "AAPL", live = FALSE)
 #' get_positions(ticker = "AAPL")
 #' This gets all positions:
 #' get_positions()
+#' @importFrom magrittr %<>%
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -181,9 +181,17 @@ get_positions <- function(ticker = NULL, live = FALSE){
   positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
   positions = response_text_clean(positions)
   
+  
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
-  else if(is.null(ticker)) return(positions) else return(subset(positions,symbol == ticker))
+  else if(is.null(ticker)){
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    return(positions)
+  } else {
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    positions <- subset(positions,symbol == ticker)
+    return(positions)
+  }
 }
 #----------------------------------------------------------------------------------------------
 
@@ -198,38 +206,38 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #----------------------------------------------------------------------------------------------
 #' Get Orders function
 #' 
-#' The orders API allows a user to monitor, place and cancel their orders with Alpaca.
+#' The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string.
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
 #' @param silent A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @return "id" order id as a string.
-#' @return "client_order_id" client unique order id as a string.
-#' @return "created_at" nullable When the order was created as a timestamp object.
-#' @return "updated_at" nullable When the order was created as a timestamp object.
-#' @return "submitted_at" nullable When the order was created as a timestamp object.
-#' @return "filled_at" nullable When the order was created as a timestamp object.
-#' @return "expired_at" nullable When the order was created as a timestamp object.
-#' @return "canceled_at" nullable When the order was created as a timestamp object.
-#' @return "asset_id" asset ID as a string.
-#' @return "symbol" Asset symbol as a string.
-#' @return "exchange" Asset exchange as a string.
-#' @return "asset_class" Asset class as a string.
-#' @return "qty" Ordered quantity as a string.
-#' @return "filled_qty" Filled quantity as a string.
-#' @return "type" Valid values: market, limit, stop, stop_limit as a string.
-#' @return "side" Valid values: buy, sell as a string.
-#' @return "time_in_force" time in force selected asa string.
-#' @return "limit_price" Limit price as a string.
-#' @return "stop_price" Stop price as a string.
-#' @return "status" Status of the order as a string.
+#' @return "id" order id.
+#' @return "client_order_id" client unique order id.
+#' @return "created_at" nullable When the order was created.
+#' @return "updated_at" nullable When the order was updated.
+#' @return "submitted_at" nullable When the order was submitted.
+#' @return "filled_at" nullable When the order was filled.
+#' @return "expired_at" nullable When the order was expired.
+#' @return "canceled_at" nullable When the order was canceled.
+#' @return "asset_id" asset ID.
+#' @return "symbol" Asset symbol.
+#' @return "exchange" Asset exchange.
+#' @return "asset_class" Asset class.
+#' @return "qty" Ordered quantity.
+#' @return "filled_qty" Filled quantity.
+#' @return "type" Valid values: market, limit, stop, stop_limit.
+#' @return "side" Valid values: buy, sell.
+#' @return "time_in_force" time in force.
+#' @return "limit_price" Limit price.
+#' @return "stop_price" Stop price.
+#' @return "status" Status of the order.
 #' @examples 
 #' get_orders(live = FALSE)
 #' get_orders(status = "all")
 #' For a specific ticker:
 #' get_orders(ticker = "AAPL", status = "all")
-#' @importFrom dplyr filter
+#' @importFrom dplyr stringr lubridate
 #' @export
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
@@ -262,10 +270,17 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
   }
   
-  #Make sure there are orders to return before calling return.
+  #Make sure there are orders to return before calling return. Format orders to workable and readable format before returning
   if(length(orders) == 0){
     if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker))paste("for",ticker),"at this time.",'Set status = "all" to see all orders.'))
-  }  else return(orders)
+  }  else {
+    toNum <- function(x){
+      as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
+    }
+    orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+    orders <- dplyr::mutate_at(orders, dplyr::vars(qty, filled_qty, filled_avg_price, limit_price, stop_price), list(toNum))
+    return(orders)
+    }
 }
 #----------------------------------------------------------------------------------------------
 
@@ -505,19 +520,22 @@ get_clock <- function(){
 #' @param to The ending date for the pricing data. Default is todays date.
 #' @param timeframe One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
 #' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.
-#' @return "t" the beginning time of this bar as a Unix epoch in seconds as a integer.
-#' @return "o" open price as a numberic object.
-#' @return "h" high price as a numberic object.
-#' @return "l" low price as a numberic object.
-#' @return "c" close price as a numberic object.
-#' @return "v" volume as a numberic object.
+#' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+#' \itemize{
+#'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+#'  \item{\code{open}}{  open price as a numeric object.}
+#'  \item{\code{high}}{  high price as a numeric object.}
+#'  \item{\code{low}}{  low price as a numeric object.}
+#'  \item{\code{close}}{  close price as a numeric object.}
+#'  \item{\code{volume}}{  volume (in millions) as a numeric object.}
+#' }
 #' @examples
 #' Getting one or more tickers: 
 #' get_bars(ticker = c("INTC","MSFT"))
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @importFrom stringr str_extract 
+#' @importFrom lubridate dplyr stringr magrittr %>%
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
@@ -566,8 +584,11 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   
-  #Get date/time with HH:MM:SS for minute type bars
-  if(!(timeframe == "1D" | timeframe == "day")){
+  #Get date/time with yyyy-mm-dd HH:MM:SS for timeframes < 1day
+  if(!(timeframe == "1D" | timeframe == "day") & (lubridate::is.POSIXct(from) | lubridate::is.POSIXct(to))){
+    from <- strftime(from, "%Y-%m-%dT%H:%M:%S%z", tz = Sys.timezone())
+    to <- strftime(to, "%Y-%m-%dT%H:%M:%S%z", tz = Sys.timezone())
+  } else if(!(timeframe == "1D" | timeframe == "day")){
     from = paste0(from,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
     to = paste0(to,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
   } else {
@@ -581,13 +602,12 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
   bars = response_text_clean(bars)
   
-  
-  
-  #Create a column for date/time
-  dates = sapply(bars,"[[","t")
-  bars = lapply(bars,cbind,d = as.POSIXct(dates, origin = "1970-01-01"))
-  
-  
+  #Rename columns to quantmod standard and reformat time column
+  bars = lapply(bars, function(l){
+    nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
+    out <- dplyr::mutate_at(l, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+      dplyr::rename((!!nms))
+  })
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
