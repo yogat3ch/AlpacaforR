@@ -19,48 +19,48 @@ get_orders(ticker = NULL, status = "open", from = NULL,
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
-"id" order id as a string.
+"id" order id.
 
-"client_order_id" client unique order id as a string.
+"client_order_id" client unique order id.
 
-"created_at" nullable When the order was created as a timestamp object.
+"created_at" nullable When the order was created.
 
-"updated_at" nullable When the order was created as a timestamp object.
+"updated_at" nullable When the order was updated.
 
-"submitted_at" nullable When the order was created as a timestamp object.
+"submitted_at" nullable When the order was submitted.
 
-"filled_at" nullable When the order was created as a timestamp object.
+"filled_at" nullable When the order was filled.
 
-"expired_at" nullable When the order was created as a timestamp object.
+"expired_at" nullable When the order was expired.
 
-"canceled_at" nullable When the order was created as a timestamp object.
+"canceled_at" nullable When the order was canceled.
 
-"asset_id" asset ID as a string.
+"asset_id" asset ID.
 
-"symbol" Asset symbol as a string.
+"symbol" Asset symbol.
 
-"exchange" Asset exchange as a string.
+"exchange" Asset exchange.
 
-"asset_class" Asset class as a string.
+"asset_class" Asset class.
 
-"qty" Ordered quantity as a string.
+"qty" Ordered quantity.
 
-"filled_qty" Filled quantity as a string.
+"filled_qty" Filled quantity.
 
-"type" Valid values: market, limit, stop, stop_limit as a string.
+"type" Valid values: market, limit, stop, stop_limit.
 
-"side" Valid values: buy, sell as a string.
+"side" Valid values: buy, sell.
 
-"time_in_force" time in force selected asa string.
+"time_in_force" time in force.
 
-"limit_price" Limit price as a string.
+"limit_price" Limit price.
 
-"stop_price" Stop price as a string.
+"stop_price" Stop price.
 
-"status" Status of the order as a string.
+"status" Status of the order.
 }
 \description{
-The orders API allows a user to monitor, place and cancel their orders with Alpaca.
+The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string.
 }
 \examples{
 get_orders(live = FALSE)

@@ -19,17 +19,15 @@ get_bars(ticker, from = Sys.Date() - 6, to = Sys.Date(),
 \item{limit}{The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.}
 }
 \value{
-"t" the beginning time of this bar as a Unix epoch in seconds as a integer.
-
-"o" open price as a numberic object.
-
-"h" high price as a numberic object.
-
-"l" low price as a numberic object.
-
-"c" close price as a numberic object.
-
-"v" volume as a numberic object.
+\code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+\itemize{
+ \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+ \item{\code{open}}{  open price as a numeric object.}
+ \item{\code{high}}{  high price as a numeric object.}
+ \item{\code{low}}{  low price as a numeric object.}
+ \item{\code{close}}{  close price as a numeric object.}
+ \item{\code{volume}}{  volume (in millions) as a numeric object.}
+}
 }
 \description{
 The bars API provides time-aggregated price and volume data for a single stock or multiple.
