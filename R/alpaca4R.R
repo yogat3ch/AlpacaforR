@@ -170,7 +170,7 @@ get_account <- function(live = FALSE){
 #' get_positions(ticker = "AAPL")
 #' This gets all positions:
 #' get_positions()
-#' @importFrom magrittr %<>%
+#' @importFrom magrittr
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -535,7 +535,7 @@ get_clock <- function(){
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @importFrom lubridate dplyr stringr magrittr %>%
+#' @importFrom lubridate dplyr stringr magrittr
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
