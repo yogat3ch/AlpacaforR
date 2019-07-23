@@ -170,7 +170,7 @@ get_account <- function(live = FALSE){
 #' get_positions(ticker = "AAPL")
 #' This gets all positions:
 #' get_positions()
-#' @import magrittr purrr
+#' @importFrom magrittr
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -185,10 +185,10 @@ get_positions <- function(ticker = NULL, live = FALSE){
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
@@ -237,7 +237,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' get_orders(status = "all")
 #' For a specific ticker:
 #' get_orders(ticker = "AAPL", status = "all")
-#' @import dplyr stringr lubridate
+#' @importFrom dplyr stringr lubridate
 #' @export
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
@@ -511,6 +511,8 @@ get_clock <- function(){
 
 
 
+
+
 #----------------------------------------------------------------------------------------------
 #' Get Bars function
 #' 
@@ -535,7 +537,7 @@ get_clock <- function(){
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @import lubridate dplyr stringr magrittr
+#' @importFrom lubridate dplyr stringr magrittr
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
@@ -551,6 +553,12 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   }
   
   
+  # Timeframe handler - adding a little more flexibility to what the argument can take
+  if (stringr::str_detect(timeframe, stringr::regex("D|d|days?", ignore_case = T))) {
+    timeframe <- "1D"
+  } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?"))) {
+    timeframe <- paste0(stringr::str_extract(timeframe, "^\\d+"),"Min")
+  }
   
   
   #Check for multiple tickers or just one
@@ -611,6 +619,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
+
 
 
 
