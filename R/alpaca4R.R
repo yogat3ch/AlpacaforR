@@ -557,7 +557,8 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   if (stringr::str_detect(timeframe, stringr::regex("D|d|days?", ignore_case = T))) {
     timeframe <- "1D"
   } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?"))) {
-    timeframe <- paste0(stringr::str_extract(timeframe, "^\\d+"),"Min")
+    digit <- ifelse(!is.na(stringr::str_extract(timeframe, "^\\d+")), stringr::str_extract(timeframe, "^\\d+"), "1")
+    timeframe <- paste0(digit,"Min")
   }
   
   
