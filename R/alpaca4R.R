@@ -185,10 +185,10 @@ get_positions <- function(ticker = NULL, live = FALSE){
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
