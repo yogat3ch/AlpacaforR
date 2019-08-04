@@ -468,7 +468,7 @@ get_calendar <- function(from = NULL, to = NULL){
     calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
     calendar =  response_text_clean(calendar)
   }
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd)
+  calendar <- dplyr::mutate_at(dplyr::vars(date), ~ lubridate::ymd(.))
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
