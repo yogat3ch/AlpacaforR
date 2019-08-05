@@ -480,7 +480,6 @@ get_calendar <- function(from = NULL, to = NULL){
 
 
 
-
 #----------------------------------------------------------------------------------------------
 #' Get Clock function
 #' 
@@ -564,7 +563,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   #Check for multiple tickers or just one
-  ticker = ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
+  ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
   
   
   
