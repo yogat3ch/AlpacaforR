@@ -468,10 +468,10 @@ get_calendar <- function(from = NULL, to = NULL){
     calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
     calendar =  response_text_clean(calendar)
   }
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd(.))
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
-
 
 
 
@@ -563,7 +563,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   
   
   #Check for multiple tickers or just one
-  ticker = ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
+  ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
   
   
   
