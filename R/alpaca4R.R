@@ -185,10 +185,10 @@ get_positions <- function(ticker = NULL, live = FALSE){
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dbl(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
@@ -468,10 +468,10 @@ get_calendar <- function(from = NULL, to = NULL){
     calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
     calendar =  response_text_clean(calendar)
   }
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd(.))
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
-
 
 
 
@@ -557,12 +557,13 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   if (stringr::str_detect(timeframe, stringr::regex("D|d|days?", ignore_case = T))) {
     timeframe <- "1D"
   } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?"))) {
-    timeframe <- paste0(stringr::str_extract(timeframe, "^\\d+"),"Min")
+    digit <- ifelse(!is.na(stringr::str_extract(timeframe, "^\\d+")), stringr::str_extract(timeframe, "^\\d+"), "1")
+    timeframe <- paste0(digit,"Min")
   }
   
   
   #Check for multiple tickers or just one
-  ticker = ifelse(length(ticker) > 1, paste0(ticker, collapse = ","), ticker)
+  ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
   
   
   
