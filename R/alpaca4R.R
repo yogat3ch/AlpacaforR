@@ -28,6 +28,7 @@ response_text_clean <- function(dat){
 #' Get URL for Server Request function
 #' 
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
+#' @param live \code{logical} indicating whether to return the url for the live API or the paper API.
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
 get_url <- function(live=NULL){
@@ -117,11 +118,12 @@ get_headers <- function(live=NULL){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(live = FALSE)
-#' Which is similar to:
-#' get_account()
-#' For access to live accounts, you must submit as live = TRUE
-#' get_account(live = TRUE)
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # get_account(live = FALSE)
+#' ## Which is similar to:
+#' # get_account()
+#' ## For access to live accounts, you must submit as live = TRUE
+#' # get_account(live = TRUE)
 #' @export
 get_account <- function(live = FALSE){
   #Set URL & Headers
@@ -166,11 +168,12 @@ get_account <- function(live = FALSE){
 #' @return "lastday_price"  Last day’s asset price per share.
 #' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
-#' get_positions(ticker = "AAPL", live = FALSE)
-#' get_positions(ticker = "AAPL")
-#' This gets all positions:
-#' get_positions()
-#' @importFrom magrittr
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # get_positions(ticker = "AAPL", live = FALSE)
+#' # get_positions(ticker = "AAPL")
+#' ## This gets all positions:
+#' # get_positions()
+#' @importFrom magrittr %<>%
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -185,10 +188,10 @@ get_positions <- function(ticker = NULL, live = FALSE){
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time.")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
@@ -207,7 +210,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string.
-#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param ticker_id \code{[character]} Specify either symbol or order id you want to call as a string.
 #' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
 #' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
 #' @param silent A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
@@ -233,34 +236,39 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' @return "stop_price" Stop price.
 #' @return "status" Status of the order.
 #' @examples 
-#' get_orders(live = FALSE)
-#' get_orders(status = "all")
-#' For a specific ticker:
-#' get_orders(ticker = "AAPL", status = "all")
-#' @importFrom dplyr stringr lubridate
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # get_orders(live = FALSE)
+#' # get_orders(status = "all")
+#' ## For a specific ticker:
+#' # get_orders(ticker = "AAPL", status = "all")
+#' @import stringr lubridate
 #' @export
-get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
+get_orders <- function(ticker_id = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
   
+  if (nchar(ticker_id) > 14) {
+    .resp <- AlpacaforR:::response_text_clean(httr::GET(url = paste0(AlpacaforR:::get_url(F), "/v2/orders/", .id), AlpacaforR::get_headers(F)))
+    return(.resp)
+  }
   #Send Request according to the selected arguments.
   
   
-  if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
+  if(!is.null(ticker_id)){       #If the ticker is not null, then return the orders for the tickers that is specified.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
       orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
-      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker_id)
     } else {
       orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
       orders = response_text_clean(orders)
-      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
+      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker_id)
     }
     
     
     
-  }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
+  }else if(is.null(ticker_id)){  #If the ticker is null, then return all orders.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
       orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
@@ -272,7 +280,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
   
   #Make sure there are orders to return before calling return. Format orders to workable and readable format before returning
   if(length(orders) == 0){
-    if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker))paste("for",ticker),"at this time.",'Set status = "all" to see all orders.'))
+    if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker_id))paste("for",ticker_id),"at this time.",'Set status = "all" to see all orders.'))
   }  else {
     toNum <- function(x){
       as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
@@ -283,8 +291,6 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
 }
 #----------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -304,11 +310,16 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' @param limit_price If order type was a limit, then enter the limit price here.
 #' @param stop_price If order tyope was a stop, then enter the stop price here.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A list with the submitted order parameters.
+#' \itemized{
+#'  \item{\code{open}}{  open price as a numeric object.}
+#' }
 #' @examples 
-#' For market order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
-#' Or you can submit a limit order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## For market order:
+#' # submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
+#' ## Or you can submit a limit order:
+#' # submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
 #' @export
 submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
   #Set URL & Headers
@@ -342,12 +353,14 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
 #' @param ticker_id The ticker symbol or the order id.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @examples 
-#' cancel_order(ticker_id = "AAPL")
-#' cancel_order(ticker_id = "aapl")
-#' Or you can instead cancel by the order_id:
-#' orders <- get_orders(status="open", silent = TRUE)
-#' cancel_order(ticker_id = orders$id[1])
+#' @return The id of the canceled order as a character vector
+#' @examples
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # cancel_order(ticker_id = "AAPL")
+#' # cancel_order(ticker_id = "aapl")
+#' ## Or you can instead cancel by the order_id:
+#' # orders <- get_orders(status="open", silent = TRUE)
+#' # cancel_order(ticker_id = orders$id[1])
 #' @importFrom lubridate with_tz
 #' @export
 cancel_order <- function(ticker_id,live = FALSE){
@@ -380,11 +393,34 @@ cancel_order <- function(ticker_id,live = FALSE){
   #Send Request & Cancel the order through the order_id
   cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
   cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
+  return(order_id)
 }
 #----------------------------------------------------------------------------------------------
 
 
 
+# ----------------------- Fri Sep 20 20:18:34 2019 ------------------------#
+#' Replace Order function
+#' This allows for the use of the replace order functionality especially useful for implementing trailing stop losses.
+#' @params
+replace_order <- function(.id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
+  .r_body <- list(time_in_force = time_in_force)
+  # Get the order details
+    .resp <- AlpacaforR:::response_text_clean(httr::GET(url = paste0(AlpacaforR:::get_url(F), "/v2/orders/", .id), AlpacaforR::get_headers(F)))
+    
+    if (is.null(qty)) {
+      qty <- .resp$qty
+    }
+    if (stringr::str_detect(.resp$type, "limit") & is.null(limit_price)) {
+  limit_price <- .resp$limit_price      
+    }
+    if (stringr::str_detect(.resp$type, "stop") & is.null(stop_price)) {
+      stop_price <- .resp$stop_price
+    }
+  
+  .r_order <- AlpacaforR:::response_text_clean(httr::PATCH(url = paste0(AlpacaforR:::get_url(live), "/v2/", .id), .r_body))
+  return(.r_order)
+}
 
 
 
@@ -402,9 +438,10 @@ cancel_order <- function(ticker_id,live = FALSE){
 #' @return "status" active or inactive as a string.
 #' @return "tradeable" Asset is tradable on Alpaca or not as a boolean.
 #' @examples 
-#' get_assets()
-#' Get a specific asset:
-#' get_assets(ticker = "AAPL")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # get_assets()
+#' ## Get a specific asset:
+#' # get_assets(ticker = "AAPL")
 #' @export
 get_assets <- function(ticker = NULL){
   #Set URL & Headers
@@ -443,11 +480,12 @@ get_assets <- function(ticker = NULL){
 #' @return "open" The time the market opens at on this date in hour:min format as a string.
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
-#' Get all dates:
-#' get_calendar()
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Get all dates:
+#' # get_calendar()
 #' @examples 
-#' Get specific date range:
-#' get_calendar(from = "2019-01-01", to = "2019-04-01")
+#' ## Get specific date range:
+#' # get_calendar(from = "2019-01-01", to = "2019-04-01")
 #' @export
 get_calendar <- function(from = NULL, to = NULL){
   #Set URL & Headers
@@ -489,7 +527,8 @@ get_calendar <- function(from = NULL, to = NULL){
 #' @return "next_open" Next market open timestamp as a string.
 #' @return "next_close" Next market close timestamp as a string.
 #' @examples 
-#' get_clock()
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' # get_clock()
 #' @export
 get_clock <- function(){
   #Set URL & Headers
@@ -532,12 +571,14 @@ get_clock <- function(){
 #'  \item{\code{volume}}{  volume (in millions) as a numeric object.}
 #' }
 #' @examples
-#' Getting one or more tickers: 
-#' get_bars(ticker = c("INTC","MSFT"))
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting one or more tickers: 
+#' # get_bars(ticker = c("INTC","MSFT"))
 #' @examples 
-#' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
-#' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @importFrom lubridate dplyr stringr magrittr
+#' ## Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
+#' # get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
+#' @import lubridate stringr 
+#' @importFrom magrittr %>%
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
@@ -651,10 +692,11 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
 #' @param version The current version for API. Defaults to v1 if no v2 available. 
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default meta for AMZN: 
-#' get_meta(ticker = "AMZN")
-#' Getting news information on AMZN: 
-#' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting default meta for AMZN: 
+#' # get_meta(ticker = "AMZN")
+#' ## Getting news information on AMZN: 
+#' # get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
 #' @export
 get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
   #Set URL 
@@ -715,14 +757,15 @@ get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
 #' @param unadjusted Set to true if the results should NOT be adjusted for splits.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default pricing data on AMZN (daily): 
-#' get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
-#' Getting minute pricing data on AMZN: 
-#' get_poly_agg_quote("AMZN", from = "2019-04-11", to = "2019-04-12", timespan = "minute")
-#' Getting quarterly pricing data on AMZN: 
-#' get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
-#' Getting yearly pricing data on AMZN: 
-#' get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting default pricing data on AMZN (daily): 
+#' # get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
+#' ## Getting minute pricing data on AMZN: 
+#' # get_poly_agg_quote("AMZN", from = "2019-04-11", to = "2019-04-12", timespan = "minute")
+#' ## Getting quarterly pricing data on AMZN: 
+#' # get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
+#' ## Getting yearly pricing data on AMZN: 
+#' # get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
 #' @export
 get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", from=NULL, to=NULL, unadjusted=FALSE){
   if(is.null(ticker)){
@@ -761,8 +804,9 @@ get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", fro
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default pricing data on AMZN (daily): 
-#' get_poly_stock_splits(ticker = "AMZN")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting default pricing data on AMZN (daily): 
+#' # get_poly_stock_splits(ticker = "AMZN")
 #' @export
 get_poly_stock_splits <- function(ticker=NULL){
   if(is.null(ticker)){
@@ -801,10 +845,11 @@ get_poly_stock_splits <- function(ticker=NULL){
 #' @param date Specify the date for which you are requesting.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting historic trade data on AMZN: 
-#' get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
-#' Getting historic pricing data on AMZN: 
-#' get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting historic trade data on AMZN: 
+#' # get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
+#' ## Getting historic pricing data on AMZN: 
+#' # get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
 #' @export
 get_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
   if(is.null(ticker) | is.null(type) | is.null(date)){
@@ -844,8 +889,9 @@ get_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed price for AMZN: 
-#' get_poly_last_price("AMZN")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting the last listed price for AMZN: 
+#' # get_poly_last_price("AMZN")
 #' @export
 get_poly_last_price <- function(ticker = NULL){
   if(is.null(ticker)){
@@ -883,8 +929,9 @@ get_poly_last_price <- function(ticker = NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
-#' get_poly_last_trade("AMZN")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting the last listed trade for AMZN: 
+#' # get_poly_last_trade("AMZN")
 get_poly_last_trade <- function(ticker = NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
@@ -925,8 +972,8 @@ get_poly_last_trade <- function(ticker = NULL){
 #' @param date Specify the date for which you are requesting.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
-#' get_poly_ohlc("AMZN", date = "2019-03-20")
+#' ## Getting the last listed trade for AMZN: 
+#' # get_poly_ohlc("AMZN", date = "2019-03-20")
 get_poly_ohlc <- function(ticker=NULL, date=NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
@@ -959,8 +1006,9 @@ get_poly_ohlc <- function(ticker=NULL, date=NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
-#' get_poly_prev_dayclose("AMZN")
+#' ## Examples below require an account and API key/secret parameters specified globally. See Readme for details.
+#' ## Getting the last listed trade for AMZN: 
+#' # get_poly_prev_dayclose("AMZN")
 get_poly_prev_dayclose <- function(ticker=NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
