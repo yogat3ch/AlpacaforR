@@ -123,17 +123,86 @@ get_headers <- function(live=NULL){
 #' For access to live accounts, you must submit as live = TRUE
 #' get_account(live = TRUE)
 #' @export
-get_account <- function(live = FALSE){
+get_account <- function(live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
   
   #Send Request
-  account = httr::GET(url = paste0(url,"/v1/account"), headers)
+  account = httr::GET(url = paste0(url,"/",version,"/account"), headers)
   account = response_text_clean(account)
   return(account)
 }
 #----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Account Configurations function
+#'
+#' The account configuration API serves an important role in setting the way you want.......
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return "dtbp_check" both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks.
+#' @return "trade_confirm_email" all or none. If none, emails for order fills are not sent.
+#' @return "suspend_trade" If true, new orders are blocked.
+#' @return "no_shorting" If true, account becomes long-only mode.
+#' @examples 
+#' get_config(live = FALSE)
+#' Which is similar to:
+#' get_config()
+#' For access to live accounts, you must submit as live = TRUE
+#' get_account(live = TRUE)
+#' @export
+get_config <- function(live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  #Send Request
+  account_config = httr::GET(url = paste0(url,"/v2/account/configurations"), headers)
+  account_config = response_text_clean(account_config)
+  return(account_config)
+}
+#----------------------------------------------------------------------------------------------
+get_config(live = TRUE)
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Send Account Configurations function
+#' 
+#' 
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return
+#' @examples 
+#' #' set_config(live = FALSE)
+#' Which is similar to:
+#' set_config()
+#' For access to live accounts, you must submit as live = TRUE
+#' set_account(live = TRUE)
+#' @export
+set_config <- function(live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+}
+#----------------------------------------------------------------------------------------------
+
+
 
 
 
