@@ -134,8 +134,8 @@ get_account <- function(live = FALSE, version = "v2"){
   return(account)
 }
 #----------------------------------------------------------------------------------------------
-
-
+#UPDATED
+get_account(live = TRUE, version = "v2")
 
 
 
@@ -171,6 +171,7 @@ get_config <- function(live = FALSE){
   return(account_config)
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED
 get_config(live = TRUE)
 
 
@@ -195,14 +196,20 @@ get_config(live = TRUE)
 #' For access to live accounts, you must submit as live = TRUE
 #' set_account(live = TRUE)
 #' @export
-set_config <- function(live = FALSE){
+set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
+  
+  #Send Request
+  set_account_config = httr::PATCH(url = paste0(url,"/v2/account/configurations?dtbp_check=",dtbp_check,"&no_shorting=",no_shorting, "&suspend_trade=",suspend_trade, "&trade_confirm_email=",trade_confirm_email), headers)
+  set_account_config = response_text_clean(set_account_config)
+  return(set_account_config)
 }
 #----------------------------------------------------------------------------------------------
-
-
+#NEW
+#NOT WORKING
+set_config(live = TRUE,dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 
 
 
@@ -308,7 +315,7 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' get_orders(ticker = "AAPL", status = "all")
 #' @importFrom dplyr stringr lubridate
 #' @export
-get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
+get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -318,11 +325,11 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
   
   if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
       if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     } else {
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
       orders = response_text_clean(orders)
       if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     }
@@ -331,10 +338,10 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     
   }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
     } else{
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
       orders = response_text_clean(orders)
     }
   }
@@ -352,7 +359,8 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
 }
 #----------------------------------------------------------------------------------------------
-
+#UPDATED
+get_orders(live = TRUE,version = "v1")
 
 
 
@@ -379,7 +387,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' Or you can submit a limit order:
 #' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
 #' @export
-submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
+submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE, version="v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -393,12 +401,13 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   bodyl <- lapply(bodyl, as.character)
   
   #Send Request
-  orders = httr::POST(url = paste0(url,"/v1/orders"), body = bodyl, encode = "json",headers)
+  orders = httr::POST(url = paste0(url,"/",version,"/orders"), body = bodyl, encode = "json",headers)
   orders = response_text_clean(orders)
   return(orders)
 }
 #----------------------------------------------------------------------------------------------
-
+#UPDATED
+submit_order("AAPL", qty = 1,side = "buy",type = "limit",limit_price = 0.01,time_in_force = "gtc",live = TRUE,version = "v2")
 
 
 
@@ -419,7 +428,7 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #' cancel_order(ticker_id = orders$id[1])
 #' @importFrom lubridate with_tz
 #' @export
-cancel_order <- function(ticker_id,live = FALSE){
+cancel_order <- function(ticker_id, all=FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -431,7 +440,11 @@ cancel_order <- function(ticker_id,live = FALSE){
   
   #Check if any open orders before proceeding. 
   if(is.null(open_orders)){
-    cat("There are no orders to cancel at this time.")
+    stop("There are no orders to cancel at this time.")
+    
+  } else if (all == TRUE) { #If order id supplied then do this
+    cat("Cancelling ALL open orders")
+    
     
   } else if (nchar(ticker_id) > 15) { #If order id supplied then do this
     order_id <- ticker_id
@@ -447,10 +460,84 @@ cancel_order <- function(ticker_id,live = FALSE){
     order_id <- open_orders[[open_orders_sym[1], "id"]]
   }
   #Send Request & Cancel the order through the order_id
-  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
+  if(all == TRUE){
+    cancel = httr::DELETE(url = paste0(url,"/",version,"/orders/"), headers)
+  } else{
+    cancel = httr::DELETE(url = paste0(url,"/",version,"/orders/",order_id), headers)
+  }
   cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED, BUT MAYBE WE CAN ADD AN "delete_all=T/F" arguement to delete all orders instead of just one. 
+cancel_order(live = TRUE,all=FALSE,ticker_id = "AAPL",version = "v1")
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Replace Order function
+#' 
+#' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
+#' @param ticker_id The ticker symbol or the order id.
+#' @param qty The amount of shares to replace.
+#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". Default is "day".
+#' @param limit_price If order type was a limit, then enter the limit price here.
+#' @param stop_price If order tyope was a stop, then enter the stop price here.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' replace_order(ticker_id = "AAPL")
+#' replace_order(ticker_id = "aapl")
+#' Or you can instead cancel by the order_id:
+#' orders <- get_orders(status="open", silent = TRUE)
+#' replace_order(ticker_id = orders$id[1])
+#' @importFrom lubridate with_tz
+#' @export
+replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price=NULL, stop_price=NULL, live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  #Gather the open order ID for the symbol specified
+  #open_orders = get_orders(status = "open", live = live, silent = TRUE)
+  
+  if(is.null(qty)) stop("You must provide share qty to replace your order")
+  
+  if (nchar(ticker_id) > 15) { #If order id supplied then do this
+    order_id <- ticker_id
+    ticker <- open_orders$symbol[open_orders$id == order_id]
+    
+    # If more than one order is open print message to notify which order is being cancelled
+    #if(length(open_orders$symbol %in% ticker) >1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders$id %in% order_id], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
+    
+  } else { #If ticker supplied then do this
+    ticker <- ticker_id 
+    open_orders_sym <- grep(ticker, open_orders$symbol, ignore.case = T)
+    #If more than one order is open print message to notify which order is being cancelled
+    #if(length(open_orders_sym) > 1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders_sym[1]], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
+    order_id <- open_orders[[open_orders_sym[1], "id"]]
+  }
+  #Send Request & Cancel the order through the order_id
+  
+  replace = httr::PATCH(url = paste0(url,"/v2/orders/",order_id,"?qty=",qty,"&time_in_force=",time_in_force,"&limit_price=",limit_price,"&stop_price=",stop_price), headers)
+  replace = try(response_text_clean(replace))
+  if(class(replace)=="try-error"){
+    cat(paste("Order ID", order_id,"for",ticker, "was not replaced. Please check syntax and order_id."),"\n")
+  } else{
+    cat(paste("Order ID", order_id,"for",ticker, "was successfully replaced."),"\n")
+  }
+}
+#----------------------------------------------------------------------------------------------
+#UPDATED, but needs to be more robust to handle error at the end.
+
+replace_order("AAPL",live = TRUE,qty=1)
+
+
 
 
 
