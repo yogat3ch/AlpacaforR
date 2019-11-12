@@ -1,6 +1,5 @@
 
 
-
 # PACKAGE FUNCTIONS #
 #===================================================================================================
 
@@ -266,7 +265,7 @@ get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED
-#get_positions(version = "v2")
+#get_positions(version = "v2",live = FALSE)
 
 
 
@@ -315,17 +314,13 @@ close_position <- function(ticker = NULL, live = FALSE){
   positions = response_text_clean(positions)
   
   
-  #Check if any positions exist before attempting to return
-  #if(length(positions) == 0) cat("No positions are open at this time. \n")
-  #else{
-    #positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
-    return(positions)
-  #}
+  return(positions)
+  
 }
 #----------------------------------------------------------------------------------------------
  
-#UPDATED, BUT NEED TO TEST TO SEE WHICH POSITIONS ARE CLOSED IF LONG AND SHORT ARE OPEN? CAN YOU EVEN HEDGE IN ALPACA? 
-#close_position(ticker = "DBX")
+#UPDATED
+#close_position(ticker = "AAPL")
 
 
 
@@ -372,16 +367,11 @@ close_all_positions <- function(live = FALSE){
   positions = response_text_clean(positions)
   
   
-  #Check if any positions exist before attempting to return
-  if(length(positions) == 0) cat("No positions are open at this time. \n")
-  else{
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
-    return(positions)
-  }
+  return(positions)
 }
 #----------------------------------------------------------------------------------------------
 #NEW
-#close_all_positions()
+#close_all_positions(live = FALSE)
 
 
 
@@ -472,7 +462,7 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED
-#get_orders(live = TRUE,version = "v1")
+#get_orders(live = FALSE, version = "v2")
 
 
 
@@ -521,7 +511,7 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED
-#submit_order(ticker = "AMD", qty = 100, side = "sell", type = "limit", limit_price = 0.01, time_in_force = "day", extended_hours = FALSE, live = FALSE, version = "v2")
+#submit_order(ticker = "AMD", qty = 50, side = "sell", type = "limit", limit_price = 0.1, time_in_force = "day", extended_hours = FALSE, live = FALSE, version = "v2")
 
 
 
@@ -535,7 +525,7 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #' Cancel Order function
 #' 
 #' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. As of the V2 API update, an "all" arguement is added to cancel all open orders.
-#' @param ticker_id The ticker symbol or the order id. If all = TRUE, no ticker_id is needed.
+#' @param ticker_id The ticker symbol or the order id. If all = TRUE, no ticker_id is needed because ALL orders will be canceled.
 #' @param all Default to False. If true, all open orders are cancelled. Only available in the V2 API.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @param version Use the deprecated V1 API or the newer V2 API.
@@ -590,7 +580,7 @@ cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED
-#cancel_order(live = FALSE, all=TRUE,version = "v2")
+#cancel_order(ticker_id = NULL, live = FALSE, all=TRUE, version = "v2")
 
 
 
@@ -664,7 +654,7 @@ replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 }
 #----------------------------------------------------------------------------------------------
 #NEW
-#replace_order(ticker_id = "AAPL", qty = 1, limit_price = 90, time_in_force = "gtc", live = FALSE)
+#replace_order(ticker_id = "AMD", qty = 25, limit_price = 10, time_in_force = "gtc", live = FALSE)
 
 #submit_order(ticker = "AAPL", qty = 10, limit_price = 100, side = "sell", type = "limit", live = FALSE, version = "v2")
 
@@ -744,11 +734,41 @@ get_assets <- function(ticker = NULL, version="v2"){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(live = FALSE)
-#' Which is similar to:
-#' get_account()
-#' For access to live accounts, you must submit as live = TRUE
-#' get_account(live = TRUE)
+#' Activity Types:
+#' 
+#' FILL: Order fills (both partial and full fills)
+#' TRANS: Cash transactions (both CSD and CSR)
+#' MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or FILL)
+#' ACATC: ACATS IN/OUT (Cash)
+#' ACATS: ACATS IN/OUT (Securities)
+#' CSD: Cash disbursement(+)
+#' CSR: Cash receipt(-)
+#' DIV: Dividends
+#' DIVCGL: Dividend (capital gain long term)
+#' DIVCGS: Dividend (capital gain short term)
+#' DIVFEE: Dividend fee
+#' DIVFT: Dividend adjusted (Foreign Tax Withheld)
+#' DIVNRA: Dividend adjusted (NRA Withheld)
+#' DIVROC: Dividend return of capital
+#' DIVTW: Dividend adjusted (Tefra Withheld)
+#' DIVTXEX: Dividend (tax exempt)
+#' INT: Interest (credit/margin)
+#' INTNRA Interest adjusted (NRA Withheld)
+#' INTTW: Interest adjusted (Tefra Withheld)
+#' JNL: Journal entry
+#' JNLC: Journal entry (cash)
+#' JNLS: Journal entry (stock)
+#' MA: Merger/Acquisition
+#' NC: Name change
+#' OPASN: Option assignment
+#' OPEXP: Option expiration
+#' OPXRC: Option exercise
+#' PTC: Pass Thru Charge
+#' PTR: Pass Thru Rebate
+#' REORG: Reorg CA
+#' SC: Symbol change
+#' SSO: Stock spinoff
+#' SSP: Stock split
 #' @export
 get_account_activities <- function(activity_type = c(NULL), date = NULL, until = NULL, after = NULL, direction = "desc", page_size = 50, page_token = NULL, live = FALSE){
   #Set URL & Headers
@@ -760,7 +780,7 @@ get_account_activities <- function(activity_type = c(NULL), date = NULL, until =
     account_activities = httr::GET(url = paste0(url,"/v2/account/activities"), headers)
     account_activities = response_text_clean(account_activities)
   } else{
-    account_activities = httr::GET(url = paste0(url,"/v2/account/activities/", activity_type, "?date=", date, "&until=", until, "&after=",after,"&direction=",direction,"&page_size=",pages_size,"&page_token=",page_token), headers)
+    account_activities = httr::GET(url = paste0(url,"/v2/account/activities/", activity_type, "?date=", date, "&until=", until, "&after=",after,"&direction=",direction,"&page_size=",page_size,"&page_token=",page_token), headers)
     account_activities = response_text_clean(account_activities)
   }
 
@@ -768,7 +788,7 @@ get_account_activities <- function(activity_type = c(NULL), date = NULL, until =
 }
 #----------------------------------------------------------------------------------------------
 #NEW
-get_account_activities()
+#get_account_activities(activity_type = "FILL")
 
 
 
@@ -794,13 +814,15 @@ create_watchlist <- function(name = NULL, tickers = c(NULL), live = FALSE){
   url = get_url(live)
   headers = get_headers(live)
   
-  
-  watchlist = httr::POST(url = paste0(url, "/v2/watchlists/", name, "/", tickers), headers)
+  bodyl=list(name=name,symbols=tickers)
+  watchlist = httr::POST(url = paste0(url, "/v2/watchlists"), body = bodyl, encode = "json", headers)
   watchlist = response_text_clean(watchlist)
   
   return(watchlist)
 }
 #NEW
+#create_watchlist(name = "Test_Watch", tickers = c("AMD", "NVDA", "INTC"), live = FALSE)
+
 
 
 
@@ -822,7 +844,7 @@ get_watchlist_ids <- function(live = FALSE){
   return(watchlist)
 }
 #NEW
-
+#get_watchlist_ids(live = FALSE)
 
 
 
@@ -845,7 +867,7 @@ get_watchlist <- function(watchlist_id = NULL, live = FALSE){
   
 }
 #NEW
-
+#get_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
 
 
 
@@ -860,14 +882,14 @@ update_watchlist <- function(watchlist_id = NULL, name = NULL, tickers = c(NULL)
   url = get_url(live)
   headers = get_headers(live)
   
-  
-  watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id,"?name=",name,"&string=",tickers), headers)
+  bodyl= list(name=name,string=tickers)
+  watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
   watchlist = response_text_clean(watchlist)
   return(watchlist)
   
 }
 #NEW
-
+#update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "Test_Watch", tickers = c("AAPL","WMT"), live=FALSE)
 
 
 
@@ -883,13 +905,14 @@ add_to_watchlist <- function(watchlist_id = NULL, tickers = c(NULL), live = FALS
   headers = get_headers(live)
   
   
-  watchlist = httr::POST(url = paste0(url, "/v2/watchlists/",watchlist_id,"?string=",tickers), headers)
+  bodyl= list(string=tickers)
+  watchlist = httr::POST(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
   watchlist = response_text_clean(watchlist)
   return(watchlist)
   
 }
 #NEW
-
+#add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT"), live = FALSE)
 
 
 
@@ -911,7 +934,7 @@ delete_watchlist <- function(watchlist_id = NULL, live = FALSE){
   
 }
 #NEW
-
+#delete_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
 
 
 
@@ -927,13 +950,13 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
   headers = get_headers(live)
   
   
-  watchlist = httr::DELETE(url = paste0(url, "/v2/watchlists/",watchlist_id, "/", ticker), headers)
+  watchlist = httr::DELETE(url = paste0(url, "/v2/watchlists/", watchlist_id, "/", ticker), headers)
   watchlist = response_text_clean(watchlist)
   return(watchlist)
   
 }
 #NEW
-
+#delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", ticker = "AAPL", live = FALSE)
 
 
 
