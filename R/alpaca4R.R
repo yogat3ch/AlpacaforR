@@ -38,7 +38,7 @@ get_url <- function(live=FALSE){
   return(url)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
+#UPDATED for V2
 
 
 
@@ -79,7 +79,7 @@ get_headers <- function(live=FALSE){
   return(headers)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
+#UPDATED for V2
 
 
 
@@ -107,11 +107,11 @@ get_headers <- function(live=FALSE){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(live = FALSE)
+#' get_account(live = FALSE, version = "v2")
 #' Which is similar to:
 #' get_account()
 #' For access to live accounts, you must submit as live = TRUE
-#' get_account(live = TRUE)
+#' get_account(live = TRUE, version = "v2")
 #' @export
 get_account <- function(live = FALSE, version = "v2"){
   #Set URL & Headers
@@ -124,9 +124,8 @@ get_account <- function(live = FALSE, version = "v2"){
   return(account)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#get_account(live = FALSE, version = "v2")
-
+#UPDATED for V2
+#get_account(live = TRUE, version = "v2")
 
 
 
@@ -148,7 +147,7 @@ get_account <- function(live = FALSE, version = "v2"){
 #' Which is similar to:
 #' get_config()
 #' For access to live accounts, you must submit as live = TRUE
-#' get_account(live = TRUE)
+#' get_config(live = TRUE)
 #' @export
 get_config <- function(live = FALSE){
   #Set URL & Headers
@@ -161,9 +160,8 @@ get_config <- function(live = FALSE){
   return(account_config)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#get_config(live = FALSE)
-
+#NEW for V2
+#get_config(live = TRUE)
 
 
 
@@ -180,11 +178,11 @@ get_config <- function(live = FALSE){
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @return
 #' @examples 
-#' #' set_config(live = FALSE)
+#' set_config(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 #' Which is similar to:
-#' set_config()
+#' set_config(dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 #' For access to live accounts, you must submit as live = TRUE
-#' set_account(live = TRUE)
+#' set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 #' @export
 set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all"){
   #Set URL & Headers
@@ -202,9 +200,8 @@ set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, 
   return(set_account_config)
 }
 #----------------------------------------------------------------------------------------------
-#NEW
-#set_config(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
-
+#NEW for V2
+#set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 
 
 
@@ -236,10 +233,11 @@ set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, 
 #' @return "lastday_price"  Last day’s asset price per share.
 #' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
-#' get_positions(ticker = "AAPL", live = FALSE)
-#' get_positions(ticker = "AAPL")
+#' get_positions(ticker = "AAPL", live = FALSE, version = "v2")
+#' get_positions(ticker = "AAPL", live = TRUE, version = "v2")
 #' This gets all positions:
-#' get_positions()
+#' get_positions(version = "v2")
+#' get_positions(live = TRUE, version = "v2")
 #' @importFrom magrittr
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
@@ -255,17 +253,17 @@ get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
   #Check if any positions exist before attempting to return
   if(length(positions) == 0) cat("No positions are open at this time. \n")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#get_positions(version = "v2",live = FALSE)
+#UPDATED for V2
+#get_positions(live = TRUE,version = "v2")
 
 
 
@@ -298,10 +296,9 @@ get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
 #' @return "lastday_price"  Last day’s asset price per share.
 #' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
-#' get_positions(ticker = "AAPL", live = FALSE)
-#' get_positions(ticker = "AAPL")
-#' This gets all positions:
-#' get_positions()
+#' close_position(ticker = "AAPL", live = FALSE)
+#' close_position(ticker = "AAPL")
+#' close_position(ticker = "AAPL", live = TRUE)
 #' @importFrom magrittr
 #' @export
 close_position <- function(ticker = NULL, live = FALSE){
@@ -318,9 +315,10 @@ close_position <- function(ticker = NULL, live = FALSE){
   
 }
 #----------------------------------------------------------------------------------------------
- 
-#UPDATED
-#close_position(ticker = "AAPL")
+#UPDATED for V2
+#close_position(ticker = "AAPL", live = TRUE)
+
+
 
 
 
@@ -351,10 +349,9 @@ close_position <- function(ticker = NULL, live = FALSE){
 #' @return "lastday_price"  Last day’s asset price per share.
 #' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
-#' get_positions(ticker = "AAPL", live = FALSE)
-#' get_positions(ticker = "AAPL")
-#' This gets all positions:
-#' get_positions()
+#' close_all_positions(live = FALSE)
+#' close_all_positions()
+#' close_all_positions(live = TRUE)
 #' @importFrom magrittr
 #' @export
 close_all_positions <- function(live = FALSE){
@@ -370,9 +367,9 @@ close_all_positions <- function(live = FALSE){
   return(positions)
 }
 #----------------------------------------------------------------------------------------------
-#NEW
-#close_all_positions(live = FALSE)
-
+#NEW for V2
+# Add "no positions to close" like "get positions", if no positions exist.
+#close_all_positions(live = TRUE)
 
 
 
@@ -411,10 +408,10 @@ close_all_positions <- function(live = FALSE){
 #' @return "stop_price" Stop price.
 #' @return "status" Status of the order.
 #' @examples 
-#' get_orders(live = FALSE)
-#' get_orders(status = "all")
+#' get_orders(live = FALSE, version = "v2")
+#' get_orders(status = "all", version = "v2")
 #' For a specific ticker:
-#' get_orders(ticker = "AAPL", status = "all")
+#' get_orders(ticker = "AAPL", status = "all", version = "v2")
 #' @importFrom dplyr stringr lubridate
 #' @export
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE, version = "v2"){
@@ -461,8 +458,8 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#get_orders(live = FALSE, version = "v2")
+#UPDATED for V2
+#get_orders(status = "all",live = TRUE, version = "v2")
 
 
 
@@ -486,11 +483,11 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
 #' For market order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", version = "v2")
 #' Or you can submit a limit order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120, version = "v2")
 #' @export
-submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, extended_hours = FALSE, live = FALSE, version="v2"){
+submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, extended_hours = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -510,8 +507,8 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   return(orders)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#submit_order(ticker = "AMD", qty = 50, side = "sell", type = "limit", limit_price = 0.1, time_in_force = "day", extended_hours = FALSE, live = FALSE, version = "v2")
+#UPDATED for V2
+#submit_order(ticker = "DBX", qty = 1, side = "buy", type = "limit", limit_price = 120, version = "v2")
 
 
 
@@ -530,10 +527,10 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @param version Use the deprecated V1 API or the newer V2 API.
 #' @examples 
-#' cancel_order(ticker_id = "AAPL")
-#' cancel_order(ticker_id = "aapl")
+#' cancel_order(ticker_id = "AAPL", version = "v2")
+#' cancel_order(ticker_id = "aapl", version = "v2")
 #' Or you can instead cancel by the order_id:
-#' orders <- get_orders(status="open", silent = TRUE)
+#' orders <- get_orders(status="open", silent = TRUE, version = "v2")
 #' cancel_order(ticker_id = orders$id[1])
 #' @importFrom lubridate with_tz
 #' @export
@@ -579,8 +576,9 @@ cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v
   
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#cancel_order(ticker_id = NULL, live = FALSE, all=TRUE, version = "v2")
+#UPDATED for V2
+#cancel_order(ticker_id = "aapl", version = "v2")
+
 
 
 
@@ -601,11 +599,10 @@ cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v
 #' @param stop_price If order tyope was a stop, then enter the stop price here.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
-#' replace_order(ticker_id = "AAPL")
-#' replace_order(ticker_id = "aapl")
+#' replace_order(ticker_id = "AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
 #' Or you can instead cancel by the order_id:
 #' orders <- get_orders(status="open", silent = TRUE)
-#' replace_order(ticker_id = orders$id[1])
+#' replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
 #' @importFrom lubridate with_tz
 #' @export
 replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price=NULL, stop_price=NULL, live = FALSE){
@@ -653,10 +650,11 @@ replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
   return(replace)
 }
 #----------------------------------------------------------------------------------------------
-#NEW
-#replace_order(ticker_id = "AMD", qty = 25, limit_price = 10, time_in_force = "gtc", live = FALSE)
+#NEW for V2
+#eplace_order(ticker_id="AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
 
-#submit_order(ticker = "AAPL", qty = 10, limit_price = 100, side = "sell", type = "limit", live = FALSE, version = "v2")
+
+
 
 
 
@@ -677,9 +675,9 @@ replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 #' @examples 
 #' get_assets()
 #' Get a specific asset:
-#' get_assets(ticker = "AAPL")
+#' get_assets(ticker = "AAPL",version = "v2")
 #' @export
-get_assets <- function(ticker = NULL, version="v2"){
+get_assets <- function(ticker = NULL, version = "v2"){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
@@ -697,24 +695,22 @@ get_assets <- function(ticker = NULL, version="v2"){
   return(assets)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-
-#get_assets(version = "v2", ticker = "DBX")
-
+#UPDATED for V2
+#get_assets(ticker = "AAPL",version = "v2")
 
 
 
 
-############################
-# ACCOUNT ACTIVITIES FUNCS #
-############################
+
+
+
 
 
 #----------------------------------------------------------------------------------------------
 #' Get Account function
 #'
-#' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
-#' @param activity_type The activity type you want to view entries for. A list of valid activity types can be found at the bottom of this page. <string>
+#' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawl, and various flags relevant to an account’s ability to trade.
+#' @param activity_type The activity type you want to view entries for. A list of valid activity types can be found in the examples below. <string>
 #' @param date The date for which you want to see activities. <string timestamp>
 #' @param until The response will contain only activities submitted before this date. (Cannot be used with date.) <string timestamp>
 #' @param after The response will contain only activities submitted after this date. (Cannot be used with date.) <string timestamp>
@@ -734,8 +730,9 @@ get_assets <- function(ticker = NULL, version="v2"){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
+#' get_account_activities(activity_type = "FILL")
+#' @examples 
 #' Activity Types:
-#' 
 #' FILL: Order fills (both partial and full fills)
 #' TRANS: Cash transactions (both CSD and CSR)
 #' MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or FILL)
@@ -787,27 +784,28 @@ get_account_activities <- function(activity_type = c(NULL), date = NULL, until =
   return(account_activities)
 }
 #----------------------------------------------------------------------------------------------
-#NEW
+#NEW for V2
 #get_account_activities(activity_type = "FILL")
 
 
 
 
-###################################
-# END OF ACCOUNT ACTIVITIES FUNCS #
-###################################
 
 
 
 
 
-
-###################
-# WATCHLIST FUNCS #
-###################
-
-#ADD DOCUMENTATION AND TEST!!!!!!!!!!!!!!
-
+#----------------------------------------------------------------------------------------------
+#' Create Watchlist function
+#'
+#' Creates a new watchlist with initial set of assets.
+#' @param name arbitrary name string, up to 64 characters. <string REQUIRED>
+#' @param tickers Set of symbols. <vector of string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return An array of a watchlist object.
+#' @examples 
+#' create_watchlist(name = "test", tickers = c("AAPL","WMT"), live = FALSE)
+#' @export
 create_watchlist <- function(name = NULL, tickers = c(NULL), live = FALSE){
   
   # Set URL & Headers
@@ -820,8 +818,8 @@ create_watchlist <- function(name = NULL, tickers = c(NULL), live = FALSE){
   
   return(watchlist)
 }
-#NEW
-#create_watchlist(name = "Test_Watch", tickers = c("AMD", "NVDA", "INTC"), live = FALSE)
+#NEW for V2
+#create_watchlist(name = "test", tickers = c("AAPL","WMT"), live = FALSE)
 
 
 
@@ -830,8 +828,15 @@ create_watchlist <- function(name = NULL, tickers = c(NULL), live = FALSE){
 
 
 
-
-
+#----------------------------------------------------------------------------------------------
+#' Get Watchlist IDs function
+#'
+#' Returns a list of watchlists and the IDs registered under the account.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return An array of watchlist objects.
+#' @examples 
+#' get_watchlist_ids(live = FALSE)
+#' @export
 get_watchlist_ids <- function(live = FALSE){
   
   # Set URL & Headers
@@ -843,7 +848,7 @@ get_watchlist_ids <- function(live = FALSE){
   watchlist = response_text_clean(watchlist)
   return(watchlist)
 }
-#NEW
+#NEW for V2
 #get_watchlist_ids(live = FALSE)
 
 
@@ -854,6 +859,17 @@ get_watchlist_ids <- function(live = FALSE){
 
 
 
+
+#----------------------------------------------------------------------------------------------
+#' Get Watchlist function
+#'
+#' Returns a specific watchlist identified by the watchlist ID provided.
+#' @param watchlist_id Watchlist ID <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object.
+#' @examples 
+#' get_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+#' @export
 get_watchlist <- function(watchlist_id = NULL, live = FALSE){
   
   # Set URL & Headers
@@ -866,7 +882,7 @@ get_watchlist <- function(watchlist_id = NULL, live = FALSE){
   return(watchlist)
   
 }
-#NEW
+#NEW for V2
 #get_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
 
 
@@ -876,20 +892,33 @@ get_watchlist <- function(watchlist_id = NULL, live = FALSE){
 
 
 
+
+#----------------------------------------------------------------------------------------------
+#' Update Watchlist function
+#'
+#' Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add.
+#' @param watchlist_id Watchlist ID <string>
+#' @param name arbitrary name string, up to 64 characters. <string>
+#' @param tickers Set of symbols. <vector of strings>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object with updated content.
+#' @examples 
+#' update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "test_watch", tickers = c("AAPL","WMT"), live=FALSE)
+#' @export
 update_watchlist <- function(watchlist_id = NULL, name = NULL, tickers = c(NULL), live = FALSE){
   
   # Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
   
-  bodyl= list(name=name,string=tickers)
+  bodyl= list(name=name,symbols=tickers)
   watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
   watchlist = response_text_clean(watchlist)
   return(watchlist)
   
 }
-#NEW
-#update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "Test_Watch", tickers = c("AAPL","WMT"), live=FALSE)
+#NEW for V2
+#update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "test_watch", tickers = c("AAPL","WMT"), live=TRUE)
 
 
 
@@ -898,21 +927,33 @@ update_watchlist <- function(watchlist_id = NULL, name = NULL, tickers = c(NULL)
 
 
 
-add_to_watchlist <- function(watchlist_id = NULL, tickers = c(NULL), live = FALSE){
+
+#----------------------------------------------------------------------------------------------
+#' Add to Watchlist function
+#'
+#' Append an asset for the symbol to the end of watchlist asset list. You must provide current tickers, and new ticker to add.
+#' @param watchlist_id Watchlist ID <string>
+#' @param tickers Set of symbols. <vector of strings REQUIRED>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object with updated content.
+#' @examples 
+#' add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT"), live = FALSE)
+#' @export
+add_to_watchlist <- function(watchlist_id = NULL, tickers = NULL, live = FALSE){
   
   # Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
   
   
-  bodyl= list(string=tickers)
-  watchlist = httr::POST(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
+  bodyl = list(symbols=tickers)
+  watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
   watchlist = response_text_clean(watchlist)
   return(watchlist)
   
 }
-#NEW
-#add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT"), live = FALSE)
+#NEW for V2
+#add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT","AMD"), live = FALSE)
 
 
 
@@ -921,6 +962,16 @@ add_to_watchlist <- function(watchlist_id = NULL, tickers = c(NULL), live = FALS
 
 
 
+
+#----------------------------------------------------------------------------------------------
+#' Delete Watchlist function
+#'
+#' Delete a watchlist. This is a permantent deletion.
+#' @param watchlist_id Watchlist ID <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' delete_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+#' @export
 delete_watchlist <- function(watchlist_id = NULL, live = FALSE){
   
   # Set URL & Headers
@@ -929,11 +980,15 @@ delete_watchlist <- function(watchlist_id = NULL, live = FALSE){
   
   
   watchlist = httr::DELETE(url = paste0(url, "/v2/watchlists/",watchlist_id), headers)
-  watchlist = response_text_clean(watchlist)
-  return(watchlist)
+  
+  if(watchlist$status_code == 204){ cat(paste0("Success, Watchlist ID",watchlist_id, " deleted"))}
+  
+  else{
+    cat("Watchlist ID",watchlist_id," not sucessfully deleted")
+  }
   
 }
-#NEW
+#NEW for V2
 #delete_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
 
 
@@ -943,6 +998,17 @@ delete_watchlist <- function(watchlist_id = NULL, live = FALSE){
 
 
 
+
+#----------------------------------------------------------------------------------------------
+#' Delete from Watchlist function
+#'
+#' Delete one entry for an asset by symbol name.
+#' @param watchlist_id Watchlist ID <string>
+#' @param tickers Symbol name to remove from the watchlist content. <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", ticker = "AAPL", live = FALSE)
+#' @export
 delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FALSE){
   
   # Set URL & Headers
@@ -955,7 +1021,7 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
   return(watchlist)
   
 }
-#NEW
+#NEW for V2
 #delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", ticker = "AAPL", live = FALSE)
 
 
@@ -963,11 +1029,6 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
 
 
 
-
-
-##########################
-# END OF WATCHLIST FUNCS #
-##########################
 
 
 
@@ -982,10 +1043,10 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
 #' Get all dates:
-#' get_calendar()
+#' get_calendar(version = "v2")
 #' @examples 
 #' Get specific date range:
-#' get_calendar(from = "2019-01-01", to = "2019-04-01")
+#' get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 #' @export
 get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   #Set URL & Headers
@@ -1010,8 +1071,8 @@ get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
-#get_calendar(version = "v2")
+#UPDATED for V2
+#get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 
 
 
@@ -1026,7 +1087,7 @@ get_calendar <- function(from = NULL, to = NULL, version = "v2"){
 #' @return "next_open" Next market open timestamp as a string.
 #' @return "next_close" Next market close timestamp as a string.
 #' @examples 
-#' get_clock()
+#' get_clock(version = "v2")
 #' @export
 get_clock <- function(version = "v2"){
   #Set URL & Headers
@@ -1039,7 +1100,7 @@ get_clock <- function(version = "v2"){
   return(clock)
 }
 #----------------------------------------------------------------------------------------------
-#UPDATED
+#UPDATED for V2
 #get_clock(version = "v2")
 
 
@@ -1157,7 +1218,6 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
-#NO UPDATE NEEDED HERE, STILL POINTING TO V1
 #get_bars(ticker = "DBX")
 
 
@@ -1173,7 +1233,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
 #----------------------------------------------------------------------------------------------
 
 
-#Best function to use if you want to see a little more than just pricing data for you company. 
+#Best function to use if you want to see a little more than just pricing data for your company. 
 #My favorite are the analyst estimates and news endpoints. I am not 100% sure how quickly the news links are updated, but I am very interested and will try to reach out regarding this. 
 #I decided to integrate all endpoints into one function and the user can either call a specific endpoint, or call none.
 
