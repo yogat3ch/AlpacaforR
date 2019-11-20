@@ -4,7 +4,7 @@
 \alias{get_url}
 \title{Get URL for Server Request function}
 \usage{
-get_url(live = NULL)
+get_url(live = FALSE)
 }
 \value{
 The correct URL according to account type (live or paper) that will be sent in the API request.

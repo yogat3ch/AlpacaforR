@@ -4,7 +4,7 @@
 \alias{get_calendar}
 \title{Get Calendar function}
 \usage{
-get_calendar(from = NULL, to = NULL)
+get_calendar(from = NULL, to = NULL, version = "v2")
 }
 \arguments{
 \item{from}{Starting date of request. Default to NULL so it starts from 1970.}
@@ -23,7 +23,7 @@ The calendar API serves the full list of market days from 1970 to 2029. It can a
 }
 \examples{
 Get all dates:
-get_calendar()
+get_calendar(version = "v2")
 Get specific date range:
-get_calendar(from = "2019-01-01", to = "2019-04-01")
+get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 }

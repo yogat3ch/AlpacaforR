@@ -4,7 +4,7 @@
 \alias{get_clock}
 \title{Get Clock function}
 \usage{
-get_clock()
+get_clock(version = "v2")
 }
 \value{
 "timestamp" Current timestamp as a string.
@@ -19,5 +19,5 @@ get_clock()
 The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close.
 }
 \examples{
-get_clock()
+get_clock(version = "v2")
 }

@@ -238,7 +238,7 @@ set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, 
 #' This gets all positions:
 #' get_positions(version = "v2")
 #' get_positions(live = TRUE, version = "v2")
-#' @importFrom magrittr
+#' @import magrittr
 #' @export
 get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
   #Set URL, live = FALSE & Headers
@@ -299,7 +299,7 @@ get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
 #' close_position(ticker = "AAPL", live = FALSE)
 #' close_position(ticker = "AAPL")
 #' close_position(ticker = "AAPL", live = TRUE)
-#' @importFrom magrittr
+#' @import magrittr
 #' @export
 close_position <- function(ticker = NULL, live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -352,7 +352,7 @@ close_position <- function(ticker = NULL, live = FALSE){
 #' close_all_positions(live = FALSE)
 #' close_all_positions()
 #' close_all_positions(live = TRUE)
-#' @importFrom magrittr
+#' @import magrittr
 #' @export
 close_all_positions <- function(live = FALSE){
   #Set URL, live = FALSE & Headers
@@ -412,7 +412,7 @@ close_all_positions <- function(live = FALSE){
 #' get_orders(status = "all", version = "v2")
 #' For a specific ticker:
 #' get_orders(ticker = "AAPL", status = "all", version = "v2")
-#' @importFrom dplyr stringr lubridate
+#' @import dplyr stringr lubridate
 #' @export
 get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
@@ -1135,7 +1135,7 @@ get_clock <- function(version = "v2"){
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @importFrom lubridate dplyr stringr magrittr
+#' @import lubridate dplyr stringr magrittr
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
