@@ -4,8 +4,18 @@
 \alias{submit_order}
 \title{Submit Order function}
 \usage{
-submit_order(ticker, qty, side, type, time_in_force = "day",
-  limit_price = NULL, stop_price = NULL, live = FALSE)
+submit_order(
+  ticker,
+  qty,
+  side,
+  type,
+  time_in_force = "day",
+  limit_price = NULL,
+  stop_price = NULL,
+  extended_hours = FALSE,
+  live = FALSE,
+  version = "v2"
+)
 }
 \arguments{
 \item{ticker}{The stock's symbol.}
@@ -16,11 +26,13 @@ submit_order(ticker, qty, side, type, time_in_force = "day",
 
 \item{type}{The type of trade order. I.E "market","limit","stop","stoplimit", etc.}
 
-\item{time_in_force}{The type of time order. I.E "day", "gtc", "opg". Default is "day".}
+\item{time_in_force}{The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".}
 
 \item{limit_price}{If order type was a limit, then enter the limit price here.}
 
 \item{stop_price}{If order tyope was a stop, then enter the stop price here.}
+
+\item{extended_hours}{(default) false. If true, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.}
 
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
@@ -29,7 +41,7 @@ Places a new order of the specified stock, quantity, buy / sell, type of order, 
 }
 \examples{
 For market order:
-submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", version = "v2")
 Or you can submit a limit order:
-submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
+submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120, version = "v2")
 }

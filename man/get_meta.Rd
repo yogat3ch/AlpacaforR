@@ -4,8 +4,7 @@
 \alias{get_meta}
 \title{Get Polygon Meta Data}
 \usage{
-get_meta(ticker = NULL, endpoint = NULL, perpage = NULL,
-  version = "v1")
+get_meta(ticker = NULL, endpoint = NULL, perpage = NULL, version = "v1")
 }
 \arguments{
 \item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}

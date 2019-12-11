@@ -4,7 +4,7 @@
 \alias{get_assets}
 \title{Get Assets function}
 \usage{
-get_assets(ticker = NULL)
+get_assets(ticker = NULL, version = "v2")
 }
 \arguments{
 \item{ticker}{Check for a specific stock and if its active on Alpaca by inputting ticker as a string.}
@@ -28,5 +28,5 @@ The assets API serves as the master list of assets available for trade and data 
 \examples{
 get_assets()
 Get a specific asset:
-get_assets(ticker = "AAPL")
+get_assets(ticker = "AAPL",version = "v2")
 }

@@ -4,8 +4,14 @@
 \alias{get_poly_agg_quote}
 \title{Get Polygon Aggregate Pricing Data}
 \usage{
-get_poly_agg_quote(ticker = NULL, multiplier = 1, timespan = "day",
-  from = NULL, to = NULL, unadjusted = FALSE)
+get_poly_agg_quote(
+  ticker = NULL,
+  multiplier = 1,
+  timespan = "day",
+  from = NULL,
+  to = NULL,
+  unadjusted = FALSE
+)
 }
 \arguments{
 \item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}

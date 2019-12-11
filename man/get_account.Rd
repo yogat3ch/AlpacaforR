@@ -4,7 +4,7 @@
 \alias{get_account}
 \title{Get Account function}
 \usage{
-get_account(live = FALSE)
+get_account(live = FALSE, version = "v2")
 }
 \arguments{
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
@@ -36,9 +36,9 @@ get_account(live = FALSE)
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account’s ability to trade.
 }
 \examples{
-get_account(live = FALSE)
+get_account(live = FALSE, version = "v2")
 Which is similar to:
 get_account()
 For access to live accounts, you must submit as live = TRUE
-get_account(live = TRUE)
+get_account(live = TRUE, version = "v2")
 }
