@@ -4,8 +4,14 @@
 \alias{get_orders}
 \title{Get Orders function}
 \usage{
-get_orders(ticker = NULL, status = "open", from = NULL,
-  silent = FALSE, live = FALSE)
+get_orders(
+  ticker = NULL,
+  status = "open",
+  from = NULL,
+  silent = FALSE,
+  live = FALSE,
+  version = "v2"
+)
 }
 \arguments{
 \item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
@@ -63,8 +69,8 @@ get_orders(ticker = NULL, status = "open", from = NULL,
 The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string.
 }
 \examples{
-get_orders(live = FALSE)
-get_orders(status = "all")
+get_orders(live = FALSE, version = "v2")
+get_orders(status = "all", version = "v2")
 For a specific ticker:
-get_orders(ticker = "AAPL", status = "all")
+get_orders(ticker = "AAPL", status = "all", version = "v2")
 }

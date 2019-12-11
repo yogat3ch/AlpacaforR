@@ -1,6 +1,5 @@
 
 
-
 # PACKAGE FUNCTIONS #
 #===================================================================================================
 
@@ -30,20 +29,16 @@ response_text_clean <- function(dat){
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 #' @export
-get_url <- function(live=NULL){
+get_url <- function(live=FALSE){
   
-  if(is.null(live)){
-    url <- "https://paper-api.alpaca.markets"
-  } 
-  else{
     url <- ifelse(live, 
                   "https://api.alpaca.markets",
                   "https://paper-api.alpaca.markets")
-  }
+  
   return(url)
 }
 #----------------------------------------------------------------------------------------------
-
+#UPDATED for V2
 
 
 
@@ -72,24 +67,19 @@ get_url_poly <- function(){
 #' @return The correct headers that will be sent in the API request.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
 #' @export
-get_headers <- function(live=NULL){
+get_headers <- function(live=FALSE){
   
-  if(is.null(live)){
-    headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY"))
-  } 
-  else{
     ifelse(live, 
                       headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
                                                   'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
-                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-API-KEY-ID"), 
-                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-API-SECRET-KEY")))
-  }
+           
+                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
+                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
+           )
   return(headers)
 }
 #----------------------------------------------------------------------------------------------
-
-
+#UPDATED for V2
 
 
 
@@ -117,24 +107,101 @@ get_headers <- function(live=NULL){
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
-#' get_account(live = FALSE)
+#' get_account(live = FALSE, version = "v2")
 #' Which is similar to:
 #' get_account()
 #' For access to live accounts, you must submit as live = TRUE
-#' get_account(live = TRUE)
+#' get_account(live = TRUE, version = "v2")
 #' @export
-get_account <- function(live = FALSE){
+get_account <- function(live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
   
   #Send Request
-  account = httr::GET(url = paste0(url,"/v1/account"), headers)
+  account = httr::GET(url = paste0(url,"/",version,"/account"), headers)
   account = response_text_clean(account)
   return(account)
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#get_account(live = TRUE, version = "v2")
 
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Account Configurations function
+#'
+#' The account configuration API serves an important role in setting the way you want.......
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return "dtbp_check" both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks.
+#' @return "trade_confirm_email" all or none. If none, emails for order fills are not sent.
+#' @return "suspend_trade" If true, new orders are blocked.
+#' @return "no_shorting" If true, account becomes long-only mode.
+#' @examples 
+#' get_config(live = FALSE)
+#' Which is similar to:
+#' get_config()
+#' For access to live accounts, you must submit as live = TRUE
+#' get_config(live = TRUE)
+#' @export
+get_config <- function(live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  #Send Request
+  account_config = httr::GET(url = paste0(url,"/v2/account/configurations"), headers)
+  account_config = response_text_clean(account_config)
+  return(account_config)
+}
+#----------------------------------------------------------------------------------------------
+#NEW for V2
+#get_config(live = TRUE)
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Send Account Configurations function
+#' 
+#' 
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return
+#' @examples 
+#' set_config(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
+#' Which is similar to:
+#' set_config(dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
+#' For access to live accounts, you must submit as live = TRUE
+#' set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
+#' @export
+set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all"){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  
+  #Create body with order details, most common is a named list 
+  bodyl <- list(dtbp_check = dtbp_check, no_shorting = no_shorting, suspend_trade = suspend_trade, trade_confirm_email = trade_confirm_email)
+  
+  #Send Request
+  set_account_config = httr::PATCH(url = paste0(url,"/v2/account/configurations"), body = bodyl, encode = "json", headers)
+  set_account_config = response_text_clean(set_account_config)
+  return(set_account_config)
+}
+#----------------------------------------------------------------------------------------------
+#NEW for V2
+#set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 
 
 
@@ -166,35 +233,143 @@ get_account <- function(live = FALSE){
 #' @return "lastday_price"  Last day’s asset price per share.
 #' @return "change_today"  Percent change from last day price (by a factor of 1).
 #' @examples 
-#' get_positions(ticker = "AAPL", live = FALSE)
-#' get_positions(ticker = "AAPL")
+#' get_positions(ticker = "AAPL", live = FALSE, version = "v2")
+#' get_positions(ticker = "AAPL", live = TRUE, version = "v2")
 #' This gets all positions:
-#' get_positions()
-#' @importFrom magrittr
+#' get_positions(version = "v2")
+#' get_positions(live = TRUE, version = "v2")
+#' @import magrittr
 #' @export
-get_positions <- function(ticker = NULL, live = FALSE){
+get_positions <- function(ticker = NULL, live = FALSE, version = "v2"){
   #Set URL, live = FALSE & Headers
   url = get_url(live)
   headers = get_headers(live)
   
   #Send Request
-  positions = httr::GET(url = paste0(url,"/v1/positions"), headers) 
+  positions = httr::GET(url = paste0(url,"/",version,"/positions"), headers) 
   positions = response_text_clean(positions)
   
   
   #Check if any positions exist before attempting to return
-  if(length(positions) == 0) cat("No positions are open at this time.")
+  if(length(positions) == 0) cat("No positions are open at this time. \n")
   else if(is.null(ticker)){
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     return(positions)
   } else {
-    positions[,c(5:6,8:ncol(positions))] %<>% map_dfc(as.numeric)
+    positions[,c(5:6,8:ncol(positions))] %<>% purrr::map_dfc(as.numeric)
     positions <- subset(positions,symbol == ticker)
     return(positions)
   }
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#get_positions(live = TRUE,version = "v2")
 
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Close all positions function
+#'
+#' The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return "asset_id"  Asset ID.
+#' @return "symbol"  Symbol of the asset.
+#' @return "exchange"  Exchange name of the asset.
+#' @return "asset_class"  Asset class name.
+#' @return "avg_entry_price"  Average entry price of the position.
+#' @return "qty" The number of shares.
+#' @return "side" long/short exposure.
+#' @return "market_value"  Total dollar amount of the position.
+#' @return "cost_basis"  Total cost basis in dollar.
+#' @return "unrealized_pl"  Unrealized profit/loss in dollar.
+#' @return "unrealized_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "unrealized_intraday_pl"  Unrealized profit/loss in dollar for the day.
+#' @return "unrealized_intraday_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "current_price"  Current asset price per share.
+#' @return "lastday_price"  Last day’s asset price per share.
+#' @return "change_today"  Percent change from last day price (by a factor of 1).
+#' @examples 
+#' close_position(ticker = "AAPL", live = FALSE)
+#' close_position(ticker = "AAPL")
+#' close_position(ticker = "AAPL", live = TRUE)
+#' @import magrittr
+#' @export
+close_position <- function(ticker = NULL, live = FALSE){
+  #Set URL, live = FALSE & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  #Send Request
+  positions = httr::DELETE(url = paste0(url,"/v2/positions/",ticker), headers) 
+  positions = response_text_clean(positions)
+  
+  
+  return(positions)
+  
+}
+#----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#close_position(ticker = "AAPL", live = TRUE)
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Close all positions function
+#'
+#' The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return "asset_id"  Asset ID.
+#' @return "symbol"  Symbol of the asset.
+#' @return "exchange"  Exchange name of the asset.
+#' @return "asset_class"  Asset class name.
+#' @return "avg_entry_price"  Average entry price of the position.
+#' @return "qty" The number of shares.
+#' @return "side" long/short exposure.
+#' @return "market_value"  Total dollar amount of the position.
+#' @return "cost_basis"  Total cost basis in dollar.
+#' @return "unrealized_pl"  Unrealized profit/loss in dollar.
+#' @return "unrealized_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "unrealized_intraday_pl"  Unrealized profit/loss in dollar for the day.
+#' @return "unrealized_intraday_plpc"  Unrealized profit/loss percent (by a factor of 1).
+#' @return "current_price"  Current asset price per share.
+#' @return "lastday_price"  Last day’s asset price per share.
+#' @return "change_today"  Percent change from last day price (by a factor of 1).
+#' @examples 
+#' close_all_positions(live = FALSE)
+#' close_all_positions()
+#' close_all_positions(live = TRUE)
+#' @import magrittr
+#' @export
+close_all_positions <- function(live = FALSE){
+  #Set URL, live = FALSE & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  #Send Request
+  positions = httr::DELETE(url = paste0(url,"/v2/positions"), headers) 
+  positions = response_text_clean(positions)
+  
+  
+  return(positions)
+}
+#----------------------------------------------------------------------------------------------
+#NEW for V2
+# Add "no positions to close" like "get positions", if no positions exist.
+#close_all_positions(live = TRUE)
 
 
 
@@ -233,13 +408,13 @@ get_positions <- function(ticker = NULL, live = FALSE){
 #' @return "stop_price" Stop price.
 #' @return "status" Status of the order.
 #' @examples 
-#' get_orders(live = FALSE)
-#' get_orders(status = "all")
+#' get_orders(live = FALSE, version = "v2")
+#' get_orders(status = "all", version = "v2")
 #' For a specific ticker:
-#' get_orders(ticker = "AAPL", status = "all")
-#' @importFrom dplyr stringr lubridate
+#' get_orders(ticker = "AAPL", status = "all", version = "v2")
+#' @import dplyr stringr lubridate
 #' @export
-get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE){
+get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -249,11 +424,11 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
   
   if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
       if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     } else {
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
       orders = response_text_clean(orders)
       if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
     }
@@ -262,10 +437,10 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     
   }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
     if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
       orders = response_text_clean(orders)
     } else{
-      orders = httr::GET(url = paste0(url,"/v1/orders?status=",status), headers)
+      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
       orders = response_text_clean(orders)
     }
   }
@@ -283,7 +458,8 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
     }
 }
 #----------------------------------------------------------------------------------------------
-
+#UPDATED for V2
+#get_orders(status = "all",live = TRUE, version = "v2")
 
 
 
@@ -300,17 +476,18 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' @param qty The amount of shares to trade.
 #' @param side The side of the trade. I.E "buy" or "sell"
 #' @param type The type of trade order. I.E "market","limit","stop","stoplimit", etc.
-#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". Default is "day".
+#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".
 #' @param limit_price If order type was a limit, then enter the limit price here.
 #' @param stop_price If order tyope was a stop, then enter the stop price here.
+#' @param extended_hours (default) false. If true, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
 #' For market order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market")
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", version = "v2")
 #' Or you can submit a limit order:
-#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120)
+#' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120, version = "v2")
 #' @export
-submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
+submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, extended_hours = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -322,13 +499,18 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
   #Create body with order details, most common is a named list 
   bodyl <- list(symbol=ticker, qty=qty, side = side, type = type, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
   bodyl <- lapply(bodyl, as.character)
+  bodyl$extended_hours <- extended_hours
   
   #Send Request
-  orders = httr::POST(url = paste0(url,"/v1/orders"), body = bodyl, encode = "json",headers)
+  orders = httr::POST(url = paste0(url,"/",version,"/orders"), body = bodyl, encode = "json",headers)
   orders = response_text_clean(orders)
   return(orders)
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#submit_order(ticker = "DBX", qty = 1, side = "buy", type = "limit", limit_price = 120, version = "v2")
+
+
 
 
 
@@ -339,18 +521,20 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #----------------------------------------------------------------------------------------------
 #' Cancel Order function
 #' 
-#' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
-#' @param ticker_id The ticker symbol or the order id.
+#' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. As of the V2 API update, an "all" arguement is added to cancel all open orders.
+#' @param ticker_id The ticker symbol or the order id. If all = TRUE, no ticker_id is needed because ALL orders will be canceled.
+#' @param all Default to False. If true, all open orders are cancelled. Only available in the V2 API.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @param version Use the deprecated V1 API or the newer V2 API.
 #' @examples 
-#' cancel_order(ticker_id = "AAPL")
-#' cancel_order(ticker_id = "aapl")
+#' cancel_order(ticker_id = "AAPL", version = "v2")
+#' cancel_order(ticker_id = "aapl", version = "v2")
 #' Or you can instead cancel by the order_id:
-#' orders <- get_orders(status="open", silent = TRUE)
+#' orders <- get_orders(status="open", silent = TRUE, version = "v2")
 #' cancel_order(ticker_id = orders$id[1])
 #' @importFrom lubridate with_tz
 #' @export
-cancel_order <- function(ticker_id,live = FALSE){
+cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -362,7 +546,11 @@ cancel_order <- function(ticker_id,live = FALSE){
   
   #Check if any open orders before proceeding. 
   if(is.null(open_orders)){
-    cat("There are no orders to cancel at this time.")
+    stop("There are no orders to cancel at this time.")
+    
+  } else if (all == TRUE) { #If order id supplied then do this
+    cat("Cancelling ALL open orders \n")
+    
     
   } else if (nchar(ticker_id) > 15) { #If order id supplied then do this
     order_id <- ticker_id
@@ -378,10 +566,93 @@ cancel_order <- function(ticker_id,live = FALSE){
     order_id <- open_orders[[open_orders_sym[1], "id"]]
   }
   #Send Request & Cancel the order through the order_id
-  cancel = httr::DELETE(url = paste0(url,"/v1/orders/",order_id), headers)
-  cat(paste("Order ID", order_id,"for",ticker, "was successfully canceled."))
+  if(all == TRUE){
+    cancel = httr::DELETE(url = paste0(url,"/",version,"/orders"), headers)
+    cat(paste("ALL open orders were successfully canceled."))
+  } else{
+    cancel = httr::DELETE(url = paste0(url,"/",version,"/orders/",order_id), headers)
+    cat(paste("Order ID", order_id,"for", ticker, "was successfully canceled."))
+  }
+  
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#cancel_order(ticker_id = "aapl", version = "v2")
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Replace Order function
+#' 
+#' Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
+#' @param ticker_id The ticker symbol or the order id.
+#' @param qty The amount of shares to replace.
+#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". Default is "day".
+#' @param limit_price If order type was a limit, then enter the limit price here.
+#' @param stop_price If order tyope was a stop, then enter the stop price here.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' replace_order(ticker_id = "AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+#' Or you can instead cancel by the order_id:
+#' orders <- get_orders(status="open", silent = TRUE)
+#' replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+#' @importFrom lubridate with_tz
+#' @export
+replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price=NULL, stop_price=NULL, live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  #Gather the open order ID for the symbol specified
+  open_orders = get_orders(status = "open", live = live, silent = TRUE)
+  
+  if(is.null(qty)) stop("You must provide share qty to replace your order")
+  
+  if (nchar(ticker_id) > 15) { #If order id supplied then do this
+    order_id <- ticker_id
+    ticker <- open_orders$symbol[open_orders$id == order_id]
+    
+    # If more than one order is open print message to notify which order is being cancelled
+    #if(length(open_orders$symbol %in% ticker) >1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders$id %in% order_id], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
+    
+  } else { #If ticker supplied then do this
+    ticker <- ticker_id 
+    open_orders_sym <- grep(ticker, open_orders$symbol, ignore.case = T)
+    #If more than one order is open print message to notify which order is being cancelled
+    #if(length(open_orders_sym) > 1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders_sym[1]], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
+    order_id <- open_orders[[open_orders_sym[1], "id"]]
+  }
+  
+  
+  
+  #Send Request & Cancel the order through the order_id
+  
+  #Create body with order details, most common is a named list 
+  bodyl <- list(qty = qty, time_in_force = time_in_force, limit_price = limit_price, stop_price = stop_price)
+  replace = httr::PATCH(url = paste0(url,"/v2/orders/",order_id),body = bodyl, encode = "json", headers)
+  replace = response_text_clean(replace)
+  
+  
+  
+  if(TRUE %in% grepl(pattern = "^4",x = replace)){
+    cat(paste("Order ID", order_id,"for",ticker, "was not replaced. Please check syntax and order_id."),"\n")
+  } else{
+    cat(paste("Order ID", order_id,"for",ticker, "was successfully replaced."),"\n")
+  }
+  return(replace)
+}
+#----------------------------------------------------------------------------------------------
+#NEW for V2
+#eplace_order(ticker_id="AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+
 
 
 
@@ -404,9 +675,9 @@ cancel_order <- function(ticker_id,live = FALSE){
 #' @examples 
 #' get_assets()
 #' Get a specific asset:
-#' get_assets(ticker = "AAPL")
+#' get_assets(ticker = "AAPL",version = "v2")
 #' @export
-get_assets <- function(ticker = NULL){
+get_assets <- function(ticker = NULL, version = "v2"){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
@@ -415,15 +686,343 @@ get_assets <- function(ticker = NULL){
   
   #Send Request and ticker if one was supplied. 
   if(is.null(ticker)){
-    assets = httr::GET(url = paste0(url,"/v1/assets"), headers)
+    assets = httr::GET(url = paste0(url,"/",version,"/assets"), headers)
     assets = response_text_clean(assets)
   } else{
-    assets = httr::GET(url = paste0(url,"/v1/assets/",ticker), headers)
+    assets = httr::GET(url = paste0(url,"/",version,"/assets/",ticker), headers)
     assets = response_text_clean(assets)
   } 
   return(assets)
 }
 #----------------------------------------------------------------------------------------------
+#UPDATED for V2
+#get_assets(ticker = "AAPL",version = "v2")
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Account function
+#'
+#' The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawl, and various flags relevant to an account’s ability to trade.
+#' @param activity_type The activity type you want to view entries for. A list of valid activity types can be found in the examples below. <string>
+#' @param date The date for which you want to see activities. <string timestamp>
+#' @param until The response will contain only activities submitted before this date. (Cannot be used with date.) <string timestamp>
+#' @param after The response will contain only activities submitted after this date. (Cannot be used with date.) <string timestamp>
+#' @param direction asc or desc, default is desc. <string>
+#' @param page_size The maximum number of entries to return in the response. <int>
+#' @param page_token The ID of the end of your current page of results. <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return "id" Account ID as a string.
+#' @return "status" Account Status as a string.
+#' @return "currency" USD as a string.
+#' @return "buying_power" Tradable buying power as a string.
+#' @return "cash" Cash balance as a string.
+#' @return "cash_withdrawable"  Withdrawable cash amount as a string.
+#' @return "portfolio_value"  Total value of cash + holding positions as a string.
+#' @return "trading_blocked"  If true, the account is not allowed to place orders as a boolean.
+#' @return "transfers_blocked"  If true, the account is not allowed to request money transfers as a boolean.
+#' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
+#' @return "created_at"  Timestamap this account was created at as a string.
+#' @examples 
+#' get_account_activities(activity_type = "FILL")
+#' @examples 
+#' Activity Types:
+#' FILL: Order fills (both partial and full fills)
+#' TRANS: Cash transactions (both CSD and CSR)
+#' MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or FILL)
+#' ACATC: ACATS IN/OUT (Cash)
+#' ACATS: ACATS IN/OUT (Securities)
+#' CSD: Cash disbursement(+)
+#' CSR: Cash receipt(-)
+#' DIV: Dividends
+#' DIVCGL: Dividend (capital gain long term)
+#' DIVCGS: Dividend (capital gain short term)
+#' DIVFEE: Dividend fee
+#' DIVFT: Dividend adjusted (Foreign Tax Withheld)
+#' DIVNRA: Dividend adjusted (NRA Withheld)
+#' DIVROC: Dividend return of capital
+#' DIVTW: Dividend adjusted (Tefra Withheld)
+#' DIVTXEX: Dividend (tax exempt)
+#' INT: Interest (credit/margin)
+#' INTNRA Interest adjusted (NRA Withheld)
+#' INTTW: Interest adjusted (Tefra Withheld)
+#' JNL: Journal entry
+#' JNLC: Journal entry (cash)
+#' JNLS: Journal entry (stock)
+#' MA: Merger/Acquisition
+#' NC: Name change
+#' OPASN: Option assignment
+#' OPEXP: Option expiration
+#' OPXRC: Option exercise
+#' PTC: Pass Thru Charge
+#' PTR: Pass Thru Rebate
+#' REORG: Reorg CA
+#' SC: Symbol change
+#' SSO: Stock spinoff
+#' SSP: Stock split
+#' @export
+get_account_activities <- function(activity_type = c(NULL), date = NULL, until = NULL, after = NULL, direction = "desc", page_size = 50, page_token = NULL, live = FALSE){
+  #Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  #Send Request
+  if(is.null(activity_type)){
+    account_activities = httr::GET(url = paste0(url,"/v2/account/activities"), headers)
+    account_activities = response_text_clean(account_activities)
+  } else{
+    account_activities = httr::GET(url = paste0(url,"/v2/account/activities/", activity_type, "?date=", date, "&until=", until, "&after=",after,"&direction=",direction,"&page_size=",page_size,"&page_token=",page_token), headers)
+    account_activities = response_text_clean(account_activities)
+  }
+
+  return(account_activities)
+}
+#----------------------------------------------------------------------------------------------
+#NEW for V2
+#get_account_activities(activity_type = "FILL")
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Create Watchlist function
+#'
+#' Creates a new watchlist with initial set of assets.
+#' @param name arbitrary name string, up to 64 characters. <string REQUIRED>
+#' @param tickers Set of symbols. <vector of string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return An array of a watchlist object.
+#' @examples 
+#' create_watchlist(name = "test", tickers = c("AAPL","WMT"), live = FALSE)
+#' @export
+create_watchlist <- function(name = NULL, tickers = c(NULL), live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  bodyl=list(name=name,symbols=tickers)
+  watchlist = httr::POST(url = paste0(url, "/v2/watchlists"), body = bodyl, encode = "json", headers)
+  watchlist = response_text_clean(watchlist)
+  
+  return(watchlist)
+}
+#NEW for V2
+#create_watchlist(name = "test", tickers = c("AAPL","WMT"), live = FALSE)
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Watchlist IDs function
+#'
+#' Returns a list of watchlists and the IDs registered under the account.
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return An array of watchlist objects.
+#' @examples 
+#' get_watchlist_ids(live = FALSE)
+#' @export
+get_watchlist_ids <- function(live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  watchlist = httr::GET(url = paste0(url, "/v2/watchlists"), headers)
+  watchlist = response_text_clean(watchlist)
+  return(watchlist)
+}
+#NEW for V2
+#get_watchlist_ids(live = FALSE)
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Get Watchlist function
+#'
+#' Returns a specific watchlist identified by the watchlist ID provided.
+#' @param watchlist_id Watchlist ID <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object.
+#' @examples 
+#' get_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+#' @export
+get_watchlist <- function(watchlist_id = NULL, live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  watchlist = httr::GET(url = paste0(url, "/v2/watchlists/",watchlist_id), headers)
+  watchlist = response_text_clean(watchlist)
+  return(watchlist)
+  
+}
+#NEW for V2
+#get_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Update Watchlist function
+#'
+#' Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add.
+#' @param watchlist_id Watchlist ID <string>
+#' @param name arbitrary name string, up to 64 characters. <string>
+#' @param tickers Set of symbols. <vector of strings>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object with updated content.
+#' @examples 
+#' update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "test_watch", tickers = c("AAPL","WMT"), live=FALSE)
+#' @export
+update_watchlist <- function(watchlist_id = NULL, name = NULL, tickers = c(NULL), live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  bodyl= list(name=name,symbols=tickers)
+  watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
+  watchlist = response_text_clean(watchlist)
+  return(watchlist)
+  
+}
+#NEW for V2
+#update_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", name = "test_watch", tickers = c("AAPL","WMT"), live=TRUE)
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Add to Watchlist function
+#'
+#' Append an asset for the symbol to the end of watchlist asset list. You must provide current tickers, and new ticker to add.
+#' @param watchlist_id Watchlist ID <string>
+#' @param tickers Set of symbols. <vector of strings REQUIRED>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @return A watchlist object with updated content.
+#' @examples 
+#' add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT"), live = FALSE)
+#' @export
+add_to_watchlist <- function(watchlist_id = NULL, tickers = NULL, live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  bodyl = list(symbols=tickers)
+  watchlist = httr::PUT(url = paste0(url, "/v2/watchlists/",watchlist_id), body = bodyl, encode = "json", headers)
+  watchlist = response_text_clean(watchlist)
+  return(watchlist)
+  
+}
+#NEW for V2
+#add_to_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tickers = c("AAPL","WMT","AMD"), live = FALSE)
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Delete Watchlist function
+#'
+#' Delete a watchlist. This is a permantent deletion.
+#' @param watchlist_id Watchlist ID <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' delete_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+#' @export
+delete_watchlist <- function(watchlist_id = NULL, live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  watchlist = httr::DELETE(url = paste0(url, "/v2/watchlists/",watchlist_id), headers)
+  
+  if(watchlist$status_code == 204){ cat(paste0("Success, Watchlist ID",watchlist_id, " deleted"))}
+  
+  else{
+    cat("Watchlist ID",watchlist_id," not sucessfully deleted")
+  }
+  
+}
+#NEW for V2
+#delete_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", live = FALSE)
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+#' Delete from Watchlist function
+#'
+#' Delete one entry for an asset by symbol name.
+#' @param watchlist_id Watchlist ID <string>
+#' @param tickers Symbol name to remove from the watchlist content. <string>
+#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @examples 
+#' delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", ticker = "AAPL", live = FALSE)
+#' @export
+delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FALSE){
+  
+  # Set URL & Headers
+  url = get_url(live)
+  headers = get_headers(live)
+  
+  
+  watchlist = httr::DELETE(url = paste0(url, "/v2/watchlists/", watchlist_id, "/", ticker), headers)
+  watchlist = response_text_clean(watchlist)
+  return(watchlist)
+  
+}
+#NEW for V2
+#delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", ticker = "AAPL", live = FALSE)
 
 
 
@@ -444,12 +1043,12 @@ get_assets <- function(ticker = NULL){
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
 #' Get all dates:
-#' get_calendar()
+#' get_calendar(version = "v2")
 #' @examples 
 #' Get specific date range:
-#' get_calendar(from = "2019-01-01", to = "2019-04-01")
+#' get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 #' @export
-get_calendar <- function(from = NULL, to = NULL){
+get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
@@ -462,19 +1061,18 @@ get_calendar <- function(from = NULL, to = NULL){
   
   
   if(is.null(from) & is.null(to)){  #Check if any dates were given, and if not then return 
-    calendar = httr::GET(url = paste0(url,"/v1/calendar"), headers)
+    calendar = httr::GET(url = paste0(url,"/",version,"/calendar"), headers)
     calendar =  response_text_clean(calendar)
   } else{ 
-    calendar = httr::GET(url = paste0(url,"/v1/calendar","?start=",from,"&end=",to), headers)
+    calendar = httr::GET(url = paste0(url,"/",version,"/calendar","?start=",from,"&end=",to), headers)
     calendar =  response_text_clean(calendar)
   }
   calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd(.))
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
-
-
-
+#UPDATED for V2
+#get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 
 
 
@@ -489,21 +1087,21 @@ get_calendar <- function(from = NULL, to = NULL){
 #' @return "next_open" Next market open timestamp as a string.
 #' @return "next_close" Next market close timestamp as a string.
 #' @examples 
-#' get_clock()
+#' get_clock(version = "v2")
 #' @export
-get_clock <- function(){
+get_clock <- function(version = "v2"){
   #Set URL & Headers
   url = get_url()
   headers = get_headers()
   
   #Send Request
-  clock = httr::GET(url = paste0(url,"/v1/clock"), headers)
+  clock = httr::GET(url = paste0(url,"/",version,"/clock"), headers)
   clock = response_text_clean(clock)
   return(clock)
 }
 #----------------------------------------------------------------------------------------------
-
-
+#UPDATED for V2
+#get_clock(version = "v2")
 
 
 
@@ -537,7 +1135,7 @@ get_clock <- function(){
 #' @examples 
 #' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @importFrom lubridate dplyr stringr magrittr
+#' @import lubridate dplyr stringr magrittr
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
@@ -620,8 +1218,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
-
-
+#get_bars(ticker = "DBX")
 
 
 
@@ -636,7 +1233,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
 #----------------------------------------------------------------------------------------------
 
 
-#Best function to use if you want to see a little more than just pricing data for you company. 
+#Best function to use if you want to see a little more than just pricing data for your company. 
 #My favorite are the analyst estimates and news endpoints. I am not 100% sure how quickly the news links are updated, but I am very interested and will try to reach out regarding this. 
 #I decided to integrate all endpoints into one function and the user can either call a specific endpoint, or call none.
 
@@ -694,6 +1291,7 @@ get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
 }
 #----------------------------------------------------------------------------------------------
 
+#get_meta(ticker = "AAPL",endpoint = "news")
 
 
 
@@ -806,7 +1404,7 @@ get_poly_stock_splits <- function(ticker=NULL){
 #' Getting historic pricing data on AMZN: 
 #' get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
 #' @export
-get_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
+get_poly_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
   if(is.null(ticker) | is.null(type) | is.null(date)){
     stop("Please enter values for ticker, type, and date.")
   }
