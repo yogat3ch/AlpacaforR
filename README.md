@@ -32,19 +32,25 @@ library(AlpacaforR)
 
 ### KEY-ID and SECRET-KEY
 
-You must set your KEY-ID 🔑 and SECRET-KEY 🗝 as specifically named environment variables. They *must* be named as the following:
+You must set your KEY-ID 🔑 and SECRET-KEY 🗝 for both live and paper APIs as specifically named environment variables.
+You can find these values on the respective dashboards. You may need to hit "Regenerate Key" if you've returned to the dashboard and the secret key is no longer visible.
+They *must* be named as the following:
 ```r
-Sys.setenv('APCA-API-KEY-ID' = VALUE)
-Sys.setenv('APCA-API-SECRET-KEY' = VALUE)
+Sys.setenv('APCA-PAPER-API-KEY-ID' = "...")
+Sys.setenv('APCA-PAPER-API-SECRET-KEY' = "...")
+Sys.setenv('APCA-LIVE-API-KEY-ID' = "...")
+Sys.setenv('APCA-LIVE-API-SECRET-KEY' = "...")
 ```
 
-You can test that it has been properly set by calling:
+You can test that these have been properly set by calling:
 ```r
-Sys.getenv('APCA-API-KEY-ID')
-Sys.getenv('APCA-API-SECRET-KEY')
+Sys.getenv('APCA-PAPER-API-KEY-ID')
+Sys.getenv('APCA-PAPER-API-SECRET-KEY')
+Sys.getenv('APCA-LIVE-API-KEY-ID')
+Sys.getenv('APCA-LIVE-API-SECRET-KEY')
 ```
 
-The output should be the key values you've entered. Once you've set these to your environment, you will be able to use any of the **AlpacaforR** 🦙𝘙 functions. 
+The output should be the key values you've entered. Once you've set these to your environment, you will be able to use any of the **AlpacaforR** 🦙𝘙 functions for the remainder of the session. It is advised to set these parameters globally to persist across R sessions. As per [R Set environment variable permanently](https://stackoverflow.com/questions/49738564/r-set-environment-variable-permanently) If you are using RStudio, you can set these parameters in your .Renviron file found in the folder returned by `Sys.getenv('R_USER')`. The File Option: View Hidden Files must be enabled in your Control Panel (on Windows) to make the .Renviron file visible.
 
 <br>
 
