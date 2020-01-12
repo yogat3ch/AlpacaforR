@@ -23,8 +23,8 @@ The account configuration API serves an important role in setting the way you wa
 }
 \examples{
 get_config(live = FALSE)
-Which is similar to:
+# Which is similar to:
 get_config()
-For access to live accounts, you must submit as live = TRUE
+# For access to live accounts, you must submit as live = TRUE
 get_config(live = TRUE)
 }

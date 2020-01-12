@@ -50,7 +50,7 @@ The positions API provides information about an account’s current open positio
 \examples{
 get_positions(ticker = "AAPL", live = FALSE, version = "v2")
 get_positions(ticker = "AAPL", live = TRUE, version = "v2")
-This gets all positions:
+# This gets all positions:
 get_positions(version = "v2")
 get_positions(live = TRUE, version = "v2")
 }

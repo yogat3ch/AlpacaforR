@@ -58,40 +58,44 @@ get_account_activities(
 \description{
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawl, and various flags relevant to an account’s ability to trade.
 }
+\details{
+Activity Types:
+\itemize{
+  \item{FILL: Order fills (both partial and full fills)}
+  \item{TRANS: Cash transactions (both CSD and CSR)}
+  \item{MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or   FILL)}
+  \item{ACATC: ACATS IN/OUT (Cash)}
+  \item{ACATS: ACATS IN/OUT (Securities)}
+  \item{CSD: Cash disbursement(+)}
+  \item{CSR: Cash receipt(-)}
+  \item{DIV: Dividends}
+  \item{DIVCGL: Dividend (capital gain long term)}
+  \item{DIVCGS: Dividend (capital gain short term)}
+  \item{DIVFEE: Dividend fee}
+  \item{DIVFT: Dividend adjusted (Foreign Tax Withheld)}
+  \item{DIVNRA: Dividend adjusted (NRA Withheld)}
+  \item{DIVROC: Dividend return of capital}
+  \item{DIVTW: Dividend adjusted (Tefra Withheld)}
+  \item{DIVTXEX: Dividend (tax exempt)}
+  \item{INT: Interest (credit/margin)}
+  \item{INTNRA Interest adjusted (NRA Withheld)}
+  \item{INTTW: Interest adjusted (Tefra Withheld)}
+  \item{JNL: Journal entry}
+  \item{JNLC: Journal entry (cash)}
+  \item{JNLS: Journal entry (stock)}
+  \item{MA: Merger/Acquisition}
+  \item{NC: Name change}
+  \item{OPASN: Option assignment}
+  \item{OPEXP: Option expiration}
+  \item{OPXRC: Option exercise}
+  \item{PTC: Pass Thru Charge}
+  \item{PTR: Pass Thru Rebate}
+  \item{REORG: Reorg CA}
+  \item{SC: Symbol change}
+  \item{SSO: Stock spinoff}
+  \item{SSP: Stock split}
+}
+}
 \examples{
 get_account_activities(activity_type = "FILL")
-Activity Types:
-FILL: Order fills (both partial and full fills)
-TRANS: Cash transactions (both CSD and CSR)
-MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or FILL)
-ACATC: ACATS IN/OUT (Cash)
-ACATS: ACATS IN/OUT (Securities)
-CSD: Cash disbursement(+)
-CSR: Cash receipt(-)
-DIV: Dividends
-DIVCGL: Dividend (capital gain long term)
-DIVCGS: Dividend (capital gain short term)
-DIVFEE: Dividend fee
-DIVFT: Dividend adjusted (Foreign Tax Withheld)
-DIVNRA: Dividend adjusted (NRA Withheld)
-DIVROC: Dividend return of capital
-DIVTW: Dividend adjusted (Tefra Withheld)
-DIVTXEX: Dividend (tax exempt)
-INT: Interest (credit/margin)
-INTNRA Interest adjusted (NRA Withheld)
-INTTW: Interest adjusted (Tefra Withheld)
-JNL: Journal entry
-JNLC: Journal entry (cash)
-JNLS: Journal entry (stock)
-MA: Merger/Acquisition
-NC: Name change
-OPASN: Option assignment
-OPEXP: Option expiration
-OPXRC: Option exercise
-PTC: Pass Thru Charge
-PTR: Pass Thru Rebate
-REORG: Reorg CA
-SC: Symbol change
-SSO: Stock spinoff
-SSP: Stock split
 }

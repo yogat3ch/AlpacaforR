@@ -22,8 +22,8 @@ A list object containing all information the API responds with.
 This function provides more color on your stock through its available meta data endpoints from Polygon. These endpoints are company, analysts, dividends, earnings, and news.
 }
 \examples{
-Getting default meta for AMZN: 
+# Getting default meta for AMZN: 
 get_meta(ticker = "AMZN")
-Getting news information on AMZN: 
+# Getting news information on AMZN: 
 get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
 }

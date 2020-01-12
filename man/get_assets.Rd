@@ -27,6 +27,6 @@ The assets API serves as the master list of assets available for trade and data 
 }
 \examples{
 get_assets()
-Get a specific asset:
+# Get a specific asset:
 get_assets(ticker = "AAPL",version = "v2")
 }
