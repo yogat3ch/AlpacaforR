@@ -2,6 +2,7 @@
 
 # PACKAGE FUNCTIONS #
 #===================================================================================================
+# Internals:  Sun Jan 12 10:20:31 2020 ----
 
 #----------------------------------------------------------------------------------------------
 #' Clean Text from Server Response function
@@ -9,7 +10,6 @@
 #' Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
 #' @param dat The response from our server GET request usually in a json format.
 #' @return The response in a readable format as a list.
-#' @export
 response_text_clean <- function(dat){
   
   dat = httr::content(dat, as = "text", encoding = "UTF-8")
@@ -28,7 +28,6 @@ response_text_clean <- function(dat){
 #' 
 #' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
-#' @export
 get_url <- function(live=FALSE){
   
     url <- ifelse(live, 
@@ -49,7 +48,6 @@ get_url <- function(live=FALSE){
 #' 
 #' Get Polygon's URL for the Server Request that is sent to interact with the API.
 #' @return The correct URL for Polygon's API.
-#' @export
 get_url_poly <- function(){
   url = "https://api.polygon.io" 
   return(url)
@@ -59,14 +57,11 @@ get_url_poly <- function(){
 
 
 
-
-
 #----------------------------------------------------------------------------------------------
 #' Get Headers for Server Request function
 #'
 #' @return The correct headers that will be sent in the API request.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
-#' @export
 get_headers <- function(live=FALSE){
   
     ifelse(live, 
@@ -83,11 +78,7 @@ get_headers <- function(live=FALSE){
 
 
 
-
-
-
-
-
+#Exported Functions:  Sun Jan 12 10:20:51 2020 ----
 
 #Functions to interact with Alpaca API
 #----------------------------------------------------------------------------------------------
@@ -108,9 +99,9 @@ get_headers <- function(live=FALSE){
 #' @return "created_at"  Timestamap this account was created at as a string.
 #' @examples 
 #' get_account(live = FALSE, version = "v2")
-#' Which is similar to:
+#' # Which is similar to:
 #' get_account()
-#' For access to live accounts, you must submit as live = TRUE
+#' # For access to live accounts, you must submit as live = TRUE
 #' get_account(live = TRUE, version = "v2")
 #' @export
 get_account <- function(live = FALSE, version = "v2"){
@@ -144,9 +135,9 @@ get_account <- function(live = FALSE, version = "v2"){
 #' @return "no_shorting" If true, account becomes long-only mode.
 #' @examples 
 #' get_config(live = FALSE)
-#' Which is similar to:
+#' # Which is similar to:
 #' get_config()
-#' For access to live accounts, you must submit as live = TRUE
+#' # For access to live accounts, you must submit as live = TRUE
 #' get_config(live = TRUE)
 #' @export
 get_config <- function(live = FALSE){
@@ -176,12 +167,12 @@ get_config <- function(live = FALSE){
 #' 
 #' 
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @return
+#' @return The response from the server after setting the configuration.
 #' @examples 
 #' set_config(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
-#' Which is similar to:
+#' # Which is similar to:
 #' set_config(dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
-#' For access to live accounts, you must submit as live = TRUE
+#' # For access to live accounts, you must submit as live = TRUE
 #' set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 #' @export
 set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all"){
@@ -235,7 +226,7 @@ set_config <- function(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, 
 #' @examples 
 #' get_positions(ticker = "AAPL", live = FALSE, version = "v2")
 #' get_positions(ticker = "AAPL", live = TRUE, version = "v2")
-#' This gets all positions:
+#' # This gets all positions:
 #' get_positions(version = "v2")
 #' get_positions(live = TRUE, version = "v2")
 #' @import magrittr
@@ -382,11 +373,14 @@ close_all_positions <- function(live = FALSE){
 #' Get Orders function
 #' 
 #' The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string.
-#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
-#' @param status Order status to be queried "open, closed or all". Defaults to open as a string.
-#' @param from The response will include only orders submitted after this date exclusive as a timestamp object.
-#' @param silent A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @param ticker \code{(character)} Specify which symbol you want to call by inserting ticker as a string.
+#' @param status \code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.
+#' @param limit \code{(integer)} The maximum number of orders in response. Defaults to 50 and max is 500.
+#' @param after \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{after} this date exclusive as a timestamp object.
+#' @param until \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{before} this date exclusive as a timestamp object.
+#' @param direction \code{(character)} The chronological order of response based on the submission time. \code{asc} or \code{desc}. Defaults to \code{desc}.
+#' @param silent \code{(logical)} TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
+#' @param live \code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @return "id" order id.
 #' @return "client_order_id" client unique order id.
 #' @return "created_at" nullable When the order was created.
@@ -410,52 +404,47 @@ close_all_positions <- function(live = FALSE){
 #' @examples 
 #' get_orders(live = FALSE, version = "v2")
 #' get_orders(status = "all", version = "v2")
-#' For a specific ticker:
+#' # For a specific ticker:
 #' get_orders(ticker = "AAPL", status = "all", version = "v2")
-#' @import dplyr stringr lubridate
+#' @import dplyr stringr
+#' @importFrom lubridate ymd_hms
 #' @export
-get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FALSE, live = FALSE, version = "v2"){
+get_orders <- function(ticker = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", silent = FALSE, live = FALSE, version = "v2"){
   #Set URL & Headers
-  url = get_url(live)
+  url = httr::parse_url(get_url(live))
   headers = get_headers(live)
   
-  #Send Request according to the selected arguments.
+  # yogat3ch: Create Query 2020-01-11 2157
+  url$path <- list(version, "orders")
+  url$query <- list(status = status,
+                    limit = limit,
+                    after = after,
+                    until = until,
+                    direction = direction)
+  # Build the url
+  url <- httr::build_url(url)
+  # Query
+  orders <- httr::GET(url, headers)
+  # Clean
+  orders <-  response_text_clean(orders)
+  if (!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers specified.
+    if(length(orders) != 0) 
+      orders = dplyr::filter(orders, symbol %in% ticker)
+  } 
   
-  
-  if(!is.null(ticker)){       #If the ticker is not null, then return the orders for the tickers that is specified.
-    if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else get all orders for that ticker.
-      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-      orders = response_text_clean(orders)
-      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
-    } else {
-      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
-      orders = response_text_clean(orders)
-      if(length(orders) != 0) orders = dplyr::filter(orders, symbol %in% ticker)
-    }
-    
-    
-    
-  }else if(is.null(ticker)){  #If the ticker is null, then return all orders.
-    if(!is.null(from)){     #If the from date is given, then request orders from only that date and on, or else return all orders.
-      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status,"&after=",from,"T09:30:00-04:00"), headers)
-      orders = response_text_clean(orders)
-    } else{
-      orders = httr::GET(url = paste0(url,"/",version,"/orders?status=",status), headers)
-      orders = response_text_clean(orders)
-    }
-  }
-  
-  #Make sure there are orders to return before calling return. Format orders to workable and readable format before returning
   if(length(orders) == 0){
-    if(silent == FALSE) cat(paste("No",status,"orders",if(!is.null(ticker))paste("for",ticker),"at this time.",'Set status = "all" to see all orders.'))
-  }  else {
-    toNum <- function(x){
-      as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
-    }
-    orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-    orders <- dplyr::mutate_at(orders, dplyr::vars(qty, filled_qty, filled_avg_price, limit_price, stop_price), list(toNum))
-    return(orders)
-    }
+    #Make sure there are orders to return before calling return. 
+    if(!silent) message(paste("No",status,"orders for the selected query/filter criteria at this time.",'Try removing the ticker filter or setting status = "all" to see all orders.'))
+    return(NULL)
+  }  
+  # Format orders to workable and readable format before returning
+  toNum <- function(x){
+    as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
+  }
+  orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+  orders <- dplyr::mutate_at(orders, dplyr::vars(qty, filled_qty, filled_avg_price, limit_price, stop_price), list(toNum))
+  
+  return(orders)
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
@@ -472,19 +461,19 @@ get_orders <- function(ticker = NULL, status = "open", from = NULL, silent = FAL
 #' Submit Order function
 #' 
 #' Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
-#' @param ticker The stock's symbol.
-#' @param qty The amount of shares to trade.
-#' @param side The side of the trade. I.E "buy" or "sell"
-#' @param type The type of trade order. I.E "market","limit","stop","stoplimit", etc.
-#' @param time_in_force The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".
-#' @param limit_price If order type was a limit, then enter the limit price here.
-#' @param stop_price If order tyope was a stop, then enter the stop price here.
-#' @param extended_hours (default) false. If true, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
+#' @param ticker \code{(character)} The stock's symbol.
+#' @param qty \code{(integer)} The amount of shares to trade.
+#' @param side \code{(character)} The side of the trade. I.E "buy" or "sell"
+#' @param type \code{(character)} The type of trade order. I.E "market","limit","stop","stop_limit", etc.
+#' @param time_in_force \code{(character)} The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".
+#' @param limit_price \code{(numeric)} If order type was a limit, then enter the limit price here.
+#' @param stop_price \code{(numeric)} If order type was a stop, then enter the stop price here.
+#' @param extended_hours \code{(logical)} Default: \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.
+#' @param live \code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
-#' For market order:
+#' # For market order:
 #' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", version = "v2")
-#' Or you can submit a limit order:
+#' # Or you can submit a limit order:
 #' submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120, version = "v2")
 #' @export
 submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_price = NULL, stop_price = NULL, extended_hours = FALSE, live = FALSE, version = "v2"){
@@ -527,11 +516,14 @@ submit_order <- function(ticker, qty, side, type, time_in_force = "day", limit_p
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @param version Use the deprecated V1 API or the newer V2 API.
 #' @examples 
+#' \dontrun{
+#' # \emph{Note} At least one order for AAPL must be placed prior to running this example for the example to work.
 #' cancel_order(ticker_id = "AAPL", version = "v2")
 #' cancel_order(ticker_id = "aapl", version = "v2")
-#' Or you can instead cancel by the order_id:
+#' # Or you can instead cancel by the order_id:
 #' orders <- get_orders(status="open", silent = TRUE, version = "v2")
 #' cancel_order(ticker_id = orders$id[1])
+#' }
 #' @importFrom lubridate with_tz
 #' @export
 cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v2"){
@@ -598,11 +590,13 @@ cancel_order <- function(ticker_id = NULL, all=FALSE, live = FALSE, version = "v
 #' @param limit_price If order type was a limit, then enter the limit price here.
 #' @param stop_price If order tyope was a stop, then enter the stop price here.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' replace_order(ticker_id = "AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
-#' Or you can instead cancel by the order_id:
+#' # Or you can instead cancel by the order_id:
 #' orders <- get_orders(status="open", silent = TRUE)
-#' replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+#' # replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+#' }
 #' @importFrom lubridate with_tz
 #' @export
 replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price=NULL, stop_price=NULL, live = FALSE){
@@ -674,7 +668,7 @@ replace_order <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 #' @return "tradeable" Asset is tradable on Alpaca or not as a boolean.
 #' @examples 
 #' get_assets()
-#' Get a specific asset:
+#' # Get a specific asset:
 #' get_assets(ticker = "AAPL",version = "v2")
 #' @export
 get_assets <- function(ticker = NULL, version = "v2"){
@@ -729,43 +723,45 @@ get_assets <- function(ticker = NULL, version = "v2"){
 #' @return "transfers_blocked"  If true, the account is not allowed to request money transfers as a boolean.
 #' @return "account_blocked"  If true, the account activity by user is prohibited as a boolean.
 #' @return "created_at"  Timestamap this account was created at as a string.
+#' @details 
+#' Activity Types:
+#' \itemize{
+#'   \item{FILL: Order fills (both partial and full fills)}
+#'   \item{TRANS: Cash transactions (both CSD and CSR)}
+#'   \item{MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or   FILL)}
+#'   \item{ACATC: ACATS IN/OUT (Cash)}
+#'   \item{ACATS: ACATS IN/OUT (Securities)}
+#'   \item{CSD: Cash disbursement(+)}
+#'   \item{CSR: Cash receipt(-)}
+#'   \item{DIV: Dividends}
+#'   \item{DIVCGL: Dividend (capital gain long term)}
+#'   \item{DIVCGS: Dividend (capital gain short term)}
+#'   \item{DIVFEE: Dividend fee}
+#'   \item{DIVFT: Dividend adjusted (Foreign Tax Withheld)}
+#'   \item{DIVNRA: Dividend adjusted (NRA Withheld)}
+#'   \item{DIVROC: Dividend return of capital}
+#'   \item{DIVTW: Dividend adjusted (Tefra Withheld)}
+#'   \item{DIVTXEX: Dividend (tax exempt)}
+#'   \item{INT: Interest (credit/margin)}
+#'   \item{INTNRA Interest adjusted (NRA Withheld)}
+#'   \item{INTTW: Interest adjusted (Tefra Withheld)}
+#'   \item{JNL: Journal entry}
+#'   \item{JNLC: Journal entry (cash)}
+#'   \item{JNLS: Journal entry (stock)}
+#'   \item{MA: Merger/Acquisition}
+#'   \item{NC: Name change}
+#'   \item{OPASN: Option assignment}
+#'   \item{OPEXP: Option expiration}
+#'   \item{OPXRC: Option exercise}
+#'   \item{PTC: Pass Thru Charge}
+#'   \item{PTR: Pass Thru Rebate}
+#'   \item{REORG: Reorg CA}
+#'   \item{SC: Symbol change}
+#'   \item{SSO: Stock spinoff}
+#'   \item{SSP: Stock split}
+#' }
 #' @examples 
 #' get_account_activities(activity_type = "FILL")
-#' @examples 
-#' Activity Types:
-#' FILL: Order fills (both partial and full fills)
-#' TRANS: Cash transactions (both CSD and CSR)
-#' MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or FILL)
-#' ACATC: ACATS IN/OUT (Cash)
-#' ACATS: ACATS IN/OUT (Securities)
-#' CSD: Cash disbursement(+)
-#' CSR: Cash receipt(-)
-#' DIV: Dividends
-#' DIVCGL: Dividend (capital gain long term)
-#' DIVCGS: Dividend (capital gain short term)
-#' DIVFEE: Dividend fee
-#' DIVFT: Dividend adjusted (Foreign Tax Withheld)
-#' DIVNRA: Dividend adjusted (NRA Withheld)
-#' DIVROC: Dividend return of capital
-#' DIVTW: Dividend adjusted (Tefra Withheld)
-#' DIVTXEX: Dividend (tax exempt)
-#' INT: Interest (credit/margin)
-#' INTNRA Interest adjusted (NRA Withheld)
-#' INTTW: Interest adjusted (Tefra Withheld)
-#' JNL: Journal entry
-#' JNLC: Journal entry (cash)
-#' JNLS: Journal entry (stock)
-#' MA: Merger/Acquisition
-#' NC: Name change
-#' OPASN: Option assignment
-#' OPEXP: Option expiration
-#' OPXRC: Option exercise
-#' PTC: Pass Thru Charge
-#' PTR: Pass Thru Rebate
-#' REORG: Reorg CA
-#' SC: Symbol change
-#' SSO: Stock spinoff
-#' SSP: Stock split
 #' @export
 get_account_activities <- function(activity_type = c(NULL), date = NULL, until = NULL, after = NULL, direction = "desc", page_size = 50, page_token = NULL, live = FALSE){
   #Set URL & Headers
@@ -1042,12 +1038,12 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
 #' @return "open" The time the market opens at on this date in hour:min format as a string.
 #' @return "close" The time the market closes at on this date in hour:min format as a string.
 #' @examples 
-#' Get all dates:
+#' # Get all dates:
 #' get_calendar(version = "v2")
-#' @examples 
-#' Get specific date range:
+#' # Get specific date range:
 #' get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 #' @export
+#' @importFrom lubridate ymd
 get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   #Set URL & Headers
   url = get_url()
@@ -1115,11 +1111,11 @@ get_clock <- function(version = "v2"){
 #' Get Bars function
 #' 
 #' The bars API provides time-aggregated price and volume data for a single stock or multiple.
-#' @param ticker The stock or stocks (in vector format) that you want.
-#' @param from The starting date for the pricing data. Default is the last 5 trading days.
-#' @param to The ending date for the pricing data. Default is todays date.
-#' @param timeframe One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
-#' @param limit The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.
+#' @param ticker \code{(character)} The stock or stocks (in vector format) that you want.
+#' @param from \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The starting date for the pricing data. Default is the last 5 trading days.
+#' @param to \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The ending date for the pricing data. Default is todays date.
+#' @param timeframe \code{(character)} One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
+#' @param limit \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.
 #' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 #' \itemize{
 #'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
@@ -1130,12 +1126,12 @@ get_clock <- function(version = "v2"){
 #'  \item{\code{volume}}{  volume (in millions) as a numeric object.}
 #' }
 #' @examples
-#' Getting one or more tickers: 
+#' # Getting one or more tickers: 
 #' get_bars(ticker = c("INTC","MSFT"))
-#' @examples 
-#' Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
+#' # Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @import lubridate dplyr stringr magrittr
+#' @import dplyr stringr magrittr
+#' @importFrom lubridate is.POSIXct
 #' @export
 get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
   
@@ -1248,9 +1244,9 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
 #' @param version The current version for API. Defaults to v1 if no v2 available. 
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default meta for AMZN: 
+#' # Getting default meta for AMZN: 
 #' get_meta(ticker = "AMZN")
-#' Getting news information on AMZN: 
+#' # Getting news information on AMZN: 
 #' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
 #' @export
 get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
@@ -1313,13 +1309,13 @@ get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
 #' @param unadjusted Set to true if the results should NOT be adjusted for splits.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default pricing data on AMZN (daily): 
+#' # Getting default pricing data on AMZN (daily): 
 #' get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
-#' Getting minute pricing data on AMZN: 
+#' # Getting minute pricing data on AMZN: 
 #' get_poly_agg_quote("AMZN", from = "2019-04-11", to = "2019-04-12", timespan = "minute")
-#' Getting quarterly pricing data on AMZN: 
+#' # Getting quarterly pricing data on AMZN: 
 #' get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
-#' Getting yearly pricing data on AMZN: 
+#' # Getting yearly pricing data on AMZN: 
 #' get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
 #' @export
 get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", from=NULL, to=NULL, unadjusted=FALSE){
@@ -1359,7 +1355,7 @@ get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", fro
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting default pricing data on AMZN (daily): 
+#' # Getting default pricing data on AMZN (daily): 
 #' get_poly_stock_splits(ticker = "AMZN")
 #' @export
 get_poly_stock_splits <- function(ticker=NULL){
@@ -1399,10 +1395,10 @@ get_poly_stock_splits <- function(ticker=NULL){
 #' @param date Specify the date for which you are requesting.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting historic trade data on AMZN: 
-#' get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
-#' Getting historic pricing data on AMZN: 
-#' get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
+#' # Getting historic trade data on AMZN: 
+#' get_poly_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
+#' # Getting historic pricing data on AMZN: 
+#' get_poly_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
 #' @export
 get_poly_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
   if(is.null(ticker) | is.null(type) | is.null(date)){
@@ -1442,7 +1438,7 @@ get_poly_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed price for AMZN: 
+#' # Getting the last listed price for AMZN: 
 #' get_poly_last_price("AMZN")
 #' @export
 get_poly_last_price <- function(ticker = NULL){
@@ -1481,8 +1477,9 @@ get_poly_last_price <- function(ticker = NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
+#' # Getting the last listed trade for AMZN: 
 #' get_poly_last_trade("AMZN")
+#' @export
 get_poly_last_trade <- function(ticker = NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
@@ -1523,8 +1520,9 @@ get_poly_last_trade <- function(ticker = NULL){
 #' @param date Specify the date for which you are requesting.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
+#' # Getting the last listed trade for AMZN: 
 #' get_poly_ohlc("AMZN", date = "2019-03-20")
+#' @export
 get_poly_ohlc <- function(ticker=NULL, date=NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")
@@ -1557,8 +1555,9 @@ get_poly_ohlc <- function(ticker=NULL, date=NULL){
 #' @param ticker Specify which symbol you want to call by inserting ticker as a string.
 #' @return A list object containing all information the API responds with. 
 #' @examples
-#' Getting the last listed trade for AMZN: 
+#' # Getting the last listed trade for AMZN: 
 #' get_poly_prev_dayclose("AMZN")
+#' @export
 get_poly_prev_dayclose <- function(ticker=NULL){
   if(is.null(ticker)){
     stop("Please enter the stocks ticker.")

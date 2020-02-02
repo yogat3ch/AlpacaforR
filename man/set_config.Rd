@@ -16,15 +16,15 @@ set_config(
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
-
+The response from the server after setting the configuration.
 }
 \description{
 Send Account Configurations function
 }
 \examples{
 set_config(live = FALSE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
-Which is similar to:
+# Which is similar to:
 set_config(dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
-For access to live accounts, you must submit as live = TRUE
+# For access to live accounts, you must submit as live = TRUE
 set_config(live = TRUE, dtbp_check = "entry", no_shorting = FALSE, suspend_trade = FALSE, trade_confirm_email = "all")
 }

@@ -37,8 +37,8 @@ The accounts API serves important information related to an account, including a
 }
 \examples{
 get_account(live = FALSE, version = "v2")
-Which is similar to:
+# Which is similar to:
 get_account()
-For access to live accounts, you must submit as live = TRUE
+# For access to live accounts, you must submit as live = TRUE
 get_account(live = TRUE, version = "v2")
 }

@@ -16,6 +16,6 @@ A list object containing all information the API responds with.
 This function provides stock split data for the specified ticker from Polygon.
 }
 \examples{
-Getting default pricing data on AMZN (daily): 
+# Getting default pricing data on AMZN (daily): 
 get_poly_stock_splits(ticker = "AMZN")
 }

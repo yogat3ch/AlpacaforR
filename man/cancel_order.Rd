@@ -19,9 +19,12 @@ cancel_order(ticker_id = NULL, all = FALSE, live = FALSE, version = "v2")
 Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. As of the V2 API update, an "all" arguement is added to cancel all open orders.
 }
 \examples{
+\dontrun{
+# \emph{Note} At least one order for AAPL must be placed prior to running this example for the example to work.
 cancel_order(ticker_id = "AAPL", version = "v2")
 cancel_order(ticker_id = "aapl", version = "v2")
-Or you can instead cancel by the order_id:
+# Or you can instead cancel by the order_id:
 orders <- get_orders(status="open", silent = TRUE, version = "v2")
 cancel_order(ticker_id = orders$id[1])
+}
 }

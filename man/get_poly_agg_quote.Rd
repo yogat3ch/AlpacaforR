@@ -33,12 +33,12 @@ A list object containing all information the API responds with.
 This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions.
 }
 \examples{
-Getting default pricing data on AMZN (daily): 
+# Getting default pricing data on AMZN (daily): 
 get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
-Getting minute pricing data on AMZN: 
+# Getting minute pricing data on AMZN: 
 get_poly_agg_quote("AMZN", from = "2019-04-11", to = "2019-04-12", timespan = "minute")
-Getting quarterly pricing data on AMZN: 
+# Getting quarterly pricing data on AMZN: 
 get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
-Getting yearly pricing data on AMZN: 
+# Getting yearly pricing data on AMZN: 
 get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
 }
