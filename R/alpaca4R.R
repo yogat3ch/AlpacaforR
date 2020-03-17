@@ -1150,7 +1150,7 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   # Timeframe handler - adding a little more flexibility to what the argument can take
   if (stringr::str_detect(timeframe, stringr::regex("D|d|days?", ignore_case = T))) {
     timeframe <- "1D"
-  } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?"))) {
+  } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?", ignore_case = T))) {
     digit <- ifelse(!is.na(stringr::str_extract(timeframe, "^\\d+")), stringr::str_extract(timeframe, "^\\d+"), "1")
     timeframe <- paste0(digit,"Min")
   }
@@ -1206,9 +1206,13 @@ get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "
   bars = response_text_clean(bars)
   
   #Rename columns to quantmod standard and reformat time column
-  bars = lapply(bars, function(l){
+  bars = purrr::imap(bars, ~{
+    if (!any("data.frame" %in% class(.x))) {
+      message(paste0("The symbol ", .y, " returned no data.")) 
+      return(NULL)
+    } 
     nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(l, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
       dplyr::rename((!!nms))
   })
   return(bars)
