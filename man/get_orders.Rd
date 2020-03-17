@@ -7,22 +7,31 @@
 get_orders(
   ticker = NULL,
   status = "open",
-  from = NULL,
+  limit = NULL,
+  after = NULL,
+  until = NULL,
+  direction = "desc",
   silent = FALSE,
   live = FALSE,
   version = "v2"
 )
 }
 \arguments{
-\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+\item{ticker}{\code{(character)} Specify which symbol you want to call by inserting ticker as a string.}
 
-\item{status}{Order status to be queried "open, closed or all". Defaults to open as a string.}
+\item{status}{\code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.}
 
-\item{from}{The response will include only orders submitted after this date exclusive as a timestamp object.}
+\item{limit}{\code{(integer)} The maximum number of orders in response. Defaults to 50 and max is 500.}
 
-\item{silent}{A logical TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.}
+\item{after}{\code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{after} this date exclusive as a timestamp object.}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
+\item{until}{\code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{before} this date exclusive as a timestamp object.}
+
+\item{direction}{\code{(character)} The chronological order of response based on the submission time. \code{asc} or \code{desc}. Defaults to \code{desc}.}
+
+\item{silent}{\code{(logical)} TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.}
+
+\item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
 "id" order id.
@@ -71,6 +80,6 @@ The orders API allows a user to monitor, place and cancel their orders with Alpa
 \examples{
 get_orders(live = FALSE, version = "v2")
 get_orders(status = "all", version = "v2")
-For a specific ticker:
+# For a specific ticker:
 get_orders(ticker = "AAPL", status = "all", version = "v2")
 }

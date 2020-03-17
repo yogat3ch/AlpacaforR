@@ -30,8 +30,10 @@ replace_order(
 Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order.
 }
 \examples{
+\dontrun{ 
 replace_order(ticker_id = "AAPL", qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
-Or you can instead cancel by the order_id:
+# Or you can instead cancel by the order_id:
 orders <- get_orders(status="open", silent = TRUE)
-replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+# replace_order(ticker_id = orders$id[1], qty = <new qty amount>, time_in_force = <new time in force>, limit_price=<new limit price, if applicable>, stop_price=<new stop price, if applicable>, live = FALSE)
+}
 }

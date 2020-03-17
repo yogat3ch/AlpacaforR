@@ -16,6 +16,6 @@ A list object containing all information the API responds with.
 This function provides the last listed trade from Polygon for the ticker specified. A list is returned with values such as the last bid / ask price, bid / ask size, bid / ask exchange, and last trade timestamp.
 }
 \examples{
-Getting the last listed trade for AMZN: 
+# Getting the last listed trade for AMZN: 
 get_poly_last_trade("AMZN")
 }

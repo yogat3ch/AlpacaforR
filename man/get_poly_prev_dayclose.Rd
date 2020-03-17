@@ -16,6 +16,6 @@ A list object containing all information the API responds with.
 This function provides the Previous Day close data from Polygon for the ticker specified.
 }
 \examples{
-Getting the last listed trade for AMZN: 
+# Getting the last listed trade for AMZN: 
 get_poly_prev_dayclose("AMZN")
 }

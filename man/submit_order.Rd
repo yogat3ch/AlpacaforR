@@ -18,30 +18,30 @@ submit_order(
 )
 }
 \arguments{
-\item{ticker}{The stock's symbol.}
+\item{ticker}{\code{(character)} The stock's symbol.}
 
-\item{qty}{The amount of shares to trade.}
+\item{qty}{\code{(integer)} The amount of shares to trade.}
 
-\item{side}{The side of the trade. I.E "buy" or "sell"}
+\item{side}{\code{(character)} The side of the trade. I.E "buy" or "sell"}
 
-\item{type}{The type of trade order. I.E "market","limit","stop","stoplimit", etc.}
+\item{type}{\code{(character)} The type of trade order. I.E "market","limit","stop","stop_limit", etc.}
 
-\item{time_in_force}{The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".}
+\item{time_in_force}{\code{(character)} The type of time order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day".}
 
-\item{limit_price}{If order type was a limit, then enter the limit price here.}
+\item{limit_price}{\code{(numeric)} If order type was a limit, then enter the limit price here.}
 
-\item{stop_price}{If order tyope was a stop, then enter the stop price here.}
+\item{stop_price}{\code{(numeric)} If order type was a stop, then enter the stop price here.}
 
-\item{extended_hours}{(default) false. If true, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.}
+\item{extended_hours}{\code{(logical)} Default: \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
+\item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \description{
 Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected.
 }
 \examples{
-For market order:
+# For market order:
 submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "market", version = "v2")
-Or you can submit a limit order:
+# Or you can submit a limit order:
 submit_order(ticker = "AAPL", qty = 100, side = "buy", type = "limit", limit_price = 120, version = "v2")
 }

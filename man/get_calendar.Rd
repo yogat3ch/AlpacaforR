@@ -22,8 +22,8 @@ get_calendar(from = NULL, to = NULL, version = "v2")
 The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures.
 }
 \examples{
-Get all dates:
+# Get all dates:
 get_calendar(version = "v2")
-Get specific date range:
+# Get specific date range:
 get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 }

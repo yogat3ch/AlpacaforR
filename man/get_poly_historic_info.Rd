@@ -20,8 +20,8 @@ A list object containing all information the API responds with.
 This function provides historic trade data form Polygon on the ticker specified. It returns a list with values such as date, bid size / ask size, the exchanges for bid / ask, latency, each trade/quote listed for that date, time, etc.
 }
 \examples{
-Getting historic trade data on AMZN: 
-get_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
-Getting historic pricing data on AMZN: 
-get_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
+# Getting historic trade data on AMZN: 
+get_poly_historic_info(ticker = "AMZN", type = "trades", date = "2019-04-05")
+# Getting historic pricing data on AMZN: 
+get_poly_historic_info(ticker = "AMZN", type = "quotes", date = "2019-04-05")
 }

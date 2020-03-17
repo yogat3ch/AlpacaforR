@@ -18,6 +18,6 @@ A list object containing all information the API responds with.
 This function provides the last OHLCV data, including after hours data from Polygon for the ticker specified.
 }
 \examples{
-Getting the last listed trade for AMZN: 
+# Getting the last listed trade for AMZN: 
 get_poly_ohlc("AMZN", date = "2019-03-20")
 }

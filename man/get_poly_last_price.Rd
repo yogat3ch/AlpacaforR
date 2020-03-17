@@ -16,6 +16,6 @@ A list object containing all information the API responds with.
 This function provides the last listed price from Polygon. A list is returned with values such as the last price, last size, last exchange, and last timestamp.
 }
 \examples{
-Getting the last listed price for AMZN: 
+# Getting the last listed price for AMZN: 
 get_poly_last_price("AMZN")
 }
