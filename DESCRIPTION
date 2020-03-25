@@ -1,6 +1,6 @@
 Package: AlpacaforR
 Title: Trade with Alpaca using R
-Version: 0.1.0.9000
+Version: 0.2.0
 Authors@R: person("Jagger", "Villalobos", email = "jagger.vill@gmail.com", role = c("aut", "cre"))
 Description: Interact with Alpacas API using R to send requests for account information, position information, get orders, 
  submit orders, cancel orders, the different assets alpaca has to offer, asset information, asset prices, market calendar 
