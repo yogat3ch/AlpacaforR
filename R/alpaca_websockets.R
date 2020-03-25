@@ -3,37 +3,51 @@
 #' 
 #' Alpaca has a websocket protocol built into the API that can be accessed at wss://api.alpaca.markets/stream. The full documentation is here: \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{AlpacaDOCS: Streaming}
 #' @param ws_name \code{(string)} The function will assign a list object `{ws_name}_msgs` to the environment specified by `env` with a log of websocket messages and their timestamps with prefix `ws_name`. The default is "ws". With the default, the object will be `ws_msgs`.
-#' @param logfile \code{(character)} The path to and name of the text file where logs for all websocket sessions will be stored. Defaults to *"ws.log"* in the working directory.
+#' @param logfile \code{(character/logical)} The path to and name of the text file where logs for all websocket sessions will be stored. Defaults to *"{ws_name}.log"* in the working directory. Can be optionally turned off by setting to FALSE.
 #' @param env \code{(environment)} An environment in which to store the `{ws_name}_msgs` websocket message list, and the `.lastmessage` object. Defaults to the **global environment**.
-#' @details The function allows a simple set-up for the majority of use cases. If you wish to use certain messages content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of two things. 
+#' @details The function allows a simple set-up for the majority of use cases. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of two things. 
 #' \enumerate{
-#'  \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and inclue the appropriate hooks and functions into the `onMessage` method.}
+#'  \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions into the `onMessage` method.}
 #'  \item{Use a background process with \code{\link[later]{later}} or \code{\link[callr]{r_bg}} to monitor the `.lastmessage` object or the `{ws_name}_msgs` object and perform an action when a specific message appears.}
 #' }
 #' @return `websocket environment` \code{(environment)} The websocket environment object.
 #' @return `{ws_name}_msgs` \code{(list)} **Note** The message list object is *returned indirectly, assigned to the environment passed to the `env` argument*, which defaults to the global environment if unset.
 #' @return `.lastmessage` \code{(character)} **Note** An invisible object *assigned to the `env` environment* that can be called explicitly (sending it's name to the console) to return the last message received from the websocket. If an environment was specified this would be called via `ENVIRONMENT_NAME$.lastmessage` otherwise running `.lastmessage` will provide it. 
-#' @return `logfile` A file is created in the working directory with the name supplied as the `logfile` argument with a log for this and all future websocket sessions with the same `logfile` name that logs:
+#' @return `logfile` \code{(file)} A file is created in the working directory with the name supplied as the `logfile` argument, if the `logfile` argument isn't specified the name will be *{ws_name}.log* with a log for this and all future websocket sessions called with the same `logfile` parameters:
 #' \itemize{
 #'  \item{The time the connection is created}
 #'  \item{The time and content of each message}
 #'  \item{The time the connection is closed}
 #' }
+#' If `logfile` is FALSE, no log file will be created.  
 #' @importFrom lubridate now
 #' @import websocket
 #' @importFrom httr parse_text
+#' @examples \dontrun{
+#' ws <- ws_create("myws")
+#' # Creates the websocket object `ws`, `myws_msgs` the message list object, `.lastmessage` the last message string, and *myws.log* the log file in the working directory.
+#' }
 #' @export
 
-ws_create <- function(ws_name = "ws", logfile = "ws.log", env = .GlobalEnv) {
+ws_create <- function(ws_name = "ws", logfile = NULL, env = .GlobalEnv) {
+  
   if (!interactive()) stop("ws_create only runs properly in an interactive session")
+  
+  # Determine if a logfile should be created
+  .log <- ifelse(is.logical(logfile), logfile, T)
+  if (.log) {
+    # If so, create it according to either the parameter or the name of the websocket
+    logfile <- ifelse(is.null(logfile)||isTRUE(logfile), paste0(ws_name,".log"), logfile)
+  }
+  # Create the websocket
   ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url(T)),"/stream"),
                       autoConnect = F)
   ws$onOpen(function(event) {
     cat("Connection opened\n")
-    fs::file_create(logfile)
+    if (.log) fs::file_create(logfile)
     if (exists(".lastmessage", env)) rm(list = ".lastmessage", envir = env)
     .msg <- paste0(lubridate::now(),": ", "Connection Opened")
-    write(.msg, file = logfile, append = T)
+    if (.log) write(.msg, file = logfile, append = T)
     assign(".lastmessage", .msg, env)
     assign(paste0(ws_name,"_msgs"), list(list(ts = lubridate::now(), msg = "Connection Opened")), env)
   })
@@ -45,13 +59,13 @@ ws_create <- function(ws_name = "ws", logfile = "ws.log", env = .GlobalEnv) {
     wsmsg <- get(paste0(ws_name,"_msgs"), env)
     wsmsg[[{length(wsmsg) + 1}]] <- list(ts = lubridate::now(tz = Sys.timezone()), msg = .msg)
     assign(paste0(ws_name,"_msgs"), wsmsg, env)
-    write(paste0(lubridate::now(),": ", .msg), file = logfile, append = T)
+    if (.log) write(paste0(lubridate::now(),": ", .msg), file = logfile, append = T)
     return(.msg)
   })
   ws$onClose(function(event) {
     cat("Client disconnected with code ", event$code,
         " and reason ", event$reason, "\n", sep = "")
-    write(paste0(lubridate::now(),": ", "Connection Closed"), file = logfile, append = T)
+    if (.log) write(paste0(lubridate::now(),": ", "Connection Closed"), file = logfile, append = T)
   })
   ws$onError(function(event) {
     .msg <- httr:::parse_text(event$message, encoding = "UTF-8")
@@ -59,7 +73,7 @@ ws_create <- function(ws_name = "ws", logfile = "ws.log", env = .GlobalEnv) {
     wsmsg <- get(paste0(ws_name,"_msgs"), env)
     wsmsg[[{length(wsmsg) + 1}]] <- list(ts = lubridate::now(tz = Sys.timezone()), msg = .msg)
     assign(paste0(ws_name,"_msgs"), wsmsg, env)
-    write(paste0(lubridate::now(),": ERROR - ", .msg), file = logfile, append = T)
+    if (.log) write(paste0(lubridate::now(),": ERROR - ", .msg), file = logfile, append = T)
   })
   
   
@@ -73,6 +87,7 @@ ws_create <- function(ws_name = "ws", logfile = "ws.log", env = .GlobalEnv) {
 #' @param `ws` \code{(environment)} The websocket environment created with \link{`ws_create`}.
 #' @return Returns nothing. Provided the websocket is properly connected by calling \code{\link{ws_create}}, the console will print the server response message outlined in the \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/#authentication}{websocket documentation}.
 #' @importFrom jsonlite toJSON
+#' @example \dontrun{ws_auth(ws)}
 #' @export
 
 ws_auth <- function(ws) {
@@ -90,6 +105,7 @@ ws_auth <- function(ws) {
 #' @param `account` \code{logical} indicating whether to connect to the account stream. Defaults to TRUE.
 #' @return Returns nothing. Provided the websocket is properly connected, the console will print the server response message outlined in the \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/#order-updates}{websocket documentation}.
 #' @importFrom jsonlite toJSON
+#' \dontrun{ws_listen(ws)}
 #' @export
 ws_listen <- function(ws, trade = T, account = T) {
   .listen <- jsonlite::toJSON(list(action = "listen",
