@@ -5,6 +5,9 @@ Connecting to [Alpaca's](https://alpaca.markets) API and navigating it using R. 
 Also, I've created a post that uses AlpacaforR to connect and implement both live and paper trades which can be [read here.](https://jagg19.github.io/2019/04/alpaca-for-r/)
 
 <br>
+### Release notes
+#### 0.2.0
+- Add support for Alpaca Websockets
 
 ## Installing AlpacaforR 🦙𝘙
 
