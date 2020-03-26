@@ -12,3 +12,4 @@ The correct URL for Polygon's API.
 \description{
 Get Polygon's URL for the Server Request that is sent to interact with the API.
 }
+\keyword{internal}

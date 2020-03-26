@@ -15,3 +15,4 @@ The correct headers that will be sent in the API request.
 \description{
 Get Headers for Server Request function
 }
+\keyword{internal}

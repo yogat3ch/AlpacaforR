@@ -15,3 +15,4 @@ The response in a readable format as a list.
 \description{
 Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON.
 }
+\keyword{internal}

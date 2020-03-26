@@ -14,23 +14,41 @@ get_poly_agg_quote(
 )
 }
 \arguments{
-\item{ticker}{Specify which symbol you want to call by inserting ticker as a string.}
+\item{ticker}{\code{(character)} Specify which symbol(s) you want to call by inserting ticker(s) as a single string or character vector.}
 
-\item{multiplier}{Size of the timespan multiplier. Default to 1.}
+\item{multiplier}{\code{(integer)} Size of the timespan multiplier. Defaults to 1.}
 
-\item{timespan}{Size of the time window i.e "minute", "hour", "day", "week", month", "quarter", or "year". Default to day.}
+\item{timespan}{\code{(character)} Size of the time window i.e "minute" (m), "hour" (h), "day"(d), "week"(w), month"(M/mo), "quarter"(q), or "year"(y). Defaults to day.}
 
-\item{from}{The starting date for the pricing data.}
+\item{from}{\code{(character/Date/POSIXct)} The starting date for the pricing data in the form YYYY-MM-DD. Datetimes/POSIXct will be coerced to Dates.}
 
-\item{to}{The ending date for the pricing data.}
+\item{to}{\code{(character/Date/POSIXct)} The ending date for the pricing data in the form YYYY-MM-DD. Datetimes/POSIXct will be coerced to Dates.}
 
-\item{unadjusted}{Set to true if the results should NOT be adjusted for splits.}
+\item{unadjusted}{\code{(logical)} Set to true if the results should **NOT** be adjusted for splits. Defaults to FALSE.}
 }
 \value{
-A list object containing all information the API responds with.
+\code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+\itemize{
+ \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+ \item{\code{open}}{  open price as a numeric object.}
+ \item{\code{high}}{  high price as a numeric object.}
+ \item{\code{low}}{  low price as a numeric object.}
+ \item{\code{close}}{  close price as a numeric object.}
+ \item{\code{volume}}{  volume (in millions) as a numeric object.}
+ \item{\code{vw}}{ weighted volume? *Note:* Polygon does not document what this variable is. }
+ \item{\code{n}}{ Number of items in aggregate window }
+}
+each \code{data.frame} has a "query" attribute with the following metadata for the query returned by the Polygon API (accessed via `attr(df, "query")`):
+\itemize{
+\item{\code{ticker}} {\code{(string)} Ticker symbol requested}
+\item{\code{status}} {\code{(string)} Status of the response}
+\item{\code{queryCount}} {\code{(integer)} Number of aggregate ( min or day ) used to generate the response}
+\item{\code{resultsCount}} {\code{(integer)} Total number of results generated}
+\item{\code{adjusted}} {\code{(logical)} If this response was adjusted for splits}
+}
 }
 \description{
-This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions.
+This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions. For more info see the \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Polygon.io API Documentation for the Aggregate endpoint}
 }
 \examples{
 # Getting default pricing data on AMZN (daily): 

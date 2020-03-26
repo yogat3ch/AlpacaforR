@@ -12,3 +12,4 @@ The correct URL according to account type (live or paper) that will be sent in t
 \description{
 Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.
 }
+\keyword{internal}
