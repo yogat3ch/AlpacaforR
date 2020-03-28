@@ -78,14 +78,116 @@ get_headers <- function(live=FALSE){
   return(headers)
 }
 
-#Transform bars:  Tue Mar 24 09:14:45 2020 ----
-#' transform_bars
+# Helper functions for get_bars ----
+# Sat Mar 28 09:40:23 2020
+#' bars_get
+#' 
+#' Internal function for retrieving data from Alpaca API and outputting data.frame with query attribue
+#' @keywords internal
+#' @importFrom magrittr "%>%"
+#' @import dplyr httr lubridate
+bars_get <- function(ticker = .ticker, v = v) {
+  if (v == 1) {
+    # Get for v1 API
+    url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
+    headers = get_headers()
+    timeframe <- ifelse(timeframe == "minute", "Min", "day")
+    timeframe <- ifelse(timeframe == "Min", paste0(multiplier, timeframe), timeframe)
+    #full = F Make API requests:  Tue Mar 17 21:37:35 2020 ----
+    url$path <- list("v1", "bars", timeframe)
+    # NULL Values are automatically dropped, so only the set boundaries will remain
+    
+    url$query <- list(symbols = .ticker,
+                      limit = limit,
+                      start = .bounds$from,
+                      end = .bounds$to,
+                      after = .bounds$after,
+                      until = .bounds$until
+    )
+    # Build the url
+    url <- httr::build_url(url)
+    message(paste0("Retrieving\n", url))
+    agg_quote = httr::GET(url = url, headers)
+    .query <- list()
+    .query$status_code <- agg_quote$status_code
+    .query$url <- url
+    .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())
+    if (agg_quote$status_code != 200) {
+      message(paste(url, "\nReturned status code", agg_quote$status_code, "- Returning NULL"))
+      return(NULL)
+    }
+    agg_quote = response_text_clean(agg_quote)
+    purrr::iwalk(agg_quote, ~{
+      if (nrow(.x) == 0) {
+        message(paste(url, "\nWarning:", .y ,"returned no results"))
+      }  
+    })
+    
+    bars <- bars_transform(agg_quote)
+    # add query metadata to match v2 api
+    bars <- purrr::map(bars, ~{
+      attr(.x, "query") <- .query  
+      .x
+    })
+    
+    
+    
+  } else if (v == 2) {
+    # get for v2 API
+    bars <- purrr::imap(setNames(.ticker, .ticker), ~{
+      message(paste0("Retrieving data for: ", .x))
+      url = httr::parse_url(get_url_poly())
+      url$path <- list(
+        v = "v2",
+        ep = "aggs",
+        "ticker",
+        ticker = .x,
+        "range",
+        multiplier = multiplier,
+        timeframe = timeframe,
+        from = as.character(lubridate::as_date(.bounds[[1]])),
+        to = as.character(lubridate::as_date(.bounds[[2]]))
+      )
+      url$query <- list(unadjusted = unadjusted,
+                        apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID"))
+      url <- httr::build_url(url)
+      message(paste0("Call ", .y, ":\n", url))
+      #Send Request
+      agg_quote = httr::GET(url = url)
+      # Save the query meta-date for appending to the output df
+      .query <- list()
+      .query$status_code <- agg_quote$status_code
+      .query$url <- url
+      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())  
+      if (agg_quote$status_code != 200) {
+        message(paste("Ticker", .x, "returned status code", agg_quote$status_code, "- Returning NULL"))
+        return(NULL)
+      }
+      agg_quote = response_text_clean(agg_quote)
+      if (length(agg_quote$results) == 0) {
+        message(paste("Ticker", .x, "returned no data", "- Returning response metadata only"))
+        return(agg_quote[1:5])
+      }
+      # Get the query meta-info returned by the API
+      query <- append(agg_quote[1:5], .query)
+      agg_quote$results$t = agg_quote$results$t/1000
+      
+      agg_quote <- bars_transform(agg_quote["results"])$results
+      attr(agg_quote, "query") <- query
+      return(agg_quote)
+    })
+  }
+  return(bars)
+}
+
+
+#' bars_transform
 #' 
 #' Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
 #' @importFrom magrittr "%>%" 
 #' @import dplyr
-transform_bars <- function(bars) {
+bars_transform <- function(bars) {
   bars = purrr::imap(bars, ~{
     if (!any("data.frame" %in% class(.x))) {
       message(paste0("The symbol ", .y, " returned no data.")) 
@@ -95,6 +197,15 @@ transform_bars <- function(bars) {
     out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
       dplyr::rename((!!nms))
   })  
+}
+
+#' bars_complete
+#' 
+#' Internal function for completing missing data from either v1 or v2 API
+#' @keywords internal
+#' 
+bars_complete <- function(v) {
+  
 }
 
 #----------------------------------------------------------------------------------------------
@@ -1158,9 +1269,9 @@ get_clock <- function(version = "v2"){
 #' @param after *`'v1'` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *after* this time. Default is 7 days ago. *Cannot be used with \code{from}*
 #' @param until *`'v1'` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *before* this time. Default is today's date. *Cannot be used with \code{from}*
 #' @param limit *v1 only* \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. *Note:* If \code{full} is set to T, this parameter is ignored and forced to 1000. 
-#' @param full \code{(logical)} If the requested from, to dates/times exceed that which can be returned in a single call of 1000 bars, the API will be called repeatedly to return the **full** dataset. *Note:* The API has a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. 
+#' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note:* The `'v1'` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.
 #' @param unadjusted *'v2' only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. Defaults to `FALSE`.
-#' @details All \code{(Date/POSIXlt)} must be in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. If `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. The `'v2'` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `'v2'`.
+#' @details All \code{(Date/POSIXlt)} must be in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format. If `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. The `'v2'` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `'v2'`. For the `'v2'` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \link[lubridate]{`floor_date`} and \link[lubridate]{ceiling_date} respectively.
 #' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 #' \itemize{
 #'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
@@ -1181,7 +1292,23 @@ get_clock <- function(version = "v2"){
 # Generate the list in the docs:
 # list(m = c("m","min","minute"), h = c("h", "hour"),d = c("d", "day"), w = c("w", "week"), m = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year")) %>% purrr::map(~{paste0("\\item{",paste0(paste0("`'",.x,"'`"), collapse = '/'),"}")}) %>% do.call(c,.) %>% cat(collapse = "\n")
 # For DEBUG
-list2env(list(ticker = c("FB", "NFLX", "AMZN", "MSFT"), v = 1, multiplier = 5, timeframe = "min", from = lubridate::now() - lubridate::years(6), to = lubridate::now(), after = NULL, until = NULL, full = T, unadjusted = F), envir = .GlobalEnv)
+list2env(
+  list(
+    ticker = c("FB", "NFLX", "AMZN", "MSFT"),
+    v = 1,
+    multiplier = 5,
+    timeframe = "m",
+    from = lubridate::ymd("2020-02-28"),
+    to = lubridate::now() - lubridate::days(1),
+    after = NULL,
+    until = NULL,
+    limit = NULL,
+    full = F,
+    unadjusted = F
+  ),
+  envir = .GlobalEnv
+)
+
 
 get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sys.Date()-7, to = Sys.Date(), after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
   
@@ -1199,7 +1326,7 @@ get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sy
   
   if (v == 1) {
     # Get the timeframe
-    timeframe <- tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
+    timeframe <- tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), names(.tf_opts[c(1,3)]), ignore.case = T)]], 1)
     
     # Check args
     if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
@@ -1209,12 +1336,12 @@ get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sy
     }
     
   } else if (v == 2){
-    timeframe <- tail(.tf_opts[[grep(stringr::regex(timeframe, ignore_case = F), .tf_opts)]], 1)
+    timeframe <- tail(.tf_opts[[grep(timeframe, names(.tf_opts), ignore.case = F)]], 1)
   }
   
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   # Remove NULL arguments
-  .bounds <- purrr::compact(c(start = from, end = to, after = after, until = until))
+  .bounds <- purrr::compact(list(from = from, to = to, after = after, until = until))
   # Coerce to dates/datetimes or fail with NA
   .bounds <- purrr::map(.bounds, ~{
     if (is.character(.x) && stringr::str_detect(.x, ":")) {
@@ -1234,189 +1361,199 @@ get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sy
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(.bounds, is.na))) stop(paste0("Error: Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
+  # For requests to the v2 API where aggregates are yearly, the floor date needs to be 12/31 and the user must be warned
+  if (v == 2){
+    .bounds[[1]] <- lubridate::floor_date(.bounds[[1]], timeframe)
+    .bounds[[2]] <- lubridate::ceiling_date(.bounds[[2]], timeframe, change_on_boundary = T) + lubridate::duration(multiplier, timeframe)
+    if (timeframe == "year") {
+      .bounds[[1]] <- .bounds[[1]] - lubridate::days(1)
+      .bounds[[2]] <- .bounds[[2]] - lubridate::days(1)
+    }
+    message(paste0("The V2 API uses floor dates for aggregates\n'from' coerced to ", format(.bounds[[1]], "%a %b %d, %Y"), "\n'to' coerced to ",format(.bounds[[2]], "%a %b %d, %Y")))
+  }
   
   # Format ticker:  Thu Mar 26 08:48:03 2020 ----
   if (v == 1) {
     .ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
-  } else if (v == 1) {
+  } else if (v == 2) {
     .ticker = ticker
   }
   
   #Limit :  Thu Mar 26 08:50:30 2020 ----
-  # If limit is null or full = T then set at 1000 for v1
-  if (v == 1 && (full || is.null(limit))) {
-    limit <- 1000
-  } 
+  # If limit is null or full = T OR if limit > 1000 then set at 1000 for v1
+  if (v == 1) {
+    if (full || is.null(limit) || isTRUE(limit > 1000)) {
+      if (isTRUE(limit > 1000)) message("Limit cannot exceed 1000, coercing to 1000.")
+      limit <- 1000
+    }  
+  }
+   
+  #Make Requests based on full param:  Fri Mar 27 10:56:45 2020 ----
   
   #Calendar expansion for segmenting queries and data completeness check:  Thu Mar 26 08:50:42 2020 ----
   #Get the trading days in between the sequence
-  .cal <- get_calendar(.bounds[[1]], .bounds[[2]])
-  # Create intervals for each trading day
-  .cal <- dplyr::mutate(.cal,
-                  intervals = lubridate::interval(
-                    start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
-                    end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
-                  ))
+  .cal <- get_calendar(.bounds[[1]], .bounds[[2]]) %>%
+    dplyr::mutate_at(dplyr::vars(date), lubridate::ymd) %>% 
+    dplyr::mutate(
+    day = lubridate::interval(
+      start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
+      end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
+    ),
+    session = lubridate::interval(
+      start = lubridate::ymd_hm(paste(date, session_open), tz = Sys.timezone()),
+      end = lubridate::ymd_hm(paste(date, session_close), tz = Sys.timezone())
+    ),
+    dow = lubridate::wday(lubridate::as_date(date), label = T)
+  ) %>%
+    dplyr::select(date, dow, day, session, everything())
+  
   # Create ordered factor or timeframe options
   .tf_order <- purrr::map_chr(.tf_opts, tail, 1) %>% {factor(., levels = .)}
-  # Expand the intervals into actual time points based on timeframe
-  # If the interval is less than day
-  if (which(timeframe %in% .tf_order) < 2) {
-    .by <- paste0(multiplier, " ", ifelse(timeframe == "minute", substr(timeframe, 1, 3), timeframe),"s")
-    .dates <- purrr::map(.cal$intervals, ~{
-      .out <- seq(from = lubridate::int_start(.x), to = lubridate::int_end(.x), by = .by)
-      # if (!(.cal$intervals[1] / lubridate::duration(multiplier, timeframe)) %>% is.integer()) {
-      #   # if the trading period interval divided by the timeframe is not a whole number, the end of the day will need to be added
-      #   c(.out, lubridate::int_end(.x))
-      # }
-    }) %>% do.call(c, .)
-  } else if (which(timeframe %in% .tf_order) == 3) {
-    # if the interval is by day
-    .dates <- .cal$date
-  }
   
-  
-  # Calculate number of requests and time bounds if full data is requested
   if (full) {
-    #full = T calls:  Tue Mar 17 21:36:11 2020 ----
-    if (timeframe == "1D" || timeframe == "day") {
-      # How many segments of 1000s to capture all requested dates
-      .reps <- nrow(.cal) %/% limit
-      # Split the calendar by 1000s
-      .cal_split <- split(.cal, f = rep(1:(.reps + 1), each = limit))
-      # Get the date ranges of the splits for each from/to call
-      .calls <- purrr::map_dfr(.cal_split, ~{range(.x$date) %>% as.data.frame %>% setNames(c("from", "to"))})
-    } else {
-      # Case when minutes are requested
-      # Convert the timeframe to a period
-      .period <- lubridate::as.period(as.numeric(stringr::str_extract(timeframe, "^\\d+")), unit = .tf)
-      .calls <- .cal %>%
-        # Determine the number of periods per interval
-        dplyr::mutate(periods = intervals / .period) %>%
-        # Do a cumulative sum
-        dplyr::mutate(cs = cumsum(periods),
-                      call_int = cumsum(periods) %/% limit) %>% 
-        dplyr::do({
-          .df <- .
-          # create an rle data.frame
-          .rle <- rle(.df$call_int) %>%
-            unclass() %>%
-            as.data.frame() %>%
-            dplyr::mutate(end = cumsum(lengths),
-                          start = c(1, dplyr::lag(end)[-1] + 1)) %>%
-            dplyr::select(c(1, 2, 4, 3))
-          # Do the magic to parse out calls of 1000 bars
-          purrr::map2_dfr(.rle$start, .rle$end, ~{
-            if (.x == 1) {
-              data.frame(
-                s = lubridate::int_start(.df$intervals[.x]),
-                e = lubridate::int_end(.df$intervals[.y + 1]) - .period * (.df$cs[.y + 1] - .df$call_int[.y + 1] * limit) - .period
-              )
-            } else { 
-           data.frame(
-            s = lubridate::int_end(.df$intervals[.x]) - .period * (.df$cs[.x] - .df$call_int[.x] * limit),
-            e = lubridate::int_end(.df$intervals[.y + 1]) - .period * (.df$cs[.y + 1] - .df$call_int[.y + 1] * limit) - .period)
-            }
-          }) %>% 
-            # Set the end of the final call to the last time
-            magrittr::inset(nrow(.), "e", value  = .df$intervals %>% lubridate::int_end() %>% range() %>% .[[2]]) %>% 
-            setNames(names(.bounds)) 
-          }) %>% 
-        dplyr::mutate_all(lubridate::format_ISO8601, usetz = T)
-    }
-  } else {
-    #full = F create start/end bounds :  Tue Mar 17 21:35:54 2020 ----
-    # Coerce to ISO8601 for call
-    .bounds <- purrr::imap(.bounds, ~{
-      if (stringr::str_detect(.x, ":")) {
-        # If it's a datetime already, just change to iso8601
-        lubridate::format_ISO8601(lubridate::as_datetime(.x, tz = Sys.timezone()), usetz = T)
-      } else if (.y == "start" || .y == "after"){
-        # If it's the start/after - use the beginning of the trading day
-        lubridate::format_ISO8601(lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone()), usetz = T)
-      } else {
-        # If its the end/until - use the end of the trading day
-        lubridate::format_ISO8601(lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone()), usetz = T)
-      }
-    })
+    if (v == 1) {
       
-  }
-  
-  
-  #Set URL & Headers:  Thu Mar 26 08:34:43 2020 ----
-  if (v == 1) {
-    url = htrr::parse_url(get_url_poly())  
-  } else if (v == 2) {
-    url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
-  }
-  version <- "v1"
-  headers = get_headers()
-  
-  if(!is.null(limit)){ #If a limit value was entered then;
-    #Ensure the limit is set to 1000 or under.
-    if(limit > 1000){
-      stop("Max limit is 1000!")
-    }
-  }
-  #TODO add to v1 API url buiild
-  timeframe <- ifelse(timeframe == "minute", "Min", "day")
-  timeframe <- ifelse(timeframe == "Min", paste0(multiplier, timeframe), timeframe)
-    #Send Request
-  if (full) {
-    #full = T API requests:  Tue Mar 17 21:37:17 2020 ----
-      bars <- purrr::pmap(.calls, ~{
-        browser()
-        .resp_code <- 429
-        # yogat3ch: Create Query 2020-01-11 2157
-        url$path <- list(version, "bars", timeframe)
-        # NULL Values are automatically dropped, so only the set boundaries will remain
-        query <- list(symbols = .ticker,
-                          limit = limit)
-        query[[names(.bounds)[1]]] <- ..1
-        query[[names(.bounds)[2]]] <- ..2
-        # Build the url
-        url$query <- query
-        url <- URLdecode(httr::build_url(url))
-        # Enter the loop
-        while (.resp_code == 429) {
-          bars = httr::GET(url = url, headers)
-          # Assign the status code, should be 200 for success which will break the loop
-          .resp_code <- bars$status_code
-          # If the rate limit is reached, stop for a minute
-          if (.resp_code == 429) {
-            message("200 request/min Rate limit reached, pausing for 60 sec")
-            Sys.sleep(60)
+      # Expand the intervals into actual time points based on timeframe
+      
+      
+      # If the interval is less than day
+      if (which(timeframe %in% .tf_order) < 3) {
+        .by <- paste0(multiplier, " ", ifelse(timeframe == "minute", substr(timeframe, 1, 3), timeframe),"s")
+        .dates <- purrr::map(.cal$intervals, ~{
+          .out <- seq(from = lubridate::int_start(.x), to = lubridate::int_end(.x), by = .by)
+          # if (!(.cal$intervals[1] / lubridate::duration(multiplier, timeframe)) %>% is.integer()) {
+          #   # if the trading period interval divided by the timeframe is not a whole number, the end of the day will need to be added
+          #   c(.out, lubridate::int_end(.x))
+          # }
+        }) %>% do.call(c, .)
+      } else if (which(timeframe %in% .tf_order) == 3) {
+        # if the interval is by day
+        .dates <- .cal$date
+      }
+      #full = T calls:  Tue Mar 17 21:36:11 2020 ----
+      if (timeframe == "1D" || timeframe == "day") {
+        # How many segments of 1000s to capture all requested dates
+        .reps <- nrow(.cal) %/% limit
+        # Split the calendar by 1000s
+        .cal_split <- split(.cal, f = rep(1:(.reps + 1), each = limit))
+        # Get the date ranges of the splits for each from/to call
+        .calls <- purrr::map_dfr(.cal_split, ~{range(.x$date) %>% as.data.frame %>% setNames(c("from", "to"))})
+      } else {
+        # Case when minutes are requested
+        # Convert the timeframe to a period
+        .period <- lubridate::as.period(as.numeric(stringr::str_extract(timeframe, "^\\d+")), unit = .tf)
+        .calls <- .cal %>%
+          # Determine the number of periods per interval
+          dplyr::mutate(periods = session / .period) %>%
+          # Do a cumulative sum
+          dplyr::mutate(cs = cumsum(periods),
+                        call_int = cumsum(periods) %/% limit) %>% 
+          dplyr::do({
+            .df <- .
+            # create an rle data.frame
+            .rle <- rle(.df$call_int) %>%
+              unclass() %>%
+              as.data.frame() %>%
+              dplyr::mutate(end = cumsum(lengths),
+                            start = c(1, dplyr::lag(end)[-1] + 1)) %>%
+              dplyr::select(c(1, 2, 4, 3))
+            # Do the magic to parse out calls of 1000 bars
+            purrr::map2_dfr(.rle$start, .rle$end, ~{
+              if (.x == 1) {
+                data.frame(
+                  s = lubridate::int_start(.df$day[.x]),
+                  e = lubridate::int_end(.df$day[.y + 1]) - .period * (.df$cs[.y + 1] - .df$call_int[.y + 1] * limit) - .period
+                )
+              } else { 
+             data.frame(
+              s = lubridate::int_end(.df$day[.x]) - .period * (.df$cs[.x] - .df$call_int[.x] * limit),
+              e = lubridate::int_end(.df$dayintervals[.y + 1]) - .period * (.df$cs[.y + 1] - .df$call_int[.y + 1] * limit) - .period)
+              }
+            }) %>% 
+              # Set the end of the final call to the last time
+              magrittr::inset(nrow(.), "e", value  = .df$day %>% lubridate::int_end() %>% range() %>% .[[2]]) %>% 
+              setNames(names(.bounds)) 
+            }) %>% 
+          dplyr::mutate_all(~gsub("(?<=\\-\\d{2})", ":", format(., "%Y-%m-%dT%H:%M:%S%z"), perl = T))
+        #full = T API requests:  Tue Mar 17 21:37:17 2020 ----
+        bars <- purrr::pmap(.calls, ~{
+          browser()
+          .resp_code <- 429
+          # yogat3ch: Create Query 2020-01-11 2157
+          url$path <- list(version, "bars", timeframe)
+          # NULL Values are automatically dropped, so only the set boundaries will remain
+          query <- list(symbols = .ticker,
+                        limit = limit)
+          query[[names(.bounds)[1]]] <- ..1
+          query[[names(.bounds)[2]]] <- ..2
+          # Build the url
+          url$query <- query
+          url <- URLdecode(httr::build_url(url))
+          # Enter the loop
+          while (.resp_code == 429) {
+            bars = httr::GET(url = url, headers)
+            # Assign the status code, should be 200 for success which will break the loop
+            .resp_code <- bars$status_code
+            # If the rate limit is reached, stop for a minute
+            if (.resp_code == 429) {
+              message("200 request/min Rate limit reached, pausing for 60 sec")
+              Sys.sleep(60)
+            }
           }
+          bars = response_text_clean(bars)
+        })
+        
+        # Bind all of the calls into a list of ticker symbols
+        bars <- purrr::map(names(bars[[1]]) %>% setNames(nm = .), ~{
+          .n <- .x
+          purrr::map(bars, ~purrr::pluck(.x, .n)
+          )}) %>% purrr::map(dplyr::bind_rows)
+      }
+    } else if (v == 2) {
+      # Create the data-completeness check vector
+        # If the interval is less than day
+        if (which(timeframe %in% .tf_order) < 3) {
+          # Create string with syntax for by param in seq
+          .by <- paste0(multiplier, " ", ifelse(timeframe == "minute", substr(timeframe, 1, 3), timeframe),"s")
+          # Get the times that should be in the resulting dataset
+          .dates <- purrr::map(.cal$day, ~{
+            .out <- seq(from = lubridate::int_start(.x), to = lubridate::int_end(.x), by = .by)
+          }) %>% do.call(c, .)
+        } else if (which(timeframe %in% .tf_order) == 3) {
+          # if the interval is by day
+          .dates <- .cal$date
         }
-        bars = response_text_clean(bars)
-      })
-    
-    # Bind all of the calls into a list of ticker symbols
-    bars <- purrr::map(names(.bars[[1]]) %>% setNames(nm = .), ~{
-      .n <- .x
-      purrr::map(bars, ~purrr::pluck(.x, .n)
-                 )}) %>% purrr::map(dplyr::bind_rows)
-    
+        # retrieve the data
+        bars <- bars_get(.ticker, v)
+    }
   } else {
-    #full = F API requests:  Tue Mar 17 21:37:35 2020 ----
-    url$path <- list(version, "bars", timeframe)
-    # NULL Values are automatically dropped, so only the set boundaries will remain
-    
-    url$query <- list(symbols = .ticker,
-                      limit = limit,
-                      start = .bounds$start,
-                      end = .bounds$end,
-                      after = .bounds$after,
-                      until = .bounds$until
-    )
-    # Build the url
-    url <- httr::build_url(url)
-    bars = httr::GET(url = url, headers)
-    bars = response_text_clean(bars)
+    # Submit request as is for full = F:  Tue Mar 17 21:35:54 2020 ----
+    # Coerce to ISO8601 for call
+    if (v == 1) {
+      .bounds <- purrr::imap(.bounds, ~{
+        if (stringr::str_detect(.x, ":")) {
+          # If it's a datetime already, just change to iso8601
+          gsub("(?<=\\-\\d{2})", ":", format(lubridate::as_datetime(.x, tz = Sys.timezone()), "%Y-%m-%dT%H:%M:%S%z"), perl = T)
+        } else if (.y == "start" || .y == "after"){
+          # If it's the start/after - use the beginning of the trading day
+          gsub("(?<=\\-\\d{2})", ":", format(lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone()), "%Y-%m-%dT%H:%M:%S%z"), perl = T)
+          
+        } else {
+          # If its the end/until - use the end of the trading day
+          gsub("(?<=\\-\\d{2})", ":", format(lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone()), "%Y-%m-%dT%H:%M:%S%z"), perl = T)
+        }
+      })
+      # retrieve the data
+      bars <- bars_get(.ticker, v)
+    } else if (v == 2) {
+      # Map over the ticker symbols to retrieve the data
+      bars <- bars_get(.ticker, v)
+    }
+  # End case where full = F ---- Fri Mar 27 11:19:05 2020
+     
   }
-  
   #Rename columns to quantmod standard and reformat time column
-  bars <- transform_bars(bars)
+  bars <- bars_transform(bars)
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
@@ -1578,11 +1715,11 @@ get_poly_agg_quote <- function(ticker = NULL, multiplier = 1, timespan = "day", 
   
   agg_quotes <- purrr::map(ticker, ~{
     agg_quote <- list(results = list(n = NA))
-    1 <- .ctr
-    while (anyNA(agg_quote$results$n)) {
+    .ctr <- 1
+    
       message(paste0("Retrieving data for: ", .x))
       full_path_url = paste0(path_url,"/v2/aggs/ticker/",.x,"/range/",multiplier,"/",timespan,"/",lubridate::as_date(from),"/",lubridate::as_date(to),"?unadjusted=",unadjusted,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")) 
-      message(paste0("Fetching", full_path_url))
+      message(paste0("Fetching ", full_path_url))
       #Send Request
       agg_quote = httr::GET(url = full_path_url)
       if (agg_quote$status_code != 200) {
@@ -1597,30 +1734,30 @@ get_poly_agg_quote <- function(ticker = NULL, multiplier = 1, timespan = "day", 
       # Get the query meta-info returned by the API
       query <- agg_quote[1:5]
       # If there are any gaps in the data indicated by NA values for n
-      if (anyNA(agg_quote$results$n)) {
-        # transform to to datetime
-        .t = as.POSIXct(agg_quote$results$t/1000, tz = Sys.timezone(), origin = lubridate::origin)
-        # Get the cutoff point for full data
-        .cutoff <- agg_quote$results$n %>% is.na %>% which %>% {min(.) - 1}
-        # Generate a new from date
-        from <- lubridate::as_date(.t[.cutoff])
-        message(paste("Missing ata detected, re-querying for range:", paste0(c(from,to), collapse = " - ")))
-        if (.ctr == 1) {
-          results <- agg_quote$results[1:.cutoff,]
-        } else {
-          results <- cbind.data.frame(results, agg_quote$results)
-        }
-        
-        .ctr <- .ctr + 1
-      }
-    }
+      # if (anyNA(agg_quote$results$n)) {
+      #   # transform to to datetime
+      #   .t = as.POSIXct(agg_quote$results$t/1000, tz = Sys.timezone(), origin = lubridate::origin)
+      #   # Get the cutoff point for full data
+      #   .cutoff <- agg_quote$results$n %>% is.na %>% which %>% {min(.) - 1}
+      #   # Generate a new from date
+      #   from <- lubridate::as_date(.t[.cutoff])
+      #   message(paste("Missing ata detected, re-querying for range:", paste0(c(from,to), collapse = " - ")))
+      #   if (.ctr == 1) {
+      #     results <- agg_quote$results[1:.cutoff,]
+      #   } else {
+      #     results <- cbind.data.frame(results, agg_quote$results)
+      #   }
+      #   
+      #   .ctr <- .ctr + 1
+      # }
+    
     
     # Generate new calls, filling in missing data, until no data is missing
     
     # convert from nanoseconds to seconds
     agg_quote$results$t = agg_quote$results$t/1000
     
-    agg_quote <- transform_bars(agg_quote["results"])$results
+    agg_quote <- bars_transform(agg_quote["results"])$results
     attr(agg_quote, "query") <- query
     return(agg_quote)
   })
