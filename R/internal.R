@@ -7,6 +7,8 @@
 #' @param dat The response from our server GET request usually in a json format.
 #' @keywords internal
 #' @return The response in a readable format as a list.
+#' @importFrom httr content
+#' @importFrom jsonlite fromJSON
 response_text_clean <- function(dat){
   
   dat = httr::content(dat, as = "text", encoding = "UTF-8")
@@ -45,16 +47,26 @@ get_url_poly <- function(){
 #' @keywords internal
 #' @return The correct headers that will be sent in the API request.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
+#' @importFrom httr add_headers
+#' @importFrom purrr iwalk
+#' @importFrom stringr str_replace
+#' @importFrom rlang abort
 get_headers <- function(live=FALSE){
   
   ifelse(live, 
-         headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
+         .headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
          
-         headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
+         .headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
   )
-  return(headers)
+  purrr::iwalk(.headers$header, ~{
+    if (nchar(.x) == 0) {
+      .ev <- stringr::str_replace(.y, "(?<=APCA)", ifelse(live, "-LIVE", "-PAPER"))
+      rlang::abort(message = paste0(.ev," is unset. Please set your API credentials as environmental variables. See vignette('installation', 'AlpacaforR') for details.")) #TODO if package name change, change this value
+    }
+  })
+  return(.headers)
 }
 
 # Helper functions for get_bars ----
@@ -904,6 +916,7 @@ bars_complete <- function(bars, .missing, ...) {
         browser(expr = is.null(.m_tib))
         .new <- purrr::pmap_dfr(.m_tib, ~{
           # Since this will only be a call for a single symbol, we can get the first index as it will be the new data
+          .m_tib_missing <- ..1
           .new <- bars_get(..2)[[1]]
           if (!is.data.frame(.new)) {
             return(NULL) 
@@ -912,7 +925,6 @@ bars_complete <- function(bars, .missing, ...) {
             # create an ordered vector of all dates in the final intended data
             .d <- sort(c(ext$.out$time, .md))
             # we need intervals that will contain times of the reduced timeframe data from which we can compute aggregates similar to how Polygon computes aggregates to create data for "unreturnable" dates
-            .m_tib_missing <- ..1
             .d_int <- purrr::map(.m_tib_missing, ~{
               # for each missing data find the interval between the closest prior date and the missing_date
               lubridate::interval(start = .d[which.max(which(.d < .x))], end = .x)
