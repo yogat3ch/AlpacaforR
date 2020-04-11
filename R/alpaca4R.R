@@ -970,9 +970,11 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
 #' # Get specific date range:
 #' get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 #' @export
-#' @importFrom lubridate ymd wday today
+#' @import lubridate
 #' @importFrom httr GET parse_url build_url
 #' @importFrom purrr map
+#' @importFrom magrittr "%>%"
+
 get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   #Set URL & Headers
   url = httr::parse_url(get_url())
@@ -1005,7 +1007,19 @@ get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   url <- httr::build_url(url)
   calendar = httr::GET(url = url, headers)
   calendar =  response_text_clean(calendar)
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd(.))
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars(date), lubridate::ymd, tz = Sys.timezone()) %>% 
+    dplyr::mutate(
+      day = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
+        end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
+      ),
+      session = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, session_open), tz = Sys.timezone()),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = Sys.timezone())
+      ),
+      dow = lubridate::wday(lubridate::as_date(date), label = T)
+    ) %>%
+    dplyr::select(date, dow, day, session, everything())
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
@@ -1101,7 +1115,7 @@ get_clock <- function(version = "v2"){
 # For DEBUG
 list2env(
   list(
-    ticker = c("FB", "NFLX", "AMZN", "MSFT"),
+    ticker = c("AMZN"),
     v = 2,
     multiplier = 5,
     timeframe = "m",
@@ -1152,13 +1166,13 @@ get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sy
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   .bounds <- bars_bounds(from = from, to = to, after = after, until = until)
   
-  message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", format(.bounds[[1]], "%a %b %d, %Y"), "\n'to' coerced to ",format(.bounds[[2]], "%a %b %d, %Y")))
+  message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", .bounds[[1]], "\n'to' coerced to ", .bounds[[2]]))
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(.bounds, is.na))) stop(paste0("Error: Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
   if (full) {
     if (v == 1) {
-      
+      url <- bars_url(.bounds = .bounds)
       
     } else if (v == 2) {
       # Form the URL
@@ -1167,9 +1181,7 @@ get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sy
       bars <- bars_get(url)
       .expected <- bars_expected(bars)
       .missing <- bars_missing(bars)
-      bars <- bars_complete(bars)
-      
-      
+      bars <- bars_complete(bars, .missing = .missing)
     }
   } else {
     # Submit request as is for full = F:  Tue Mar 17 21:35:54 2020 ----

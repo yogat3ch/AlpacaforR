@@ -154,23 +154,25 @@ int_math <- function(int1, int2, math = "setdiff") {
 #'@param v See \link[AlpacaforR]{get_bars}
 #'@return `(list)` A list with two Date/Datetime items that are boundaries for the date range necessary to call the API with to retrieve the appropriate data from the specified API. Items will have names corresponding to the non-NULL `from/to/after/until` arguments in the calling environment or supplied to the function.
 #'@keywords internal
-#'@importFrom purrr imap map compact
+#'@importFrom purrr imap map compact pmap
+#'@importFrom rlang env_bind current_env env_get "!!!"
+#' @importFrom stringr str_extract
 #'@import lubridate
 
-bars_bounds <- function(..., pf = parent.frame()) {
+bars_bounds <- function(...) {
   #trickery to get the variables from the calling environment
-  .vars <- list(...)
-  .n <- try(names(.vars), silent = T)
-  .env <- try(list2env(list(...), environment()), silent = T)
-  .tf_num <- get0(".tf_num", envir = pf, ifnotfound = get0(".tf_num", sys.frame(-1)))
-  if (class(.n) == "try-error" || is.null(.n) || class(.env) == "try-error") {
-    .date_vars <- purrr::map(c(from = "from", to = "to", after = "after", until = "until"), get0, envir = pf)
-    
-  } else if (all(c("from", "to") %in% .n) || all(c("after", "until") %in% .n)) {
-    .date_vars <- .vars[c(from = "from", to = "to", after = "after", until = "until")]
+  rlang::env_bind(rlang::current_env(), ...)
+  .vn = c(.tf_num = ".tf_num", from = "from", to = "to", after = "after", until = "until")
+  if (!all(.vn %in% ls(all.names = T))) {
+    .cev <- rlang::caller_env()
+    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
   }
-  rm(pf)
-  
+   if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
+      .date_vars <- list(from = from, to = to, after = after, until = until)
+   }
+  if (length(purrr::compact(.date_vars)) < 2) {
+    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
+  }
   # Remove NULL arguments
   .bounds <- purrr::compact(.date_vars)
   
@@ -189,7 +191,6 @@ bars_bounds <- function(..., pf = parent.frame()) {
       # If the format is incorrect return NA
       return(NA)
     }
-    
     # Floors or ceilings
     if (.tf_num < 3) {
       # Case less than day, to include the day requested, the boundary must be the previous day
@@ -201,11 +202,33 @@ bars_bounds <- function(..., pf = parent.frame()) {
       .unit <- paste(1, timeframe)
     } else if (.tf_num == 6) {
       # case where timeframe is quarter
-      .q <- T
+      # Create the quarter bounds that the polygon API uses
+      .qs <- c(1, seq(3, 12, 3)) %>% {
+        list(start = .[-5], end = dplyr::lead(.)[-5])
+      } %>% {
+        purrr::pmap(.l = ., .f = ~ {
+          if (.x == 1) {
+            .start <- lubridate::make_date(year = lubridate::year(.out), month = .x)
+          } else {
+            .start <- lubridate::make_date(year = lubridate::year(.out), month = .x, day = 30)
+          }
+          if (.y > 9) {
+            .end <- lubridate::make_date(lubridate::year(.out), month = .y, day = 31)
+          } else {
+            .end <- lubridate::make_date(lubridate::year(.out), month = .y, day = 30)
+          }
+          lubridate::interval(
+            start = .start,
+            end = .end
+          )
+        })
+      }
+      # determine where the input date lies
+      .q <- which(purrr::map_lgl(.qs, ~lubridate::`%within%`(a = .out, b = .x)))
       .unit <- paste(multiplier, timeframe)
-      # quarter isn't an acceptable duration in lubridate so we improvise with 3 months 
-      timeframe <- "month"
+      # Because duration doesn't accept quarter
       multiplier <- 3 * multiplier
+      timeframe <- "months"
     } else {
       .unit <- paste(multiplier, timeframe)
     }
@@ -214,7 +237,12 @@ bars_bounds <- function(..., pf = parent.frame()) {
       .out <- lubridate::floor_date(.out, .unit)
       if (exists(".q")) {
         # to include the initial day of the quarter, the end of the previous quarter must be the lower boundary
-        .out <- .out - lubridate::days(1)
+        if (.q == 1) {
+          .out <- lubridate::make_date(lubridate::year(.out), month = 12, day = 30)
+        } else {
+          .out <- lubridate::int_start(.qs[[.q]])
+        }
+        
       } else if (exists(".w")) {
         # lubridate does not support multi-weeks to floor_date, so we just subtract multiplier - 1 weeks
         .out <- .out - lubridate::duration(multiplier - 1, "weeks")
@@ -222,6 +250,10 @@ bars_bounds <- function(..., pf = parent.frame()) {
     } else {
       # To include the ending boundary, we need to add a full cycle of multiplier * timeframe
       .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = F) + lubridate::duration(multiplier, timeframe)
+      if (exists(".q")) {
+        # Convert to the appropriate quarter boundary
+        .out <- lubridate::int_end(.qs[[.q]])
+      }
     }
     # For requests to the v2 API where aggregates are yearly, the floor date needs to be 12/31
     if (timeframe == "year") {
@@ -247,9 +279,9 @@ bars_bounds <- function(..., pf = parent.frame()) {
       paste0(stringr::str_sub(.dt, 1, -3),":", stringr::str_sub(.dt, -2, nchar(.dt)))
     })
   } else if (v == 2) {
-    .bounds <- purrr::map(.bounds, lubridate::as_date)
+    .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), Sys.timezone()))
   }
-  browser(expr = length(.bounds) == 0)
+  browser(expr = any(purrr::map_lgl(.bounds, ~length(.x) == 0 || lubridate::year(.x) > lubridate::year(lubridate::today()) )))
   return(.bounds)
 }
 
@@ -267,22 +299,22 @@ bars_bounds <- function(..., pf = parent.frame()) {
 #'@return `(character)` URL to be called with \link[AlpacaforR]{bars_get}
 #'@keywords internal
 #'@importFrom httr parse_url build_url
+#'@importFrom rlang env_bind current_env env_get "!!!"
 #'@importFrom purrr map_chr
 #'@importFrom lubridate as_date
+#' @importFrom stringr str_extract
 
-bars_url <- function(..., pf = parent.frame()) {
-  .vars <- list(...)
-  .env <- try(list2env(.vars, environment()), silent = T)
-  .n <- try(names(.vars), silent = T)
+bars_url <- function(...) {
   .vn <- c(ticker = "ticker", .bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v", unadjusted = "unadjusted")
-  if (class(.env) == "try-error") {
-    list2env(purrr::map(.vn, get0, envir = pf), environment())
+  rlang::env_bind(rlang::current_env(), ...)
+  if (!all(.vn %in% ls(all.names = T))) {
+    .cev <- rlang::caller_env()
+    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
   }
-  rm(pf)
-  # if ( !all(.vn %in% ls(all.names = T)) || any(purrr::map_lgl(.vn, ~is.null(get0(.x)))) ) {
-  #   browser()
-  #   stop("bars_url is missing necessary variables")
-  # }
+  if (!all(.vn %in% ls(all.names = T))) {
+    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
+  }
+  timeframe <- as.character(timeframe)
   # Format ticker:  Thu Mar 26 08:48:03 2020 ----
   if (v == 1) {
     .ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
@@ -345,10 +377,12 @@ bars_url <- function(..., pf = parent.frame()) {
 #' @return `(list)` See \link[AlpacaforR]{get_bars} as the output is the same.
 #' @keywords internal
 #' @importFrom magrittr "%>%"
-#' @importFrom purrr iwalk
+#' @importFrom rlang env_bind current_env 
+#' @importFrom purrr iwalk imap map
+#' @importFrom stringr str_extract
 #' @import dplyr httr lubridate
 bars_get <- function(url, ...) {
-  list2env(list(...), environment())
+  rlang::env_bind(rlang::current_env(), ...)
   if (v == 1) {
     headers = get_headers()
     message(paste0("Retrieving\n", url))
@@ -379,6 +413,9 @@ bars_get <- function(url, ...) {
     
   } else if (v == 2) {
     # get for v2 API
+    if (is.null(names(url))) {
+      names(url) <- stringr::str_extract(url, "(?<=ticker\\/)\\w+")
+    }
     bars <- purrr::imap(url, ~{
       message(paste0("Retrieving ", .y, ":\n", url))
       #Send Request
@@ -389,13 +426,13 @@ bars_get <- function(url, ...) {
       .query$url <- url
       .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())  
       if (agg_quote$status_code != 200) {
-        message(paste("Ticker", .x, "returned status code", agg_quote$status_code, "- Returning NULL"))
-        return(NULL)
+        message(paste("Call", .x, "returned status code", agg_quote$status_code, "- Returning metadata only"))
+        return(append(agg_quote[1:5], values = .query[2:3]))
       }
       agg_quote = response_text_clean(agg_quote)
       if (length(agg_quote$results) == 0) {
-        message(paste("Ticker", .x, "returned no data", "- Returning response metadata only"))
-        return(agg_quote[1:5])
+        message(paste("Call", .x, "returned no data", "- Returning response metadata only"))
+        return(append(agg_quote[1:5], values = .query[2:3]))
       }
       # Get the query meta-info returned by the API
       query <- append(agg_quote[1:5], .query)
@@ -419,136 +456,115 @@ bars_get <- function(url, ...) {
 #' @param multiplier See \link[AlpacaforR]{get_bars}
 #' @param timeframe  See \link[AlpacaforR]{get_bars}
 #' @return `(Date/Datetime)` A vector of expected date/datetimes based on the `.bounds`, `timeframe` and `multiplier`
-bars_expected <- function(bars, ..., pf = parent.frame()) {
-  .vars <- list(...)
-  .env <- try(list2env(.vars, environment()), silent = T)
-  .n <- try(names(.vars), silent = T)
-  .vn <- c(.bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v")
-  .tf_num <- get0(".tf_num", envir = pf, ifnotfound = get0(".tf_num", sys.frame(-1)))
-  if (class(.env) == "try-error") {
-    list2env(purrr::map(.vn, get0, envir = pf), environment())
+#'@importFrom rlang env_bind current_env env_get "!!!" "%||%" "%|%"
+#' @importFrom stringr str_extract
+#' @importFrom magrittr "%>%" extract2
+#'@import lubridate dplyr
+bars_expected <- function(bars, ...) {
+  rlang::env_bind(rlang::current_env(), ...)
+  .vn <- c(.bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v", .tf_num = ".tf_num")
+  if (!all(.vn %in% ls(all.names = T))) {
+    .cev <- rlang::caller_env()
+    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
   }
-  .vn <- append(.vn, c(.tf_num = ".tf_num"))
-  browser(expr = !exists(".tf_num"))
-  rm(pf)
-  # if ( !all(.vn %in% ls(all.names = T)) || any(purrr::map_lgl(.vn, ~is.null(get0(.x)))) ) {
-  #   browser()
-  #   stop("bars_expected is missing necessary variables")
-  # }
-  # 
+  if (!all(.vn %in% ls(all.names = T))) {
+    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
+  }
   
   
   #Calendar expansion for segmenting queries and data completeness check:  Thu Mar 26 08:50:42 2020 ----
   #Get the trading days in between the sequence
-  .cal <- get_calendar(.bounds[[1]], .bounds[[2]]) %>%
-    dplyr::mutate_at(dplyr::vars(date), lubridate::ymd) %>% 
-    dplyr::mutate(
-      day = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
-        end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
-      ),
-      session = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, session_open), tz = Sys.timezone()),
-        end = lubridate::ymd_hm(paste(date, session_close), tz = Sys.timezone())
-      ),
-      dow = lubridate::wday(lubridate::as_date(date), label = T)
-    ) %>%
-    dplyr::select(date, dow, day, session, everything()) %>%
-    dplyr::filter(date >= lubridate::as_date(.bounds[[1]]) & date <= lubridate::now())
+  if (.tf_num < 4) {
+    .cal <- get_calendar(.bounds[[1]], .bounds[[2]]) %>%
+      dplyr::filter(date >= lubridate::as_date(.bounds[[1]]) & date <= lubridate::now())
+  }
+  
   
   # Set the parameters for seq and lubridate durations
-  if(.tf_num == 6) {
-    .by <- paste(3 * multiplier, "months")
-    .timeframe <- "months"
-    .multiplier <- multiplier * 3
-  } else {
+ 
     .by <- paste0(multiplier," ", timeframe, "s")
     .multiplier <- multiplier
     .timeframe <- timeframe
-  }
-  
+
   .expected <- purrr::imap(bars, ~{
-    .cutoff <- rlang::`%||%`(attr(.x, "query")$ts, attr(.x, "query")[[1]]$ts)
-    # if there is data 
-    if(nrow(.x) > 0 && .tf_num > 3) {
-      #start the sequence at one interval prior to the starting date in the data, and seq to the upper bound
-      .expected <- c(.x$time[1] - lubridate::duration(.multiplier, .timeframe),
-                     seq(from = as.POSIXct(.x$time[1], tz = Sys.timezone()), to = as.POSIXct(.bounds[[2]], tz = Sys.timezone()), by = .by)
-      )
-      .expected <- subset(.expected, subset = .expected >= .bounds[[1]] & .expected <= .cutoff)
-    } else {
-      if (.tf_num < 3) {
-        # interval length .by
-        .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
-        # units for floor/ceiling
-        .units <- paste0(
-          ifelse(.timeframe == "minute", 30, 1), # 30 min baseline if tf = mins
-          " ",
-          ifelse(
-            .timeframe == "minute",
-            substr(as.character(.timeframe), 1, 3), # 1 hour base if tf = hours
-            as.character(.timeframe)
-          ),
-          "s"
-        )
-        .expected <- purrr::map(.cal$day, ~{
-          .out <- seq(from = lubridate::ceiling_date(lubridate::int_start(.x), .units), to = lubridate::ceiling_date(lubridate::int_end(.x), .units), by = .by)
-          
-          
-          .out[.out >= .bounds[[1]] & .out <= .cutoff]
-        }) %>% do.call(c, .)
-      } else if (.tf_num == 3) {
-        # dat aggregates:
-        # 1. computed at close, thus we exclude today
-        # 2. start at floor_date Monday 
-        .from <- lubridate::as_date(lubridate::floor_date(.bounds[[1]], unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1))
-        .expected <- seq(.from, lubridate::today(), by = paste0(.multiplier, " ", .timeframe, "s"))
-        # dates that are trading days (match the .cal) and less than today
-        .expected <- .expected[.expected %in% .cal$date & .expected < lubridate::today()]
-      } else if (.tf_num == 4) {
-        # if the interval is by week
-        if (.bounds[[2]] > lubridate::now()) {
-          .to <- lubridate::floor_date(lubridate::today(), .timeframe)
-        } else {
-          .to <- lubridate::as_date(.bounds[[2]])
-        }
-        if (.multiplier > 1) {
-          .from <- .bounds[[1]] + lubridate::duration(.multiplier - 1, .timeframe)
-        } else {
-          .from <- .bounds[[1]]
-        }
-        .expected <- seq(from = lubridate::as_date(.from), to = .to, by = paste(.multiplier, .timeframe))
-        
-      } else if (.tf_num == 5) {
-        if (.bounds[[2]] > lubridate::now()) {
-          .to <- lubridate::floor_date(lubridate::today(), .timeframe)
-        } else {
-          .to <- lubridate::as_date(.bounds[[2]])
-        }
-        
-        .from <- .bounds[[1]] + lubridate::duration(.multiplier, .timeframe)
-        .expected <- seq(from = lubridate::as_date(.from), to = .to, by = paste(.multiplier, .timeframe))
-      } else if (.tf_num == 6) {
-        .by <- paste(3 * .multiplier, "months")
-        .from <- .bounds[[1]]
-        .to <- .bounds[[2]]
-        .expected <- seq(from = lubridate::as_date(.from), to = .to, by = paste(.multiplier, .timeframe))
-      } else if (.tf_num == 7) {
-        .from <- .bounds[[1]]
-        .to <- .bounds[[2]]
-        .expected <- seq(from = lubridate::as_date(.from), to = .to, by = paste(.multiplier, .timeframe))
+    if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL)
+    .cutoff <- attr(.x, "query")$ts %||% tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||% lubridate::now()
+    # if there is data
+    if (nrow(.x) > 0) {
+      .bgn <- .x$time[1]
+      if (.tf_num < 4) {
+        .cal <- dplyr::filter(.cal, date >= lubridate::as_date(.bgn))
       }
+    } else {
+      .bgn <- .bounds[[1]]
     }
-    if (.tf_num > 2) {
-      .expected <- lubridate::as_date(.expected)
+     
+    if (.tf_num < 3) {
+      # interval length .by
+      .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
+      # units for floor/ceiling
+      .units <- paste0(
+        ifelse(.timeframe == "minute", 30, 1), # 30 min baseline if tf = mins
+        " ",
+        ifelse(
+          .timeframe == "minute",
+          substr(as.character(.timeframe), 1, 3), # 1 hour base if tf = hours
+          as.character(.timeframe)
+        ),
+        "s"
+      )
+      .expected <- purrr::map(.cal$day, ~{
+        .out <- seq(from = lubridate::ceiling_date(lubridate::int_start(.x), .units), to = lubridate::ceiling_date(lubridate::int_end(.x), .units), by = .by)
+      }) %>% do.call(c, .)
+    } else if (.tf_num == 3) {
+      # dat aggregates:
+      # 1. computed at close, thus we exclude today
+      # 2. start at floor_date Monday 
+      .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), Sys.timezone())
+      
+      .expected <- try({seq(.from, .bounds[[2]], by = paste0(.multiplier, " ", .timeframe, "s"))})
+      # dates that are trading days (match the .cal) and less than today
+      .expected <- .expected[.expected %in% .cal$date & .expected < lubridate::today()]
+    } else if (.tf_num == 4) {
+     
+      .expected <- seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe))
+      
+    } else if (.tf_num == 5) {
+      # Change the day of the month of each expected value to match that of the starting actual value.
+      .day <- lubridate::day(.x$time[1])
+      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), Sys.timezone())) %>% purrr::reduce(c)
+      .exp <- data.frame(expected = .expected) %>% 
+        dplyr::mutate(y = lubridate::year(expected),
+                      m = lubridate::month(expected))
+      .act <- data.frame(actual = .x$time) %>% 
+        dplyr::mutate(y = lubridate::year(actual),
+                      m = lubridate::month(actual))
+      .expected <- left_join(.exp, .act, by = c("y", "m")) %>% 
+        dplyr::mutate(d = lubridate::day(actual)) %>% 
+        dplyr::mutate_if(anyNA, ~ {. %|% .[length(.) - 1] %|% .[1]}) %>% 
+        dplyr::mutate_at(dplyr::vars(expected), ~lubridate::make_date(y, m, d)) %>% 
+        magrittr::extract2("expected")
+      
+    } else if (.tf_num == 6) {
+      
+      .expected <- try({seq(.bgn, .bounds[[2]], by = as.character(.timeframe))})
+      
+    } else if (.tf_num == 7) {
+      
+      .expected <- seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe))
     }
-    browser(expr = length(.expected) == 0)
     
+    if (.tf_num > 2) {
+      .expected <- lubridate::force_tz(lubridate::as_date(.expected), tz = Sys.timezone())
+    }
+    .expected <- subset(.expected, subset = .expected >= .bounds[[1]] & .expected <= .cutoff)
+    browser(expr = length(.expected) == 0 || class(.expected) == "try-error")
     return(.expected)
   })
   
   return(.expected)
 }
+
 
 
 # Tue Mar 31 09:43:59 2020
@@ -578,30 +594,38 @@ bars_expected <- function(bars, ..., pf = parent.frame()) {
 #' @importFrom lubridate:
 #' @importFrom tibble tibble
 #' @importFrom magrittr "%>%"
-#' @import lubridate isoweek with_tz
+#' @importFrom rlang env_bind current_env env_get "!!!" "%||%"
+#' @importFrom stringr str_extract
+#' @import lubridate
 
-bars_missing <- function(bars, ..., pf = parent.frame()) {
-  .vars <- try(list2env(list(...), environment()), silent = T)
-  .vn <- c(.bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v")
-  .tf_num <- get0(".tf_num", envir = pf, ifnotfound = get0(".tf_num", sys.frame(-1)))
-  if (class(.vars) == "try-error") {
-    list2env(purrr::map(.vn, get0, envir = pf), environment())
+bars_missing <- function(bars, ..., .tf_reduce = F) {
+  .vn = c(.bounds = ".bounds", v = "v", timeframe = "timeframe", multiplier = "multiplier", .tf_num = ".tf_num")
+  #ticker must be named if df is passed without query object (as in bars_complete)
+  rlang::env_bind(rlang::current_env(), ...)
+  if (!all(.vn %in% ls(all.names = T))) {
+    .cev <- rlang::caller_env()
+    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+    if (is.null(.tf_num) && exists("timeframe")) .tf_num <- which(.tf_order %in% timeframe)
   }
-  .vn <- append(.vn, c(.tf_num = ".tf_num"))
-  # if ( !all(.vn %in% ls(all.names = T)) || any(purrr::map_lgl(.vn, ~is.null(get0(.x)))) ) {
-  #   browser()
-  #   stop("bars_missing is missing necessary variables")
-  # }
-  rm(pf)
+  if (!all(.vn %in% ls(all.names = T))) {
+    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing the following variables: ", paste0(.vn[!.vn %in% ls(all.names = T)], collapse = "\n")))
+  }
+  # If data.frame is input, output just the tibble (not a list)
+  if(is.data.frame(bars)) {
+    bars <- list(bars)
+    bars_df <- T
+  } else {
+    bars_df <- F
+  } 
+      
   .expected <- bars_expected(bars, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier)
-
+  
   .out <- purrr::map2(bars, .expected, ~{
-    browser()
-    .ticker <- rlang::`%||%`(attr(.x, "query")$ticker, attr(.x, "query")[[1]]$ticker)
+    if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL) # if no data was returned
+    .ticker <- attr(.x, "query")$ticker %||% attr(.x, "query")[[1]] %||% ticker
     .expected <- .y
     if (.tf_num < 3) {
-      message(paste0("timeframe: ", .tf_num))
-      .cutoff <- rlang::`%||%`(attr(.x, "query")$ts, attr(.x, "query")[[1]]$ts) - lubridate::duration(multiplier, timeframe)
+      .cutoff <- (attr(.x, "query")$ts %||% attr(.x, "query")[[1]]$ts %||% lubridate::now()) - lubridate::duration(multiplier, timeframe)
       .actual <- subset(.x$time, subset = lubridate::hm(format(.x$time, "%H:%M")) >= lubridate::hm("09:30") & lubridate::hm(format(.x$time, "%H:%M")) <= lubridate::hm("16:00")) %>% 
         # account for the time at which the query was done for m/h requests
         subset(subset = . < .cutoff)
@@ -609,19 +633,42 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
       .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), origin = lubridate::origin))
       browser(expr = class(.missing_dates) == "try-error")
     } else {
-      .actual <- try(lubridate::as_date(.x$time)  )
+      .actual <- .x$time
       browser(expr = class(.actual) == "try-error")
       # get the missing days
-      .missing_dates <- try(lubridate::as_date(setdiff(.expected, .actual)))
+      .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), tz = Sys.timezone()))
       browser(expr = class(.missing_dates) == "try-error")
     }
+    if (length(.missing_dates) == 0) return(NULL)
+    if (.tf_num < 3) {
+      .missing_dates <- lubridate::with_tz(.missing_dates, Sys.timezone())
+    } else {
+      .missing_dates <- lubridate::force_tz(.missing_dates, Sys.timezone())
+    }
+    browser(expr = !any(.actual %in% .expected))
     .any <- length(.missing_dates) > 0
   
-    if (length(.missing_dates) == 0) return(NULL)
-    .missing_dates <- lubridate::with_tz(.missing_dates, Sys.timezone())
+  
     # Use the 1 day endpoint for retrieving missing dates in all cases where timeframe is <= days
-    .multiplier <- ifelse(.tf_num < 3, multiplier, 1)
-    .timeframe <- ifelse(.tf_num < 3, timeframe, "day")
+    
+    
+    if (.tf_reduce) {
+      # Do not go lower than one
+      .tf_num <- ifelse(.tf_num > 1, .tf_num - 1, .tf_num)
+      .timeframe <- as.character(.tf_order[.tf_num])
+      # if there is a multiplier when timeframe is min, just reduce it to 1
+      .multiplier <- ifelse(.tf_num == 1 && multiplier > 1, 1, multiplier)
+    } else {
+      .timeframe <- as.character(timeframe)
+      .multiplier <- multiplier
+    }
+    if (.timeframe == "quarter") {
+      .tf_dur <- lubridate::duration(3, ifelse(.timeframe == "quarter", "months", .timeframe))  
+    } else {
+      .tf_dur <- lubridate::duration(.multiplier, .timeframe)
+    }
+    
+    
     # If there are leading missing dates (the most common case)
     if (any(.missing_dates < min(.actual))) {
       # get the leading missing dates
@@ -630,8 +677,8 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
       .missing_dates <- .missing_dates[!.missing_dates < min(.actual)]
       # return the day endpoint bounds that will retrieve the missing data
       if (.tf_num < 4) {
-        # add one day previous
-        .url_md <- c(.md[1] - lubridate::days(1), .md)
+        # add one day previous and one day ahead
+        .url_md <- c(.md[1] - lubridate::days(1), .md, .md[length(.md)] + lubridate::days(1))
         # split up by weeks
         .leading <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
           # map over the weeks
@@ -639,8 +686,8 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
             .gap_times <- range(.x)
             .url <- bars_url(
               .bounds = list(from = .gap_times[1], to = .gap_times[2]),
-              multiplier = ifelse(.tf_num < 3, multiplier, 1),
-              timeframe = ifelse(.tf_num < 3, timeframe, "day"),
+              multiplier = .multiplier,
+              timeframe = .timeframe,
               ticker = .ticker,
               v = v,
               unadjusted = unadjusted
@@ -654,37 +701,17 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
          
         
       } else {
-        .gap_times <- c(.md, .md + lubridate::days(1))
-        if (length(.gap_times) > 2) {
-          
-          .gap_times <- split(.gap_times, f = rep(seq(1:{length(.gap_times) / 2}), each = 2))
-          .leading <- purrr::map2_dfr(.gap_times, .md, ~{
-            .bounds <- bars_bounds(from = .x[[1]], to = .x[[2]], multiplier = .multiplier, timeframe = .timeframe)
-            # create an interval within those bounds
-            .int <- lubridate::interval(.x[[1]], .x[[2]])
-            # Determine which missing_dates are within that interval
-            .md <- .missing_dates[lubridate::`%within%`(.missing_dates, .int)]
-            .url <- bars_url(
-              .bounds = .bounds,
-              multiplier = .multiplier,
-              timeframe = .timeframe,
-              ticker = .ticker,
-              v = v,
-              unadjusted = unadjusted
-            )
-            .df <- tibble::tibble(missing = list(.y), url = .url)
-          })  
-        } else {
-          .url <- bars_url(
-            .bounds = list(from = .gap_times[1], to = .gap_times[2]),
-            multiplier = ifelse(.tf_num < 3, multiplier, 1),
-            timeframe = ifelse(.tf_num < 3, timeframe, "day"),
-            ticker = .ticker,
-            v = v,
-            unadjusted = unadjusted
-          )
-          .leading <- tibble::tibble(missing = list(.md), url = .url)
-        }
+        .b <- bars_bounds(from = .md[1] - .tf_dur, to = .actual[1], timeframe = .timeframe, multiplier = .multiplier)
+        .url <- bars_url(
+          .bounds = .b,
+          multiplier = .multiplier,
+          timeframe = .timeframe,
+          ticker = .ticker,
+          v = v,
+          unadjusted = unadjusted
+        )
+        .leading <- tibble::tibble(missing = list(.md), url = .url)
+      
       }
       
       # if there are no more missing dates, return the dataframe
@@ -697,8 +724,8 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
       # remove the lagging missing dates
       .missing_dates <- .missing_dates[!.missing_dates > max(.actual)]
       if (.tf_num < 4) {
-        # add one day previous
-        .url_md <- c(.md[1] - lubridate::days(1), .md)
+        # add one day previous and one day ahead
+        .url_md <- c(.md[1] - lubridate::days(1), .md, .md[length(.md)] + lubridate::days(1))
         # split up by weeks
         .lagging <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
           # map over the weeks
@@ -706,8 +733,8 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
             .gap_times <- range(.x)
             .url <- bars_url(
               .bounds = list(from = .gap_times[1], to = .gap_times[2]),
-              multiplier = ifelse(.tf_num < 3, multiplier, 1),
-              timeframe = ifelse(.tf_num < 3, timeframe, "day"),
+              multiplier = .multiplier,
+              timeframe = .timeframe,
               ticker = .ticker,
               v = v,
               unadjusted = unadjusted
@@ -719,36 +746,17 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
             .lagging <- tibble::tibble(missing = list(.m), url = .url)
           })  
       } else {
-        .gap_times <- c(.md, .md + lubridate::days(1))
-        if (length(.gap_times) > 2) {
-          .gap_times <- split(.gap_times, f = rep(seq(1:{length(.gap_times) / 2}), each = 2))
-          .lagging <- purrr::map2_dfr(.gap_times, .md, ~{
-            .bounds <- bars_bounds(from = .x[[1]], to = .x[[2]], multiplier = .multiplier, timeframe = .timeframe)
-            # create an interval within those bounds
-            .int <- lubridate::interval(.x[[1]], .x[[2]])
-            # Determine which missing_dates are within that interval
-            .md <- .missing_dates[lubridate::`%within%`(.missing_dates, .int)]
-            .url <- bars_url(
-              .bounds = .bounds,
-              multiplier = .multiplier,
-              timeframe = .timeframe,# Use the 1 day endpoint for retrieving missing dates in all cases where timeframe is <= days
-              ticker = .ticker,
-              v = v,
-              unadjusted = unadjusted
-            )
-            .df <- tibble::tibble(missing = list(.y), url = .url)
-          })  
-        } else {
-          .url <- bars_url(
-            .bounds = list(from = .gap_times[1], to = .gap_times[2]),
-            multiplier = .multiplier,
-            timeframe = .timeframe,
-            ticker = .ticker,
-            v = v,
-            unadjusted = unadjusted
-          )
-          .lagging <- tibble::tibble(missing = list(.md), url = .url)
-        }
+        .b <- bars_bounds(from = .actual[length(.actual)], to = .md[length(.md)] + .tf_dur, timeframe = .timeframe, multiplier = .multiplier)
+        .url <- bars_url(
+          .bounds = .b,
+          multiplier = .multiplier,
+          timeframe = .timeframe,
+          ticker = .ticker,
+          v = v,
+          unadjusted = unadjusted
+        )
+        .lagging <- tibble::tibble(missing = list(.md), url = .url)
+      
       }
       # if there are no more missing dates, return the dataframe
       if (exists(".leading") && length(.missing_dates) == 0) {
@@ -769,10 +777,11 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
           # map over the weeks
           purrr::map_dfr(~{
             .gap_times <- range(.x)
+            .b <- bars_bounds(from = .gap_times[1], to = .gap_times[2])
             .url <- bars_url(
-              .bounds = list(from = .gap_times[1], to = .gap_times[2]),
-              multiplier = ifelse(.tf_num < 3, multiplier, 1),
-              timeframe = ifelse(.tf_num < 3, timeframe, "day"),
+              .bounds = .b,
+              multiplier = .multiplier,
+              timeframe = .timeframe,
               ticker = .ticker,
               v = v,
               unadjusted = unadjusted
@@ -784,17 +793,19 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
             .mid <- tibble::tibble(missing = list(.m), url = .url)
           })  
       } else {
-        .gap_times <- c(.missing_dates, .missing_dates + lubridate::days(1))
+        # If any gaps exist in the missing data greater than 2 *  the duration of multiplier * timeframe, then split the missing dates at those indices
+        .gap_times <- .missing_dates[which(diff(.missing_dates) > (2 * .tf_dur)) %>% {do.call(c, list(rbind(., . + 1)))}]
+        if (length(.gap_times) == 0) .gap_times <- range(.missing_dates)
         if (length(.gap_times) > 2) {
           .gap_times <- split(.gap_times, f = rep(seq(1:{length(.gap_times) / 2}), each = 2))
           .mid <- purrr::map2_dfr(.gap_times, .md, ~{
-            .bounds <- bars_bounds(from = .x[[1]], to = .x[[2]], multiplier = .multiplier, timeframe = .timeframe)
+            .b <- bars_bounds(from = .x[[1]], to = .x[[2]], multiplier = .multiplier, timeframe = .timeframe)
             # create an interval within those bounds
             .int <- lubridate::interval(.x[[1]], .x[[2]])
             # Determine which missing_dates are within that interval
             .md <- .missing_dates[lubridate::`%within%`(.missing_dates, .int)]
             .url <- bars_url(
-              .bounds = .bounds,
+              .bounds = .b,
               multiplier = .multiplier,
               timeframe = .timeframe,# Use the 1 day endpoint for retrieving missing dates in all cases where timeframe is <= days
               ticker = .ticker,
@@ -804,8 +815,9 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
             .df <- tibble::tibble(missing = list(.y), url = .url)
           })  
         } else {
+          .b <- bars_bounds(from = .gap_times[1], to = .gap_times[2])
           .url <- bars_url(
-            .bounds = list(from = .gap_times[1], to = .gap_times[2]),
+            .bounds = .b,
             multiplier = .multiplier,
             timeframe = .timeframe,
             ticker = .ticker,
@@ -827,10 +839,22 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
       }
     }
     
-    browser(expr = length(.out[[2]]) == 0 && .any)
+    browser(expr = (length(.out[[2]]) == 0 && .any))
+    if(any(class(.actual) != class(do.call(c, .out$missing)))) {
+      if (lubridate::is.Date(.actual)) {
+        .out$missing <- purrr::map(.out$missing, ~lubridate::force_tz(lubridate::as_date(.x), Sys.timezone()))
+      } else {
+        browser()
+      }
+    }
     return(.out)
   })
-  if (length(.out) == 0) .out <- NULL # If empty just return NULL
+  if (length(.out) == 0) {
+    .out <- NULL # If empty just return NULL
+  } else if (bars_df) {
+    # If a single data.frame is fed in, return just the missing tibble
+    .out <- .out[[1]]
+  }
   return(.out)
 }
 
@@ -840,23 +864,26 @@ bars_missing <- function(bars, ..., pf = parent.frame()) {
 #' 
 #' This function uses the output from bars_missing and fills the missing data
 #' @importFrom magrittr "%>%"
+#' @importFrom purrr map2 map pmap_dfr
+#' @importFrom stringr str_extract str_extract_all
 #' @importFrom dplyr arrange distinct
-
-bars_complete <- function(bars, .missing, ..., pf = parent.frame()) {
-  # .vars <- try(list2env(list(...), environment()), silent = T)
-  # .vn <- c(.bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v")
-  # .tf_num <- get0(".tf_num", envir = pf, ifnotfound = get0(".tf_num", sys.frame(-1)))
-  # if (class(.vars) == "try-error") {
-  #   list2env(purrr::map(.vn, get0, envir = pf), environment())
-  # }
-  # .vn <- append(.vn, c(.tf_num = ".tf_num"))
-  # if ( !all(.vn %in% ls(all.names = T)) || any(purrr::map_lgl(.vn, ~is.null(get0(.x)))) ) {
-  #   browser()
-  #   stop("bars_complete is missing necessary variables")
-  # }
-  rm(pf)
- 
+#' @importFrom lubridate ymd
+#' @importFrom rlang env_bind current_env env_get "!!!" "%|%" "%||%"
+bars_complete <- function(bars, .missing, ...) {
+  
+  .vn <- c(v = "v", timeframe = "timeframe", multiplier = "multiplier", limit = "limit", unadjusted = "unadjusted", full = "full", .tf_num = ".tf_num")
+  rlang::env_bind(rlang::current_env(), ...)
+  if (!all(.vn %in% ls(all.names = T))) {
+    .cev <- rlang::caller_env()
+    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+  }
+  if (!all(.vn %in% ls(all.names = T))) {
+    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing the following variables: ", paste0(.vn[!.vn %in% ls(all.names = T)], collapse = "\n")))
+  }
+ if (is.data.frame(bars)) bars <- list(bars)
   .newbars <- purrr::map2(.missing, bars, ~{
+    # ticker is passed in as the name of object
+    ticker <- attr(.y, "query")$ticker %||% attr(.y, "query")[[1]]$ticker
     # If there are no missing data, return the data
     if (is.null(.x)) return(.y)
     # if days or hours
@@ -864,83 +891,102 @@ bars_complete <- function(bars, .missing, ..., pf = parent.frame()) {
       
     } else if (v == 2) {
       
-      .ext <- environment()
+      ext <- new.env()
       # assign df of missing to .m
-      .ext$.m <- .x
+      .m_tib <- .x
       # grab the initial query
-      .ext$.query <- list(attr(.y, "query"))
+      ext$.query <- list(attr(.y, "query"))
       # assign .y to two new objects for comparison
-      .ext$.out <- .ext$.new <- .y
-      .ext$.md <- do.call(c, .x$missing)
-      while (!all(.ext$.md %in% .ext$.new$time)) {
+      ext$.out <- .y
+      .md <- do.call(c, .x$missing)
+      while (length(.md) > 0) {
         # get the new data
-        .ext$.nd <- purrr::pmap_dfr(.x, ~{
-          #browser()
+        browser(expr = is.null(.m_tib))
+        .new <- purrr::pmap_dfr(.m_tib, ~{
           # Since this will only be a call for a single symbol, we can get the first index as it will be the new data
-          .dat <- bars_get(..2)
-          .m <- .miss <- bars_missing(.dat, .bounds = range(..1))
-          .count <- 1
-          if (!is.null(.m[[1]])){
-            .t <- try(nrow(.miss[[1]]) > 0)
-            browser(expr = class(.t) == "try-error")
-          while(nrow(.miss[[1]]) > 0 && identical(.miss, .m)) {
-            .nd <- bars_get(.miss[[1]][["url"]][.count])
-            .m <- bars_missing(.nd, .bounds = range(.miss[[1]][["missing"]][[.count]]))
+          .new <- bars_get(..2)[[1]]
+          if (!is.data.frame(.new)) {
+            return(NULL) 
+          }
+          if (exists(".tf_reduce", envir = ext)) {
+            # create an ordered vector of all dates in the final intended data
+            .d <- sort(c(ext$.out$time, .md))
+            # we need intervals that will contain times of the reduced timeframe data from which we can compute aggregates similar to how Polygon computes aggregates to create data for "unreturnable" dates
+            .m_tib_missing <- ..1
+            .d_int <- purrr::map(.m_tib_missing, ~{
+              # for each missing data find the interval between the closest prior date and the missing_date
+              lubridate::interval(start = .d[which.max(which(.d < .x))], end = .x)
+            }) %>% do.call(c, .)
             
-            .nt <- !.nd[[1]]$time %in% .dat[[1]]$time
-            browser(expr = stringr::str_detect(.miss[[1]][["url"]][.count], "2020-03-25"))
-            if (any(.nt)) {
-              # if new times were retrieved
-              # bind those new rows to the data
-              .dat[[1]] <- dplyr::bind_rows(.nd[[1]][.nt,], .dat[[1]])
-              # assign the query
-              assign(".query", append(.ext$.query, list(attr(.nd[[1]], "query"))), envir = .ext)
-            } else if(.count == nrow(.miss[[1]])) {
-              # if no new times were retrieved, they're probably not going to be
-              break
-            }
-            .count <- .count + 1
-            .miss <- .m
-            .t <- try(nrow(.miss[[1]]) > 0 && identical(.miss, .m))
-            browser(expr = class(.t) == "try-error")
-          }}
-          assign(".query", append(.ext$.query, list(attr(.dat[[1]], "query"))), envir = .ext)
-          # Add only the bars in missing dates
-          .dat[[1]][.dat[[1]]$time %in% ..1,]
-          # while there are missing values loop
-          
+            
+              # Compute the aggregates for the times in the interval
+            .new <- purrr::map2_dfr(.d_int, .m_tib_missing, ~{
+                .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
+                # If no data is returned even with reduced timeframe return NA
+                .h <- try(max(.nd$high, na.rm = T), silent = T)
+                .h <- ifelse(is.infinite(.h), NaN, .h)
+                .l <- try(min(.nd$low, na.rm = T), silent = T)
+                .l <- ifelse(is.infinite(.l), NaN, .l)
+                .c <- ifelse(length(.nd$close[length(.nd$close)]) == 0, NaN, .nd$close[length(.nd$close)])
+                .n <- nrow(.) %||% NaN
+                #construct dataframe from arguments
+                .out <- data.frame(
+                  time = .y,
+                  volume = mean(.nd$volume, na.rm = T),
+                  # mean approximation
+                  open = .nd$open[1],
+                  # the first value of open
+                  high = .h,
+                  # the max of high
+                  low = .l,
+                  # the min of low
+                  close = .c,
+                  # The last of close
+                  n = .n # the number of datapoints used in the agg
+                )
+                .out
+              })
+          }
+        
+          if (any(.m_tib_missing %in% .new$time)) {
+          # if the call returned any new data, append the query
+          assign(".query", append(ext$.query, list(attr(.new, "query"))), envir = ext)
+          }
+          .new
         })
-        # bind together the results from the new calls with the existing data
-        .ext$.new <- dplyr::bind_rows(
-          .ext$.out,
-          .ext$.nd
-        ) %>% 
-          # and remove duplicates (there shouldnt be any but JIC)
-          dplyr::distinct(time, .keep_all = T) %>% 
-          dplyr::arrange(time)
         
-        .fill_dates <- .ext$.md[!.ext$md %in% .ext$new$time]
-        if (length(.fill_dates) > 0) {
-          .fill_dates <- data.frame(time = .fill_dates) %>% 
-          dplyr::mutate(volume = NA, vw = NA, open = NA, close = NA, high = NA, low = NA, n = NA)
-          .ext$.new <- dplyr::bind_rows(.ext$.new, .fill_dates) %>% dplyr::arrange(time)  
+        # determine if there are still missing dates
+        # tryCatch to suppress warning if no data returned
+        .still_md <- .md[!.md %in% tryCatch(.new$time, warning = function(w) NULL, error = function(e) NULL)]
+        if (length(.still_md) < length(.md)) {
+          # if we found some of the missing dates then bind the found dates
+          ext$.out <- bind_rows(
+            ext$.out,
+            .new[.new$time %in% .md,]  
+          )
+          # and make the still missing, the .md object
+          if (length(.still_md) > 0) {
+            .m_tib <- bars_missing(ext$.out, .bounds = .bounds, .tf_reduce = ext$.tf_reduce %||% F, ticker = ticker)
+            # ticker must be passed here
+            if (is.null(.m_tib)) break
+          }
+          .md <- .still_md
+        } else if (identical(.still_md, .md)) {
+          # otherwise, if we turned up nothing, reduce the timeframe for the next call
+          ext$.tf_reduce <- T
+          # re-populate the .m_tib object with the remaining missing data
+          .m_tib <- bars_missing(ext$.out, .bounds = .bounds, .tf_reduce = ext$.tf_reduce, ticker = ticker)
+          # and here
+          # add 1 to the count, or if it doesn't exist yes, make it 1
+          .count <- 1 + (get0(".count") %||% 0)
+          if (.count == 2) break # for IPO where there might consistently be missing bars but no new bars will ever return because they don't exist
         }
-        
-        
-        if (identical(.ext$.new, .ext$.out)) break # for IPO where there might consistently be missing bars but no new bars will ever return because they don't exist
-        # check for further missing
-        
-        # assign .new to .out for comparison
-        .ext$.out <- .ext$.new
       }
     }
     # add the cumulative queries to the object
-    attr(.out, "query") <- .ext$.query
-    return(.out)
+    attr(ext$.out, "query") <- ext$.query
+    return(dplyr::arrange(ext$.out, time))
     })
-  
-
-
   
   return(.newbars)
 }
@@ -962,7 +1008,7 @@ bars_transform <- function(bars) {
       return(NULL)
     } 
     nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01") %>%  lubridate::force_tz(Sys.timezone()))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
       dplyr::rename((!!nms))
   })  
 }
