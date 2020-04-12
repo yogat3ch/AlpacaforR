@@ -71,88 +71,6 @@ get_headers <- function(live=FALSE){
 
 # Helper functions for get_bars ----
 # Sat Mar 28 09:40:23 2020
-# int_math  ----
-# Sun Mar 29 16:06:55 2020
-#' int_math 
-#' 
-#' Function for working with intersections, setdiff, and raw difference of intervals
-#' @param int1 `(interval)` object. 
-#' @param int2 `(interval)` object.
-#' @param math `(character)` indicating what set function to perform. See details for options.
-#' @details \itemize{
-#' \item{If `"setdiff"` the function mirrors \link[base]{setdiff}. IE if it is assumed that \eqn{int1 \supseteq int2}, then the function will return \eqn{int1 \nsupseteq int2}.}
-#' \item{ if `"difference"`, no assumptions are made about the nature of the sets and the function returns \eqn{int1 \cup int2 - int1 \cap  int2}}
-#' \item{ if `"intersection"`, the intersection is returned. \eqn{int1 \cap int 2}}
-#' }
-#' @return `(list or interval)` If `math = "setdiff"` or `"difference"` a list of interval objects with the leading and lagging intervals (if they exist).  If `math = "intersection"` an interval object of the intersection.
-#' @keywords internal
-#' @import lubridate purrr
-
-int_math <- function(int1, int2, math = "setdiff") {
-  
-  .ints <- purrr::map(list(int1 = int1, int2 = int2), lubridate::int_standardize)
-  if (!lubridate::int_overlaps(int1, int2)) {
-    stop("Intervals do not overlap")
-  }
-  math <- c(i = "intersect", s = "setdiff", d = "difference")[substr(math, 1, 1)]
-  # Which has the earliest start date
-  if (math == "intersect") {
-    # order the starts
-    .ord <- order(do.call(c, purrr::map(.ints, lubridate::int_start)))
-    # get the latest start
-    .begin <- lubridate::int_start(.ints[.ord][[2]])
-    # order the ends
-    .ord <- order(do.call(c, purrr::map(.ints, lubridate::int_end)))
-    # get the earliest end
-    .end <- lubridate::int_end(.ints[.ord][[1]])
-    .out <- lubridate::interval(.begin, .end) 
-  } else if (math == "setdiff" || math == "difference") {
-    # If the start times of either interval are not identical
-    if (!do.call(identical, setNames(purrr::map(.ints, lubridate::int_start), c("x","y")))) {
-      # Get the leading difference
-      .ord <- order(do.call(c, purrr::map(.ints, lubridate::int_start)))
-      if (math == "setdiff") {
-        # if what is supposed to be the superset interval is contained within the subset interval warn
-        if (lubridate::`%within%`(.ints[[1]], .ints[[2]])) {
-          # Let the user know so they can switch the argument
-          message(paste0("int1 is contained within int2. Raw difference between intervals will be returned."))
-        } else {
-          .lead <- lubridate::interval(lubridate::int_start(.ints[[1]]), lubridate::int_start(.ints[[2]]))
-          # If the subset int2 has the earlier start return NULL
-          if (sign(lubridate::as.duration(.lead)) == -1) {
-            .lead <- NULL
-          }
-        }
-      } else {
-        .lead <- lubridate::interval(lubridate::int_start(.ints[.ord][[1]]), lubridate::int_start(.ints[.ord][[2]]))
-      }
-    } else {
-      .lead <- NULL
-    }
-    # If the end times of either interval are not identical
-    if (!do.call(identical, setNames(purrr::map(.ints, lubridate::int_end), c("x","y")))) {
-      # Get the lagging difference
-      .ord <- order(do.call(c, purrr::map(.ints, lubridate::int_end)))
-      if (math == "setdiff") {
-        # if the superset interval (int1) is indeed the superset
-        if (!lubridate::`%within%`(.ints[[1]], .ints[[2]])) {
-          .lag <- lubridate::interval(lubridate::int_end(.ints[[2]]), lubridate::int_end(.ints[[1]]))
-          # If the subset int2 has the later end return NULL
-          if (sign(lubridate::as.duration(.lag)) == -1) {
-            .lag <- NULL
-          }
-        }
-      } else {
-        .lag <- lubridate::interval(lubridate::int_end(.ints[.ord][[1]]), lubridate::int_end(.ints[.ord][[2]]))
-      }
-    } else {
-      .lag <- NULL
-    }
-    .out <- purrr::compact(list(lead_int = .lead, lag_int = .lag)) 
-  }
-  
-  return(.out)
-}
 
 # bars_bounds ----
 # Sun Mar 29 16:07:18 2020
@@ -174,10 +92,11 @@ int_math <- function(int1, int2, math = "setdiff") {
 bars_bounds <- function(...) {
   #trickery to get the variables from the calling environment
   rlang::env_bind(rlang::current_env(), ...)
-  .vn = c(.tf_num = ".tf_num", from = "from", to = "to", after = "after", until = "until")
+  .vn = c(.tf_num = ".tf_num", from = "from", to = "to", after = "after", until = "until", v = "v")
   if (!all(.vn %in% ls(all.names = T))) {
     .cev <- rlang::caller_env()
     rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+    .tf_num <- .tf_num %||% which(.tf_order %in% timeframe)
   }
    if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
       .date_vars <- list(from = from, to = to, after = after, until = until)
@@ -201,8 +120,10 @@ bars_bounds <- function(...) {
       .out <- .x
     } else {
       # If the format is incorrect return NA
-      return(NA)
+      .out <- NA
     }
+    # Warn
+    if (is.na(.out)) rlang::warn(paste(.y,"could not be parsed. Returning NA"), class = "warning")
     # Floors or ceilings
     if (.tf_num < 3) {
       # Case less than day, to include the day requested, the boundary must be the previous day
@@ -293,7 +214,14 @@ bars_bounds <- function(...) {
   } else if (v == 2) {
     .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), Sys.timezone()))
   }
-  browser(expr = any(purrr::map_lgl(.bounds, ~length(.x) == 0 || lubridate::year(.x) > lubridate::year(lubridate::today()) )))
+  browser(expr = any(purrr::map_lgl(
+    .bounds,
+    ~ get0("dbg", .GlobalEnv, ifnotfound = F) &&
+      (length(.x) == 0 ||
+         lubridate::year(.x) > {
+           lubridate::year(lubridate::today()) + 1
+         } || is.na(.x))
+  )))
   return(.bounds)
 }
 
@@ -429,21 +357,23 @@ bars_get <- function(url, ...) {
       names(url) <- stringr::str_extract(url, "(?<=ticker\\/)\\w+")
     }
     bars <- purrr::imap(url, ~{
-      message(paste0("Retrieving ", .y, ":\n", url))
+      .url <- .x
+      .murl <- stringr::str_replace(.x, "(?<=\\=)[:alnum:]+$", "[REDACTED]")
+      message(paste0("Retrieving ", .y, ":\n", .murl))
       #Send Request
-      agg_quote = httr::GET(url = url)
+      agg_quote = httr::GET(url = .url)
       # Save the query meta-date for appending to the output df
       .query <- list()
       .query$status_code <- agg_quote$status_code
-      .query$url <- url
+      .query$url <- .url
       .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())  
       if (agg_quote$status_code != 200) {
-        message(paste("Call", .x, "returned status code", agg_quote$status_code, "- Returning metadata only"))
+        message(paste("Call", .murl, "returned status code", agg_quote$status_code, "- Returning metadata only"))
         return(append(agg_quote[1:5], values = .query[2:3]))
       }
       agg_quote = response_text_clean(agg_quote)
       if (length(agg_quote$results) == 0) {
-        message(paste("Call", .x, "returned no data", "- Returning response metadata only"))
+        message(paste("Call", .murl, "returned no data", "- Returning response metadata only"))
         return(append(agg_quote[1:5], values = .query[2:3]))
       }
       # Get the query meta-info returned by the API
@@ -467,6 +397,7 @@ bars_get <- function(url, ...) {
 #' @param .bounds See \link[AlpacaforR]{bars_bounds}
 #' @param multiplier See \link[AlpacaforR]{get_bars}
 #' @param timeframe  See \link[AlpacaforR]{get_bars}
+#' @param .tf_num Numeric rank of timeframe, calculated automatically if timeframe is passed.
 #' @return `(Date/Datetime)` A vector of expected date/datetimes based on the `.bounds`, `timeframe` and `multiplier`
 #'@importFrom rlang env_bind current_env env_get "!!!" "%||%" "%|%"
 #' @importFrom stringr str_extract
@@ -478,6 +409,7 @@ bars_expected <- function(bars, ...) {
   if (!all(.vn %in% ls(all.names = T))) {
     .cev <- rlang::caller_env()
     rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+    .tf_num <- .tf_num %||% which(.tf_order %in% timeframe)
   }
   if (!all(.vn %in% ls(all.names = T))) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
@@ -617,7 +549,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
   if (!all(.vn %in% ls(all.names = T))) {
     .cev <- rlang::caller_env()
     rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
-    if (is.null(.tf_num) && exists("timeframe")) .tf_num <- which(.tf_order %in% timeframe)
+    .tf_num <- .tf_num %||% which(.tf_order %in% timeframe)
   }
   if (!all(.vn %in% ls(all.names = T))) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing the following variables: ", paste0(.vn[!.vn %in% ls(all.names = T)], collapse = "\n")))
@@ -669,7 +601,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
       .tf_num <- ifelse(.tf_num > 1, .tf_num - 1, .tf_num)
       .timeframe <- as.character(.tf_order[.tf_num])
       # if there is a multiplier when timeframe is min, just reduce it to 1
-      .multiplier <- ifelse(.tf_num == 1 && multiplier > 1, 1, multiplier)
+      .multiplier <- ifelse((.tf_num == 1 && multiplier > 1) || (.tf_num > 2), 1, multiplier)
     } else {
       .timeframe <- as.character(timeframe)
       .multiplier <- multiplier
@@ -677,7 +609,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
     if (.timeframe == "quarter") {
       .tf_dur <- lubridate::duration(3, ifelse(.timeframe == "quarter", "months", .timeframe))  
     } else {
-      .tf_dur <- lubridate::duration(.multiplier, .timeframe)
+      .tf_dur <- lubridate::duration(multiplier, timeframe)
     }
     
     
@@ -688,9 +620,9 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
       # remove the leading missing dates
       .missing_dates <- .missing_dates[!.missing_dates < min(.actual)]
       # return the day endpoint bounds that will retrieve the missing data
-      if (.tf_num < 4) {
+      if (.tf_num < 4 && !.tf_reduce) {
         # add one day previous and one day ahead
-        .url_md <- c(.md[1] - lubridate::days(1), .md, .md[length(.md)] + lubridate::days(1))
+        .url_md <- c(.md[1] - .tf_dur, .md, .md[length(.md)] + .tf_dur)
         # split up by weeks
         .leading <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
           # map over the weeks
@@ -735,9 +667,9 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
       .md <- .missing_dates[.missing_dates > max(.actual)]
       # remove the lagging missing dates
       .missing_dates <- .missing_dates[!.missing_dates > max(.actual)]
-      if (.tf_num < 4) {
-        # add one day previous and one day ahead
-        .url_md <- c(.md[1] - lubridate::days(1), .md, .md[length(.md)] + lubridate::days(1))
+      if (.tf_num < 4 && !.tf_reduce) {
+        # add one period previous and one period ahead
+        .url_md <- c(.md[1] - .tf_dur, .md, .md[length(.md)] + .tf_dur)
         # split up by weeks
         .lagging <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
           # map over the weeks
@@ -781,9 +713,9 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
     }
     # If there are missing dates randomly interspersed
     if (length(.missing_dates) > 0) {
-      if (.tf_num < 4) {
+      if (.tf_num < 4 && !.tf_reduce) {
         # add one day previous
-        .url_md <- c(.missing_dates[1] - lubridate::days(1), .missing_dates)
+        .url_md <- c(.missing_dates[1] - .tf_dur, .missing_dates)
         # split up by weeks
         .mid <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
           # map over the weeks
@@ -888,6 +820,7 @@ bars_complete <- function(bars, .missing, ...) {
   if (!all(.vn %in% ls(all.names = T))) {
     .cev <- rlang::caller_env()
     rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+    .tf_num <- .tf_num %||% which(.tf_order %in% timeframe)
   }
   if (!all(.vn %in% ls(all.names = T))) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing the following variables: ", paste0(.vn[!.vn %in% ls(all.names = T)], collapse = "\n")))
@@ -917,6 +850,7 @@ bars_complete <- function(bars, .missing, ...) {
         .new <- purrr::pmap_dfr(.m_tib, ~{
           # Since this will only be a call for a single symbol, we can get the first index as it will be the new data
           .m_tib_missing <- ..1
+          #.b <- stringr::str_extract_all(..2, "\\d{4}-\\d{2}-\\d{2}")[[1]]
           .new <- bars_get(..2)[[1]]
           if (!is.data.frame(.new)) {
             return(NULL) 
@@ -927,24 +861,33 @@ bars_complete <- function(bars, .missing, ...) {
             # we need intervals that will contain times of the reduced timeframe data from which we can compute aggregates similar to how Polygon computes aggregates to create data for "unreturnable" dates
             .d_int <- purrr::map(.m_tib_missing, ~{
               # for each missing data find the interval between the closest prior date and the missing_date
-              lubridate::interval(start = .d[which.max(which(.d < .x))], end = .x)
+              
+              if (.tf_num %in% 4:6) {
+                .b <- bars_bounds(from = .x, to = .x, multiplier = multiplier, timeframe = timeframe)
+                .out <- lubridate::interval(start = .x, end = .b$to)
+              } else {
+                .out <- lubridate::interval(start = .d[which.max(which(.d < .x))], end = .x)
+              }
+              return(.out)
             }) %>% do.call(c, .)
-            
-            
               # Compute the aggregates for the times in the interval
             .new <- purrr::map2_dfr(.d_int, .m_tib_missing, ~{
                 .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
                 # If no data is returned even with reduced timeframe return NA
+                
+                .v <- try(sum(.nd$volume, na.rm = T), silent = T)
+                .v <- ifelse(is.infinite(.v), NaN, .v)
                 .h <- try(max(.nd$high, na.rm = T), silent = T)
                 .h <- ifelse(is.infinite(.h), NaN, .h)
                 .l <- try(min(.nd$low, na.rm = T), silent = T)
                 .l <- ifelse(is.infinite(.l), NaN, .l)
                 .c <- ifelse(length(.nd$close[length(.nd$close)]) == 0, NaN, .nd$close[length(.nd$close)])
                 .n <- nrow(.) %||% NaN
+                
                 #construct dataframe from arguments
                 .out <- data.frame(
                   time = .y,
-                  volume = mean(.nd$volume, na.rm = T),
+                  volume = .v,
                   # mean approximation
                   open = .nd$open[1],
                   # the first value of open
