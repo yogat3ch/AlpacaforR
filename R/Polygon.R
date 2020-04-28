@@ -312,6 +312,7 @@ get_meta <- function(ticker = NULL, endpoint = NULL, perpage = NULL, v = 1){
 #' }
 #' @param ... Named arguments specific to the endpoint parameters. These can also be specified in a list via the `params` argument.
 #' @param params `(list)` A named list of parameters specific to the endpoint.
+#' @return Response `(tibble/list/data.frame)` depending on the endpoint. The core data of the response will be returned as the object. If query data is returned 
 #' @importFrom rlang env_bind current_env `!!!` abort
 #' @importFrom glue glue_data
 #' @importFrom purrr compact map
@@ -336,7 +337,7 @@ polygon <- function(ep = NULL, ..., params = NULL){
     ep <- paste0(stringr::str_match(ep, "^\\w"), .suf)
     e_p <- .ep[[ep]]
   }
-  
+  if (ep == "a") rlang::abort("See ?market_data for aggregates endpoint.")
   # add defaults for parameters not specified
   params <- append(params, purrr::map(.ep[[ep]]$params[!names(.ep[[ep]]$params) %in% names(params)], `[[`, 1))
   # assign the appropriate path
