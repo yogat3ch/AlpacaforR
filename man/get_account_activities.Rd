@@ -61,39 +61,39 @@ The accounts API serves important information related to an account, including a
 \details{
 Activity Types:
 \itemize{
-  \item{FILL: Order fills (both partial and full fills)}
-  \item{TRANS: Cash transactions (both CSD and CSR)}
-  \item{MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or   FILL)}
-  \item{ACATC: ACATS IN/OUT (Cash)}
-  \item{ACATS: ACATS IN/OUT (Securities)}
-  \item{CSD: Cash disbursement(+)}
-  \item{CSR: Cash receipt(-)}
-  \item{DIV: Dividends}
-  \item{DIVCGL: Dividend (capital gain long term)}
-  \item{DIVCGS: Dividend (capital gain short term)}
-  \item{DIVFEE: Dividend fee}
-  \item{DIVFT: Dividend adjusted (Foreign Tax Withheld)}
-  \item{DIVNRA: Dividend adjusted (NRA Withheld)}
-  \item{DIVROC: Dividend return of capital}
-  \item{DIVTW: Dividend adjusted (Tefra Withheld)}
-  \item{DIVTXEX: Dividend (tax exempt)}
-  \item{INT: Interest (credit/margin)}
-  \item{INTNRA Interest adjusted (NRA Withheld)}
-  \item{INTTW: Interest adjusted (Tefra Withheld)}
-  \item{JNL: Journal entry}
-  \item{JNLC: Journal entry (cash)}
-  \item{JNLS: Journal entry (stock)}
-  \item{MA: Merger/Acquisition}
-  \item{NC: Name change}
-  \item{OPASN: Option assignment}
-  \item{OPEXP: Option expiration}
-  \item{OPXRC: Option exercise}
-  \item{PTC: Pass Thru Charge}
-  \item{PTR: Pass Thru Rebate}
-  \item{REORG: Reorg CA}
-  \item{SC: Symbol change}
-  \item{SSO: Stock spinoff}
-  \item{SSP: Stock split}
+\item{FILL: Order fills (both partial and full fills)}
+\item{TRANS: Cash transactions (both CSD and CSR)}
+\item{MISC: Miscellaneous or rarely used activity types (All types except those in TRANS, DIV, or   FILL)}
+\item{ACATC: ACATS IN/OUT (Cash)}
+\item{ACATS: ACATS IN/OUT (Securities)}
+\item{CSD: Cash disbursement(+)}
+\item{CSR: Cash receipt(-)}
+\item{DIV: Dividends}
+\item{DIVCGL: Dividend (capital gain long term)}
+\item{DIVCGS: Dividend (capital gain short term)}
+\item{DIVFEE: Dividend fee}
+\item{DIVFT: Dividend adjusted (Foreign Tax Withheld)}
+\item{DIVNRA: Dividend adjusted (NRA Withheld)}
+\item{DIVROC: Dividend return of capital}
+\item{DIVTW: Dividend adjusted (Tefra Withheld)}
+\item{DIVTXEX: Dividend (tax exempt)}
+\item{INT: Interest (credit/margin)}
+\item{INTNRA Interest adjusted (NRA Withheld)}
+\item{INTTW: Interest adjusted (Tefra Withheld)}
+\item{JNL: Journal entry}
+\item{JNLC: Journal entry (cash)}
+\item{JNLS: Journal entry (stock)}
+\item{MA: Merger/Acquisition}
+\item{NC: Name change}
+\item{OPASN: Option assignment}
+\item{OPEXP: Option expiration}
+\item{OPXRC: Option exercise}
+\item{PTC: Pass Thru Charge}
+\item{PTR: Pass Thru Rebate}
+\item{REORG: Reorg CA}
+\item{SC: Symbol change}
+\item{SSO: Stock spinoff}
+\item{SSP: Stock split}
 }
 }
 \examples{
