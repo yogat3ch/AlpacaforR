@@ -111,6 +111,6 @@ account_activities(activity_type = "FILL")
 \seealso{
 Other Account: 
 \code{\link{account_config}()},
-\code{\link{account_get}()}
+\code{\link{account}()}
 }
 \concept{Account}

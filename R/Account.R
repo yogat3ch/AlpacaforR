@@ -1,4 +1,4 @@
-# account_get ----
+# account ----
 # Wed Apr 22 20:26:32 2020
 #' @family Account
 #' @title Get Account Details
@@ -22,16 +22,16 @@
 #'  \item{\code{created_at}}{ \code{(Datetime/POSIXct)} Timestamp this account was created at.}
 #' }
 #' @examples 
-#' account_get()
+#' account()
 #' # With default arguments equivalent to :
-#' account_get(live = FALSE, v = 2)
+#' account(live = FALSE, v = 2)
 #' # For access to live accounts, you must submit as live = TRUE
-#' account_get(live = TRUE)
+#' account(live = TRUE)
 #' @importFrom httr GET parse_url build_url
 #' @importFrom purrr map_if
 #' @importFrom lubridate as_datetime
 #' @export
-account_get <- function(live = FALSE, v = 2){
+account <- function(live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -39,24 +39,24 @@ account_get <- function(live = FALSE, v = 2){
                     "account")
   .url <- httr::build_url(.url)
   #Send Request
-  account = httr::GET(url = .url, headers)
-  account = response_text_clean(account)
+  out = httr::GET(url = .url, headers)
+  out = response_text_clean(out)
   suppressWarnings(
-    account <- purrr::map_if(account, .p = ~!is.na(as.numeric(.x)) && !is.logical(.x), .f = as.numeric)
+    out <- purrr::map_if(out, .p = ~!is.na(as.numeric(.x)) && !is.logical(.x), .f = as.numeric)
   )
-  suppressMessages(account$created_at <- lubridate::as_datetime(account$created_at, tz = Sys.timezone()))
-  return(account)
+  suppressMessages(out$created_at <- lubridate::as_datetime(out$created_at, tz = Sys.timezone()))
+  return(out)
 }
 #----------------------------------------------------------------------------------------------
 
 #' @family Accounts
 #' @title get_account
-#' @rdname account_get
-#' @description \code{get_account} is deprecated please use \code{\link[AlpacaforR]{account_get}} instead.
+#' @rdname account
+#' @description \code{get_account} is deprecated please use \code{\link[AlpacaforR]{account}} instead.
 #' @examples get_account()
 #' @export
 
-get_account <- account_get
+get_account <- account
 
 
 
@@ -74,7 +74,7 @@ get_account <- account_get
 #' @param pdt_check \code{(character)} Not documented.
 #' @param suspend_trade \code{(logical)} If true, new orders are blocked. Default NULL (no change).
 #' @param trade_confirm_email \code{(character)} all or none. If none, emails for order fills are not sent. Default NULL (no change).
-#' @inheritParams account_get
+#' @inheritParams account
 #' @return AccountConfigurations \code{(list)} [AccountConfigurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity)  object with the following parameters (defaults shown):
 #' \itemize{
 #'  \item{`dtbp_check = "entry"`}
@@ -160,7 +160,7 @@ set_config <- account_config
 #' @param direction asc or desc, default is desc.
 #' @param page_size The maximum number of entries to return in the response.
 #' @param page_token The ID of the end of your current page of results.
-#' @inheritParams account_get
+#' @inheritParams account
 #' @return \code{TradeActivity} \code{(tibble)} [TradeActivity](https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#tradeactivity-entity) Object or  a [NonTradeActivity](https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#nontradeactivity-entity) Object. See Details.
 #' \itemize{
 #'  \item{\code{id}}{ \code{(character)} An id for the activity. Always in "

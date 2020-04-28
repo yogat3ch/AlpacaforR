@@ -16,24 +16,14 @@ account_config(
   v = 2
 )
 
-get_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = FALSE,
-  v = 2
-)
+get_config(live = FALSE)
 
 set_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
   live = FALSE,
-  v = 2
+  dtbp_check = "entry",
+  no_shorting = FALSE,
+  suspend_trade = FALSE,
+  trade_confirm_email = "all"
 )
 }
 \arguments{
@@ -82,6 +72,6 @@ get_config()
 \seealso{
 Other Account: 
 \code{\link{account_activities}()},
-\code{\link{account_get}()}
+\code{\link{account}()}
 }
 \concept{Account}
