@@ -21,16 +21,10 @@ market_data(
 
 get_bars(
   ticker,
-  v = 1,
-  timeframe = "day",
-  multiplier = 1,
-  from = Sys.Date() - 7,
+  from = Sys.Date() - 6,
   to = Sys.Date(),
-  after = NULL,
-  until = NULL,
-  limit = NULL,
-  full = F,
-  unadjusted = F
+  timeframe = "1D",
+  limit = NULL
 )
 }
 \arguments{
