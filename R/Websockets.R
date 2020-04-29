@@ -41,8 +41,10 @@
 #' if (interactive()) {
 #'   # Create the Alpaca Websocket and message environment. 
 #'   ws <- ws_create("a")
+#'   ws$ws$connect()
 #'   # Create the Polygon websocket and message environment, with ticks being logged.
 #'   wsp <- ws_create("p", logbars = T)
+#'   wsp$ws$connect()
 #'   # if you're unable to remember which API the ws object corresponds to:
 #'   attr(ws$ws, "api")
 #' }
@@ -50,6 +52,7 @@
 #' @export
 
 ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
+  `%>%` <- magrittr::`%>%`
   api <- tolower(substr(api, 0, 1))
   if (!interactive()) stop("ws_create only runs properly in an interactive session")
   # Determine if a logfile should be created
@@ -70,11 +73,12 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
         if (!dir.exists(.x)) dir.create(.x)
       })
     }
+    if (!file.exists(logfile)) {
+      file.create(logfile)
+      write("Timestamp, Message\n", file = logfile)
+    }
   }
-  if (!file.exists(logfile)) {
-    file.create(logfile)
-    write("Timestamp, Message\n", file = logfile)
-  }
+  
   # Create the Websocket
   if (api == "a") {
     ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url(T)),"/stream"), autoConnect = F)
@@ -84,7 +88,7 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
   out <- list(ws = ws, env = new.env())
   
   ws$onOpen(function(event) {
-    .msg <- paste0(lubridate::now(),", ", "Connection Opened\n")
+    .msg <- paste0(lubridate::now(),", ", "Connection Created\n")
     ws_msg(out, msg = .msg)
     if (.log)  write(.msg, file = logfile, append = T)
   })
@@ -97,26 +101,21 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
          .msg <- paste0(.y,": ",.x)
        }), collapse = " | ")
       
-      # If listening to a subscription channel
-      if (.o$ev %in% c("T", "Q", "A", "AM")) {
-        # Create the name of the CSV log for Polygon channels
-        .log_ev <- paste0(stringr::str_remove(logfile, basename(logfile)), paste0(.o$ev,".",.o$sym,".csv")) 
-        # if the file doesnt exist, create it
-        if (.log)
-          if (!file.exists(.log_ev)) {
-            file.create(.log_ev)
-            write(paste0(paste0(names(.o), collapse = ", "),"\n"), file = .log_ev, append = T)
-          } 
-          write(paste0(paste0(.o, collapse = ", "),"\n"), file = .log_ev, append = T)
-        }
+      
     }
+    
     ws_msg(out, .msg)
     if (.log)  write(.msg, file = logfile, append = T)
     return(.msg)
   })
   ws$onClose(function(event) {
+    if (event$code == 1000) {
+      .r <- "closed by user" 
+    } else if (event$code == 1006) {
+      .r <- "end of trading hours"
+    }
     .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket client disconnected with code: ", event$code,
-        " and reason: ", ifelse(event$code == 1000, "closed by user", event$reason), "\n")
+        " and reason: ", .r, "\n")
     ws_msg(out, .msg)
     if (.log) write(.msg, file = logfile, append = T)
   })
@@ -125,7 +124,6 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
     ws_msg(out, .msg)
     if (.log) write(.msg, file = logfile, append = T)
   })
-  ws$connect()
   attr(out$ws, "api") <- api
   return(out)
 }
@@ -140,8 +138,8 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
 #' @param channel \code{(character)} A character vector of the channel(s) to connect to.
 #' For an Alpaca websocket object provided to `ws` these are:
 #' \itemize{
-#'  \item{`"Account"/"a"`}{[Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2}
-#'  \item(`"Trade"/"t"`}{[Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)
+#'  \item{`"Account"/"a"`}{[Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
+#'  \item(`"Trade"/"t"`}{[Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
 #' }
 #' The Default is to connect to both.
 #' For a Polygon websocket object provided to `ws` these are:
@@ -156,9 +154,11 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
 #' @param unsub `(logical)` flag indicating whether to unsubscribe from the arguments provided to `channel` *Polygon only*.
 #' @return Returns nothing. All received messages are stored according to the parameters provided to \link[AlpacaforR]{`ws_create`}.
 #' @importFrom jsonlite toJSON
+#' @importFrom purrr map_chr walk
 #' @examples
 #'  \dontrun{
 #'  # must be run in an interactive session
+#'  # See ?AlpacaforR::ws_create for tutorial on creating a connection
 #'  if (interactive()) {
 #'    if (attr(ws$ws, "api") == "a") {
 #'      # Subscribe to Alpaca trade and account updated by default
@@ -175,7 +175,6 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
 #'  }
 #' @export
 
-
 ws_listen <- function(ws, channel = NULL, unsub = F) {
   if (is.list(ws)) ws <- ws$ws
   api <- attr(ws, "api")
@@ -189,13 +188,13 @@ ws_listen <- function(ws, channel = NULL, unsub = F) {
                                    params = Sys.getenv("APCA-LIVE-API-KEY-ID")), complex = "string", auto_unbox = T)
   }
   ws$send(.auth)
-  
   if (api == "a") {
     if (is.null(channel)) {
       .s <- list("trade_updates","account_updates")
     } else {
       .c <- tolower(substr(channel, 0, 1))
-      .s <- list(a = "account_updates", t = "trade_updates")[.c]
+      .s <- purrr::map_chr(.c, ~purrr::pluck(list(a = "account_updates", t = "trade_updates"),.x))
+      if (length(.s) == 1) .s <- list(.s)
     }
     .listen <- jsonlite::toJSON(list(action = "listen",
                                      data = list(streams = .s)), auto_unbox = T)

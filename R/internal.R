@@ -53,9 +53,9 @@ bars_bounds <- function(...) {
     rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
     .tf_num <- get0(".tf_num", rlang::current_env(), ifnotfound = NULL) %||% which(.tf_order %in% timeframe)
   }
-   if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
-      .date_vars <- list(from = from, to = to, after = after, until = until)
-   }
+  if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
+    .date_vars <- list(from = from, to = to, after = after, until = until)
+  }
   if (length(purrr::compact(.date_vars)) < 2) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
   }
@@ -149,7 +149,7 @@ bars_bounds <- function(...) {
         rlang::warn("Date range supplied does not include typical market hours, the V1 API is unlikely to return data")
       }
     }
-  
+    
     .bounds <- purrr::imap(.bounds, ~{
       if ((.y == "from" || .y == "after") && lubridate::is.Date(.x)){
         # If it's the start/after - use the beginning of the trading day
@@ -199,7 +199,7 @@ bars_complete <- function(bars, .missing, ...) {
   if (!all(.vn %in% ls(all.names = T))) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing the following variables: ", paste0(.vn[!.vn %in% ls(all.names = T)], collapse = "\n")))
   }
- if (is.data.frame(bars)) bars <- list(bars)
+  if (is.data.frame(bars)) bars <- list(bars)
   .newbars <- purrr::map2(.missing, bars, ~{
     # ticker is passed in as the name of object
     ticker <- attr(.y, "query")$ticker %||% attr(.y, "query")[[1]]$ticker
@@ -246,11 +246,11 @@ bars_complete <- function(bars, .missing, ...) {
               }
               return(.out)
             }) %>% do.call(c, .)
-              # Compute the aggregates for the times in the interval
+            # Compute the aggregates for the times in the interval
             .new <- purrr::map2_dfr(.d_int, .m_tib_missing, ~{
-                .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
-                # If no data is returned even with reduced timeframe return NA
-                suppressWarnings({
+              .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
+              # If no data is returned even with reduced timeframe return NA
+              suppressWarnings({
                 .v <- try(sum(.nd$volume, na.rm = T), silent = T)
                 .v <- ifelse(is.infinite(.v), NaN, .v)
                 .h <- try(max(.nd$high, na.rm = T), silent = T)
@@ -259,29 +259,29 @@ bars_complete <- function(bars, .missing, ...) {
                 .l <- ifelse(is.infinite(.l), NaN, .l)
                 .c <- ifelse(length(.nd$close[length(.nd$close)]) == 0, NaN, .nd$close[length(.nd$close)])
                 .n <- nrow(.nd) %||% NaN
-                })
-                #construct dataframe from arguments
-                .out <- data.frame(
-                  time = .y,
-                  volume = .v,
-                  # mean approximation
-                  open = .nd$open[1],
-                  # the first value of open
-                  high = .h,
-                  # the max of high
-                  low = .l,
-                  # the min of low
-                  close = .c,
-                  # The last of close
-                  n = .n # the number of datapoints used in the agg
-                )
-                .out
               })
+              #construct dataframe from arguments
+              .out <- data.frame(
+                time = .y,
+                volume = .v,
+                # mean approximation
+                open = .nd$open[1],
+                # the first value of open
+                high = .h,
+                # the max of high
+                low = .l,
+                # the min of low
+                close = .c,
+                # The last of close
+                n = .n # the number of datapoints used in the agg
+              )
+              .out
+            })
           }
-        
+          
           if (any(.m_tib_missing %in% .new$time)) {
-          # if the call returned any new data, append the query
-          assign(".query", append(ext$.query, list(attr(.new, "query"))), envir = ext)
+            # if the call returned any new data, append the query
+            assign(".query", append(ext$.query, list(attr(.new, "query"))), envir = ext)
           }
           .new
         })
@@ -319,7 +319,7 @@ bars_complete <- function(bars, .missing, ...) {
     # add the cumulative queries to the object
     attr(ext$.out, "query") <- ext$.query
     return(dplyr::arrange(ext$.out, time))
-    })
+  })
   
   return(.newbars)
 }
@@ -367,11 +367,11 @@ bars_expected <- function(bars, ...) {
   
   
   # Set the parameters for seq and lubridate durations
- 
-    .by <- paste0(multiplier," ", timeframe, "s")
-    .multiplier <- multiplier
-    .timeframe <- timeframe
-
+  
+  .by <- paste0(multiplier," ", timeframe, "s")
+  .multiplier <- multiplier
+  .timeframe <- timeframe
+  
   .expected <- purrr::imap(bars, ~{
     if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL)
     .cutoff <- attr(.x, "query")$ts %||% tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||% lubridate::now()
@@ -384,7 +384,7 @@ bars_expected <- function(bars, ...) {
     } else {
       .bgn <- .bounds[[1]]
     }
-     
+    
     if (.tf_num < 3) {
       # interval length .by
       .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
@@ -412,7 +412,7 @@ bars_expected <- function(bars, ...) {
       # dates that are trading days (match the .cal) and less than today
       .expected <- .expected[.expected %in% .cal$date & .expected < lubridate::today()]
     } else if (.tf_num == 4) {
-     
+      
       .expected <- seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe))
       
     } else if (.tf_num == 5) {
@@ -596,7 +596,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
   } else {
     bars_df <- F
   } 
-      
+  
   .expected <- bars_expected(bars, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier)
   
   .out <- purrr::map2(bars, .expected, ~{
@@ -626,8 +626,8 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
     }
     #browser(expr = !any(.actual %in% .expected))
     .any <- length(.missing_dates) > 0
-  
-  
+    
+    
     # Use the 1 day endpoint for retrieving missing dates in all cases where timeframe is <= days
     
     
@@ -678,7 +678,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
             if (length(.m) == 0) return(NULL)
             .leading <- tibble::tibble(missing = list(.m), url = .url)
           })  
-         
+        
         
       } else {
         .b <- bars_bounds(from = .md[1] - .tf_dur, to = .actual[1], timeframe = .timeframe, multiplier = .multiplier)
@@ -691,7 +691,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
           unadjusted = unadjusted
         )
         .leading <- tibble::tibble(missing = list(.md), url = .url)
-      
+        
       }
       
       # if there are no more missing dates, return the dataframe
@@ -737,11 +737,11 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
           unadjusted = unadjusted
         )
         .lagging <- tibble::tibble(missing = list(.md), url = .url)
-      
+        
       }
       # if there are no more missing dates, return the dataframe
       if (exists(".leading") && length(.missing_dates) == 0) {
-         # if there were leading, bind that to the lagging
+        # if there were leading, bind that to the lagging
         .out <- dplyr::bind_rows(.leading, .lagging)
         # otherwise just return lagging
       } else if (length(.missing_dates) == 0) .out <- .lagging
@@ -921,9 +921,9 @@ bars_url <- function(..., limit = NULL) {
     url$path <- list("v1", "bars", timeframe)
     # Coerce to appropriately formatted character strings
     .bounds <- purrr::map(.bounds, ~{
-        .x <- format(.x, "%Y-%m-%dT%H:%M:%S%z")
-        paste0(stringr::str_sub(.x, 1, -3),":", stringr::str_sub(.x, -2, nchar(.x)))
-      })
+      .x <- format(.x, "%Y-%m-%dT%H:%M:%S%z")
+      paste0(stringr::str_sub(.x, 1, -3),":", stringr::str_sub(.x, -2, nchar(.x)))
+    })
     # NULL Values are automatically dropped, so only the set boundaries will remain
     url$query <- list(symbols = .ticker,
                       limit = limit,
@@ -971,10 +971,10 @@ get_headers <- function(live=FALSE){
   
   ifelse(live, 
          .headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
-                                      'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
+                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
          
          .headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
-                                      'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
+                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
   )
   purrr::iwalk(.headers$header, ~{
     if (nchar(.x) == 0) {
@@ -1083,7 +1083,7 @@ pos_transform <- function(pos) {
 }
 
 
- 
+
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
 #' 
@@ -1114,10 +1114,10 @@ orders_transform <- function(orders) {
     return(orders)
   }
   suppressMessages({
-  suppressWarnings({
-  orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-  orders <- dplyr::mutate_if(orders, ~is.character(.) && is.numeric(as.numeric(toNum(.))), list(toNum))  
-  })})
+    suppressWarnings({
+      orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+      orders <- dplyr::mutate_if(orders, ~is.character(.) && is.numeric(as.numeric(toNum(.))), list(toNum))  
+    })})
   orders
 }
 
@@ -1187,7 +1187,7 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 #' 
 #' fetch the watchlist id corresponding to a watchlist name
 #' @param nm \code{(character)} *required* the name of the watchlist
-#' @inheritParams account_get
+#' @inheritParams account
 #' @return id \code{(character)} the id of the watchlist OR, if no id, the array of watchlists
 #' @keywords internal
 #' @importFrom httr GET
@@ -1234,11 +1234,19 @@ wl_nm2id <- function(nm, ..., e = environment()) {
 #' @param resp The response object from httr
 #' @param ep The endpoint
 #' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
+#' @importFrom rlang warn `!!!` `!!` expr is_expression call2 is_quosures
+#' @importFrom lubridate as_date as_datetime origin
+#' @importFrom dplyr mutate_at vars rename bind_cols
+#' @importFrom purrr map_if map_int modify_depth walk2 
+#' @importFrom tibble as_tibble
 
 poly_transform <- function(resp, ep) {
+  `!!!` <- rlang::`!!!`
+  `!!` <- rlang::`!!`
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   .message <- .resp$error
+  # check for errors
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::warn(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .message))
     return(.resp)
@@ -1269,33 +1277,35 @@ poly_transform <- function(resp, ep) {
   } else if (ep == "e") {
     .o <- list(.tbl = .resp)
   } else if (ep %in% c("ht", "hq")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
   } else if (ep %in% c("lt", "lq")) {
     .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
     .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
   } else if (ep == "do") {
-    .o <- list(.tbl = .resp[-1], .vars = "from", .f = lubridate::as_datetime, .q = .resp[1])
+    .o <- list(.tbl = .resp[-1], .vars = "from", .f = rlang::expr(~lubridate::as_datetime(., tz = "America/New_York")), .q = .resp[1])
   } else if (ep == "cm") {
     return(tibble::tibble(CM = as.character(.resp)))
   } else if (ep == "sa") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(unlist(.resp$tickers[1:5], recursive = F)), .resp$tickers[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
   } else if (ep == "st") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep == "sg") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep %in% c("pc", "gd")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
   } else {
-
+    
   }
-  
-  .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
-  .m <- .mode(purrr::map_int(.o$.tbl, length))
-  .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
-  .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
+  # Check for no result
+  if (length(.o$.tbl) == 0) {
+    rlang::warn(paste0("Query returned no results. If metadata exists it will be returned"))
+    .o$.vars <- NULL
+  } else {
+    .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
+    .m <- .mode(purrr::map_int(.o$.tbl, length))
+    .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
+    .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
+  }
   if (!is.null(.o$.vars)) {
     # if there are vars to be changed
     out <- list()
@@ -1305,15 +1315,14 @@ poly_transform <- function(resp, ep) {
     # map over the lists and apply the transformations
     if (is.list(.o$.vars) && !rlang::is_quosures(.o$.vars)) {
       purrr::walk2(.v, .fn, ~{
-        browser(expr = ep == "ss")
-        if (is.character(.x)) .x <- dplyr::vars(!!.x)
+        if (is.character(.x)) .x <- dplyr::vars(!!(.x))
         if (length(out) == 0) .t <- .o$.tbl else .t <- out
         out <<- do.call(dplyr::mutate_at, args = list(.tbl = .t, .vars = .x, .f = .y))
       })
     } else if (is.function(.o$.f)) {
       out <- do.call(dplyr::mutate_at, args = .o[1:3])
     } else if(rlang::is_expression(.o$.f)) {
-      out <- eval(call2(dplyr::mutate_at, !!!list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f)))
+      out <- eval(rlang::call2(dplyr::mutate_at, !!!(list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f))))
     }
     
   } else {
@@ -1348,5 +1357,42 @@ ws_msg <- function(out, msg) {
     assign("msgs", wsmsg, out$env)
   } else {
     assign("msgs", tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = msg), out$env)
+  }
+}
+#' @family Websockets
+#' @keywords internal
+#' @title ws_log
+#' @description Performs logging of streaming bars data based on input options to ws_create
+#' @params .o `(list)` The raw message content from the Websocket
+#' @params out `(list)` The ws_create out object
+#' @params logbars `(logical)` The flag as to whether to log bars on the drive as CSV or not
+#' @return bars `(tibble)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data points. Additionally, a CSV with the name of the Subscription channel if `logbars = T` in the local or specified directory.
+#' @details The rows of the bars object is halfed if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
+ws_log <- function(.o, out, logbars) {
+  # If listening to a subscription channel & logging bars
+  if (.o$ev %in% c("T", "Q", "A", "AM") && logbars) {
+    # Create the name of the CSV log for Polygon channels
+    .log_ev <- paste0(stringr::str_remove(logfile, basename(logfile)), paste0(.o$ev,".",.o$sym,".csv"))
+    
+    # if the file doesnt exist, create it
+    if (!file.exists(.log_ev)) {
+      file.create(.log_ev)
+      write(paste0(paste0(names(.o), collapse = ", "),"\n"), file = .log_ev, append = T)
+    } 
+    write(paste0(paste0(.o, collapse = ", "),"\n"), file = .log_ev, append = T)
+  }
+  if (.o$ev %in% c("T", "Q", "A", "AM")) {
+    if (!exists("bars", envir = out$env, inherits = F)) {
+      assign("bars", tibble::as_tibble(.o), out$env)
+    } else {
+      .bars <- get0("bars", out$env, inherits = F)
+      .bars <- dplyr::bind_rows(.bars, tibble::as_tibble(.o))
+      if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
+        # half it's size by removing the first half
+        .bars <- .bars[- c(1:(nrow(.bars) %/% 2)),]
+      }
+      assign("bars", .bars, out$env)
+    }
+    
   }
 }
