@@ -20,65 +20,6 @@
 #I decided to integrate all endpoints into one function and the user can either call a specific endpoint, or call none.
 
 
-#----------------------------------------------------------------------------------------------
-#' @family Polygon
-#' @title Get Polygon Meta Data (Deprecated)
-#' 
-#' @description Deprecated. See \code{\link[AlpacaforR]{polygon}}.
-#' This function provides more color on your stock through its available meta data endpoints from Polygon. These endpoints are company, analysts, dividends, earnings, and news.
-#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
-#' @param endpoint Select either company for a company profile, analysts for all kinds of analyst estimates, dividends to view historic and upcoming dividends, earnings for historic and current earning details , or news for news updates from CNBC, Seeking Alpha, etc.
-#' @param perpage This is only used if "news" was your selected endpoint. How many articles do you want to see perpage?
-#' @param v `(integer)` The Polygon API version number. 
-#' @return A list object containing all information the API responds with. 
-#' @examples
-#' # Getting default meta for AMZN: 
-#' get_meta(ticker = "AMZN")
-#' # Getting news information on AMZN: 
-#' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
-#' @importFrom httr GET
-#' @export
-get_meta <- function(ticker = NULL, endpoint = NULL, perpage = NULL, v = 1){
-  message(paste0("This function is deprecated, see ?AlpacaforR::polygon"))
-  #Set URL 
-  path_url = get_url_poly()
-  
-  
-  if(is.null(ticker)){
-    stop("Please enter a ticker for the stock that you want.")
-  }
-  
-  #If no endpoint entered, then keep default behavior. If a endpoint was provided, then request a call to that endpoint.
-  if(is.null(endpoint)){
-    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
-    
-  } else if(endpoint == "company"){
-    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/company","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
-    
-  } else if(endpoint == "analysts"){
-    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/analysts","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
-    
-  } else if(endpoint == "dividends"){
-    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/dividends","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
-    
-  } else if(endpoint == "earnings"){
-    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/earnings","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
-    
-  } else if (endpoint == "news"){
-    ifelse(is.null(perpage),
-           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=50","&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")),
-           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=",perpage,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")))
-  }
-  
-  #Send Request
-  meta = last_price_details = httr::GET(url = full_path_url)
-  meta = response_text_clean(meta)
-  return(meta)
-}
-#----------------------------------------------------------------------------------------------
-
-#get_meta(ticker = "AAPL",endpoint = "news")
-
 .ep <- list(
   t = list(nm = "Tickers",
            desc = "Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities.",
@@ -362,13 +303,71 @@ polygon <- function(ep = NULL, ..., params = NULL){
   .url$query <- append(.url$query, list(apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID")))
   .url <- httr::build_url(.url)
   .resp <- httr::GET(url = .url)
-  browser()
   out <- poly_transform(.resp, ep = ep)
   return(out)
 }
 
 
 
+
+#----------------------------------------------------------------------------------------------
+#' @family Polygon
+#' @title Get Polygon Meta Data (Deprecated)
+#' 
+#' @description Deprecated. See \code{\link[AlpacaforR]{polygon}}.
+#' This function provides more color on your stock through its available meta data endpoints from Polygon. These endpoints are company, analysts, dividends, earnings, and news.
+#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
+#' @param endpoint Select either company for a company profile, analysts for all kinds of analyst estimates, dividends to view historic and upcoming dividends, earnings for historic and current earning details , or news for news updates from CNBC, Seeking Alpha, etc.
+#' @param perpage This is only used if "news" was your selected endpoint. How many articles do you want to see perpage?
+#' @param v `(integer)` The Polygon API version number. 
+#' @return A list object containing all information the API responds with. 
+#' @examples
+#' # Getting default meta for AMZN: 
+#' get_meta(ticker = "AMZN")
+#' # Getting news information on AMZN: 
+#' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
+#' @importFrom httr GET
+#' @export
+get_meta <- function(ticker = NULL, endpoint = NULL, perpage = NULL, v = 1){
+  message(paste0("This function is deprecated, see ?AlpacaforR::polygon"))
+  #Set URL 
+  path_url = get_url_poly()
+  
+  
+  if(is.null(ticker)){
+    stop("Please enter a ticker for the stock that you want.")
+  }
+  
+  #If no endpoint entered, then keep default behavior. If a endpoint was provided, then request a call to that endpoint.
+  if(is.null(endpoint)){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "company"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/company","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "analysts"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/analysts","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "dividends"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/dividends","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if(endpoint == "earnings"){
+    full_path_url = paste0(path_url,"/",version,"/meta/symbols/",ticker,"/earnings","?apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
+    
+  } else if (endpoint == "news"){
+    ifelse(is.null(perpage),
+           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=50","&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")),
+           full_path_url <- paste0(path_url,"/",version,"/meta/symbols/",ticker,"/news","?perpage=",perpage,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")))
+  }
+  
+  #Send Request
+  meta = last_price_details = httr::GET(url = full_path_url)
+  meta = response_text_clean(meta)
+  return(meta)
+}
+#----------------------------------------------------------------------------------------------
+
+#get_meta(ticker = "AAPL",endpoint = "news")
 
 
 #----------------------------------------------------------------------------------------------

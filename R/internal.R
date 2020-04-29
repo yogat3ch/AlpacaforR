@@ -1234,11 +1234,19 @@ wl_nm2id <- function(nm, ..., e = environment()) {
 #' @param resp The response object from httr
 #' @param ep The endpoint
 #' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
+#' @importFrom rlang warn `!!!` `!!` expr is_expression call2 is_quosures
+#' @importFrom lubridate as_date as_datetime origin
+#' @importFrom dplyr mutate_at vars rename
+#' @importFrom purrr map_if map_int modify_depth walk2 
+#' @importFrom tibble as_tibble
 
 poly_transform <- function(resp, ep) {
+  `!!!` <- rlang::`!!!`
+  `!!` <- rlang::`!!`
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   .message <- .resp$error
+  # check for errors
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::warn(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .message))
     return(.resp)
@@ -1269,33 +1277,35 @@ poly_transform <- function(resp, ep) {
   } else if (ep == "e") {
     .o <- list(.tbl = .resp)
   } else if (ep %in% c("ht", "hq")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
   } else if (ep %in% c("lt", "lq")) {
     .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
     .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
   } else if (ep == "do") {
-    .o <- list(.tbl = .resp[-1], .vars = "from", .f = lubridate::as_datetime, .q = .resp[1])
+    .o <- list(.tbl = .resp[-1], .vars = "from", .f = rlang::expr(~lubridate::as_datetime(., tz = "America/New_York")), .q = .resp[1])
   } else if (ep == "cm") {
     return(tibble::tibble(CM = as.character(.resp)))
   } else if (ep == "sa") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(unlist(.resp$tickers[1:5], recursive = F)), .resp$tickers[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
   } else if (ep == "st") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep == "sg") {
-    # TODO on a weekday
-    return(NULL)
+    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep %in% c("pc", "gd")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
   } else {
 
   }
-  
+  # Check for no result
+  if (length(.o$.tbl) == 0) {
+    rlang::warn(paste0("Query returned no results. If metadata exists it will be returned"))
+    .o$.vars <- NULL
+  } else {
   .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
   .m <- .mode(purrr::map_int(.o$.tbl, length))
   .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
   .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
+  }
   if (!is.null(.o$.vars)) {
     # if there are vars to be changed
     out <- list()
@@ -1305,15 +1315,14 @@ poly_transform <- function(resp, ep) {
     # map over the lists and apply the transformations
     if (is.list(.o$.vars) && !rlang::is_quosures(.o$.vars)) {
       purrr::walk2(.v, .fn, ~{
-        browser(expr = ep == "ss")
-        if (is.character(.x)) .x <- dplyr::vars(!!.x)
+        if (is.character(.x)) .x <- dplyr::vars(!!(.x))
         if (length(out) == 0) .t <- .o$.tbl else .t <- out
         out <<- do.call(dplyr::mutate_at, args = list(.tbl = .t, .vars = .x, .f = .y))
       })
     } else if (is.function(.o$.f)) {
       out <- do.call(dplyr::mutate_at, args = .o[1:3])
     } else if(rlang::is_expression(.o$.f)) {
-      out <- eval(call2(dplyr::mutate_at, !!!list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f)))
+      out <- eval(rlang::call2(dplyr::mutate_at, !!!(list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f))))
     }
     
   } else {
