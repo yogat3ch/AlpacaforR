@@ -312,7 +312,8 @@ get_meta <- function(ticker = NULL, endpoint = NULL, perpage = NULL, v = 1){
 #' }
 #' @param ... Named arguments specific to the endpoint parameters. These can also be specified in a list via the `params` argument.
 #' @param params `(list)` A named list of parameters specific to the endpoint.
-#' @return Response `(tibble/list/data.frame)` depending on the endpoint. The core data of the response will be returned as the object. If query data is returned 
+#' @return Response `(tibble/list/data.frame)` depending on the endpoint. The core data of the response will be returned as the object. If query data is returned in addition to the core object, it is stored as a `"query"` attribute and accessed via `attr(object, "query")`. If a map object is returned with the response, it will be stored as a `"map"` attribute and accessed via `attr(object, "map")`.
+#' @details This function is not vectorized. Only a single endpoint may be called at a time. Thus any endpoints with path parameters (parameters denoted in bold) require that a single combination of path parameters be passed for a given call.
 #' @importFrom rlang env_bind current_env `!!!` abort
 #' @importFrom glue glue_data
 #' @importFrom purrr compact map
@@ -361,6 +362,7 @@ polygon <- function(ep = NULL, ..., params = NULL){
   .url$query <- append(.url$query, list(apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID")))
   .url <- httr::build_url(.url)
   .resp <- httr::GET(url = .url)
+  browser()
   out <- poly_transform(.resp, ep = ep)
   return(out)
 }
