@@ -35,12 +35,12 @@ get_bars(
 \value{
 \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 \itemize{
- \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
- \item{\code{open}}{  open price as a numeric object.}
- \item{\code{high}}{  high price as a numeric object.}
- \item{\code{low}}{  low price as a numeric object.}
- \item{\code{close}}{  close price as a numeric object.}
- \item{\code{volume}}{  volume (in millions) as a numeric object.}
+\item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+\item{\code{open}}{  open price as a numeric object.}
+\item{\code{high}}{  high price as a numeric object.}
+\item{\code{low}}{  low price as a numeric object.}
+\item{\code{close}}{  close price as a numeric object.}
+\item{\code{volume}}{  volume (in millions) as a numeric object.}
 }
 }
 \description{
