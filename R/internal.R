@@ -1126,7 +1126,6 @@ orders_transform <- function(o) {
     rlang::warn(paste("Code:",.code,",\n Message:", .message))
     return(.o)
   }
-  browser()
   if (is.list(.o) && length(.o) > 0) {
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
   } else if (length(.o) == 0) {
@@ -1136,26 +1135,15 @@ orders_transform <- function(o) {
   suppressMessages({
     suppressWarnings({
       o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-      o <- dplyr::mutate_if(.o, ~is.character(.) && is.numeric(as.numeric(toNum(.))), list(toNum))  
+      o <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
     })})
   return(o)
-}
-
-#' order_cl
-#' @description smart detect order_class, throw errors if necessary
-#' @param order_class the `order_class` argument to `order_submit`
-#' @param ... named arguments. Will automatically get arguments from enclosing environment.
-#' @return order_class \code{(character)} returns the appropriate order_class
-#' @keywords internal
-
-order_cl <- function(order_class, ...) {
-  
 }
 
 
 
 #' @title order_check
-#' @description smart detect order type, throw errors if necessary
+#' @description smart detect: type, order_class, extended_hours. Fix names for take_profit, stop_loss if partialled. Throw errors/warnings for specific criteria
 #' @param penv \code{environment} the parent environment, otherwise a named list of arguments from the parent environment
 #' @param ... named arguments. Will automatically get arguments from enclosing environment. 
 #' @return \code{(list)} returns list with appropriate arguments, to be merged with parent environment via `list2env`
@@ -1163,10 +1151,14 @@ order_cl <- function(order_class, ...) {
 #' @importFrom rlang abort current_env env_bind env_get caller_env `!!!`
 #' @importFrom purrr imap_chr map imap
 order_check <- function(penv = NULL, ...) {
+  # get rlang fns while testing (so you don't have to manually load the package each time)
   `!!!` <- rlang::`!!!`
+  `%||%` <- rlang::`%||%`
+  # add the arguments to the environment ----
+  # Thu Apr 30 17:29:18 2020
   .o <- try(list2env(as.list(penv), environment()))
   if (class(.o) == "try-error"){
-    .vn <- c(ticker_id = "ticker_id", stop = "stop", limit = "limit", type = "type", take_profit = "take_profit", stop_loss = "stop_loss", order_class = "order_class", extended_hours = "extended_hours", time_in_force = "time_in_force", side = "side")
+    .vn <- c(ticker_id = "ticker_id", action = "action", type = "type", qty = "qty", side = "side", time_in_force = "time_in_force", limit = "limit", stop = "stop", extended_hours = "extended_hours", client_order_id = "client_order_id", order_class = "order_class", take_profit = "take_profit", stop_loss = "stop_loss")
     if (rlang::is_named(list(...))) {
       rlang::env_bind(rlang::current_env(), ...)
     }
@@ -1175,16 +1167,24 @@ order_check <- function(penv = NULL, ...) {
       rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
     }
   }
-  # if side is missing
-  if (is.null(side) && !any(action %in% c("cancel", "cancel_all")))
+  # if side is missing ----
+  # Thu Apr 30 17:30:01 2020 
+  if (is.null(side)) {
+    if ((order_class %||% "none") == "bracket") {
+      message("order_class: 'bracket' requires side = 'buy', setting side to 'buy'.")
+      side <- "buy"
+    } else {
+     rlang::abort("side is required for order submissions and replacements.") 
+    }
+  } 
   # fix names 
   if (!is.null(take_profit)) names(take_profit) <- "limit_price"
   if (!is.null(stop_loss)) {
     stop_loss <- stop_loss[sort(names(stop_loss))]
     names(stop_loss) <- c("limit_price", "stop_price")
   }
-  # set type based on partial
-  if (!is.null(type)){
+  # set type based on partial or other arguments
+  if (!is.null(type) && is.null(order_class)){
     type <- tolower(type)
     if (grepl("s", type) && grepl("l", type)) {
       type <- "stop_limit"
@@ -1192,30 +1192,46 @@ order_check <- function(penv = NULL, ...) {
       type <- "stop"
     } else if (substr(type,1,1) == "l") {
       type <- "limit"
-    } else {
-      type <- "market"
+    } 
+  } else if (order_class == "bracket" && is.null(type)) {
+    message("'bracket' order_class requires type = 'market'. `type` set to 'limit'.")
+    type <- "market"
+  } else if (order_class == "oco" && type != "limit") {
+    message("'oco' order_class requires type = 'limit'. `type` set to 'limit'.")
+    type <- "limit"
+  } 
+  
+  
+  if (is.null(order_class)) {
+    # smart detect type in the absence of order_class and throw errors
+    if (is.null(type) || type == "limit") {
+      # if just limit is provided
+      if (is.null(stop) && !is.null(limit)) {
+        type <- "limit"
+        message("`type` set to 'limit'")
+      }
+      if (type %in% c("limit", "stop_limit") && is.null(limit)) rlang::abort(paste0("Please set limit price."))
+    } else if (is.null(type) || type == "stop") { 
+      # if just stop is provided
+      if (!is.null(stop) && is.null(limit)) {
+        type <- "stop"
+        message("`type` set to 'stop'")
+      }
+      if (type %in% c("stop", "stop_limit") && is.null(stop)) rlang::abort(paste0("Please set stop price."))
+    } else if ((!is.null(stop) && !is.null(limit)) || type == "stop_limit") {
+      if (!is.null(stop) && !is.null(limit)) type <- "stop_limit"
+      if (is.null(stop) || is.null(limit)) {
+        rlang::abort(paste0(paste0(unlist(purrr::imap(list(stop = stop, limit = limit), ~{
+          if (is.null(.x)) .y else NULL
+        })), collapse = ", "), " must be set."))
+      }
+    } else if (is.null(type)) {
+      rlang::abort("`type` must be set.")
     }
-  }
-  # smart set the type and check params
-  if (is.null(type) || type == "limit") {
-    # if just limit is provided
-    if (is.null(stop) && !is.null(limit)) type <- "limit"
-    if (type %in% c("limit", "stop_limit") && is.null(limit)) rlang::abort(paste0("Please set limit price."))
-  } else if (is.null(type) || type == "stop") { 
-    # if just stop is provided
-    if (!is.null(stop) && is.null(limit)) type <- "stop"
-    if (type %in% c("stop", "stop_limit") && is.null(stop)) rlang::abort(paste0("Please set stop price."))
-  } else if ((!is.null(stop) && !is.null(limit)) || type == "stop_limit") {
-    if (!is.null(stop) && !is.null(limit)) type <- "stop_limit"
-    if (is.null(stop) || is.null(limit)) {
-      rlang::abort(paste0(paste0(purrr::imap_chr(list(stop = stop, limit = limit), ~{
-        if (is.null(.x)) .y else NULL
-      }), collapse = ", "), " must be set."))
-    }
-  }
-  # order_class ----
-  # Thu Apr 30 15:05:26 2020
-  if (!is.null(order_class)) {
+  } else if (!is.null(order_class)) {
+    # if order class is specified, set required arguments accordingly or throw errors
+    # order_class Advanced orders ----
+    # Thu Apr 30 15:05:26 2020
     if (order_class %in% c("bracket", "oco", "oto")) {
       .o <- list(take_profit.limit_price = take_profit$l, stop_loss.stop_price = stop_loss$s, stop_loss.limit_price = stop_loss$l)
       .o <- purrr::imap(.o[1:2], ~{
@@ -1224,24 +1240,20 @@ order_check <- function(penv = NULL, ...) {
       # parameter parsing, error checking & warnings for advanced orders
       if (order_class == "bracket") {
         if (!is.null(extended_hours) && isTRUE(extended_hours)) {
-          rlang::warn(paste0("Extended hours not supported, changing to extended_hours to FALSE."))
           extended_hours <- F
+          rlang::warn(paste0("Extended hours not supported for order_class = 'bracket', `extended_hours` set to FALSE."))
         }
         if (!time_in_force %in% c("day","gtc")) {
           rlang::abort("time_in_force must be 'day' or 'gtc' when `order_class = 'bracket'. See documentation for details.")
         }
         if (side != "buy") {
-          message("side must be 'buy' when order_class = 'bracket'. Changing side to 'buy'.")
+          message("side must be 'buy' when order_class = 'bracket'. `side` set to 'buy'.")
           side <- "buy"
         }
         if ((is.null(take_profit$l) || is.null(stop_loss$l))) {
           rlang::abort(paste0(.o[[1]],.o[[2]]))
         } 
       } else if (order_class == "oco") {
-        if (type != "limit") {
-          message("'oco' orders must be type = 'limit'. changing type to 'limit'.")
-          type <- "limit"
-        }
         if (is.null(take_profit$l) || is.null(stop_loss$l)) {
           rlang::abort(paste0(.o[[1]],.o[[2]]))
         }
@@ -1251,9 +1263,7 @@ order_check <- function(penv = NULL, ...) {
         }
       }
     }
-  } else if (is.null(order_class) && side == "buy" && !is.null(stop_loss) && !is.null(take_profit)) {
-    order_class <- "bracket"
-  }
+  } 
   out <- list(type = type, order_class = order_class, extended_hours = extended_hours, side = side)
 }
 
