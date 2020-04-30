@@ -1286,11 +1286,11 @@ poly_transform <- function(resp, ep) {
   } else if (ep == "cm") {
     return(tibble::tibble(CM = as.character(.resp)))
   } else if (ep == "sa") {
-    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(unlist(.resp$tickers[1:5], recursive = F)), .resp$tickers[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
+    .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
   } else if (ep == "st") {
-    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+    .o <- list(.tbl = .resp$ticker[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep == "sg") {
-    .o <- list(.tbl = dplyr::bind_cols(tibble::as_tibble(purrr::modify_depth(unlist(.resp$ticker[1:5], recursive = F), .depth = -1, rlang::`%||%`, y = NA, .ragged = T)), .resp$ticker[6:9]), .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+    .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep %in% c("pc", "gd")) {
     .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
   } else {
@@ -1301,6 +1301,11 @@ poly_transform <- function(resp, ep) {
     rlang::warn(paste0("Query returned no results. If metadata exists it will be returned"))
     .o$.vars <- NULL
   } else {
+    if (is.data.frame(.o$.tbl$day) || is.list(.o$.tbl$day)) {
+      .t <- unlist(.o$.tbl[1:5], recursive = F)
+      if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
+      .o$.tbl <- dplyr::bind_cols(.t, .o$.tbl[6:9]) 
+    }
   .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
   .m <- .mode(purrr::map_int(.o$.tbl, length))
   .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))

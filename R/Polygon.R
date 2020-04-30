@@ -279,7 +279,11 @@ polygon <- function(ep = NULL, ..., params = NULL){
     ep <- paste0(stringr::str_match(ep, "^\\w"), .suf)
     e_p <- .ep[[ep]]
   }
-  if (ep == "a") rlang::abort("See ?market_data for aggregates endpoint.")
+  if (ep == "a") {
+    rlang::abort("See ?market_data for aggregates endpoint.")
+  } else if (is.null(e_p)) {
+    rlang::abort("No matching endpoint for ep argument. See ?polygon.")
+  }
   # add defaults for parameters not specified
   params <- append(params, purrr::map(.ep[[ep]]$params[!names(.ep[[ep]]$params) %in% names(params)], `[[`, 1))
   # assign the appropriate path
