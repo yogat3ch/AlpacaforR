@@ -1,5 +1,5 @@
 
-# orders_get ----
+# orders ----
 # Wed Apr 22 20:23:46 2020
 #' @family Orders
 #' @title Get Orders
@@ -46,15 +46,15 @@
 #'  \item{`legs`}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.
 #' }
 #' @examples 
-#' orders_get(live = FALSE)
-#' orders_get(status = "all")
+#' orders(live = FALSE)
+#' orders(status = "all")
 #' # For a specific ticker:
-#' orders_get(ticker = "AAPL", status = "all")
+#' orders(ticker = "AAPL", status = "all")
 #' @importFrom dplyr filter
 #' @importFrom httr parse_url build_url GET
 #' @importFrom purrr compact
 #' @export
-orders_get <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", silent = FALSE, live = FALSE, v = 2){
+orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", silent = FALSE, live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -75,30 +75,30 @@ orders_get <- function(ticker_id = NULL, status = "open", limit = NULL, after = 
   # Build the url
   .url <- httr::build_url(.url)
   # Query
-  orders <- httr::GET(.url, headers)
+  out <- httr::GET(.url, headers)
   # Clean
-  orders <-  response_text_clean(orders)
+  out <-  response_text_clean(out)
   
-  if (!is.null(ticker_id) && .char < 15 && length(orders) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
-    orders = dplyr::filter(orders, symbol %in% ticker_id)
-  } else if (length(orders) == 0) {
+  if (!is.null(ticker_id) && .char < 15 && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
+    out = dplyr::filter(out, symbol %in% ticker_id)
+  } else if (length(out) == 0) {
     #Make sure there are orders to return before calling return. 
-    if(!silent) message(paste("No",status,"orders for the selected query/filter criteria at this time.",'Try removing the `ticker_id`` filter or setting status = "all" to see all orders.'))
+    if(!silent) message(paste("No",status,"orders for the selected query/filter criteria at this time.","Try removing the `ticker_id` filter or setting status = 'all' to see all orders."))
     return(NULL)
   }  
-  orders <- orders_transform(orders)
-  return(orders)
+  out <- orders_transform(out)
+  return(out)
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
-#orders_get(status = "all",live = TRUE, version = "v2")
+#orders(status = "all",live = TRUE, version = "v2")
 
-#' @rdname orders_get
+#' @rdname orders
 #' @title get_orders
-#' @description `get_orders` is deprecated. Use \code{\link[AlpacaforR]{orders_get}} instead.
+#' @description `get_orders` is deprecated. Use \code{\link[AlpacaforR]{orders}} instead.
 #' @examples get_orders()
 #' @export
-get_orders <- orders_get
+get_orders <- orders
 
 
 
@@ -114,22 +114,34 @@ get_orders <- orders_get
 #' @param ticker \code{(character)} *required* The stock's symbol.
 #' @param qty \code{(integer)} *required* The amount of shares to trade.
 #' @param side \code{(character)} *required* The side of the trade. I.E "buy" or "sell"
-#' @param type \code{(character)} The type of trade order. I.E "market","limit","stop","stop_limit", etc. This argument is assumed to be "market" unless a `limit_price`, `stop_price`, or both are set. If only `limit` is set, `"limit"` is assumed to be the type. If only `stop` is set, `"stop"` is assumed to be the type. If both are set `"stop_limit"` is assumed to be the type. If this argument is specified, and the requisite arguments are not set, the function will stop with error.
+#' @param type \code{(character)} The type of trade order. I.E "market","limit","stop","stop_limit", etc. This argument is assumed to be "market" unless a `limit`, `stop`, or both are set. If only `limit` is set, `"limit"` is assumed to be the type. If only `stop` is set, `"stop"` is assumed to be the type. If both are set `"stop_limit"` is assumed to be the type. If this argument is specified, and the requisite arguments are not set, the function will stop with error.
 #' @param time_in_force \code{(character)} The time in force for the order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day". Please see [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for more info.
 #' @param limit \code{(numeric)} If order type was a limit, then enter the limit price here.
 #' @param stop \code{(numeric)} If order type was a stop, then enter the stop price here.
 #' @param extended_hours \code{(logical)} Default: \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.
+#' @param client_order_id \code{(character)} <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
+#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. For details of non-simple order classes, please see [Bracket Order Overview](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). Order replacement not supported for `order_class = 'bracket'`. 
+#' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
+#' \itemize{
+#'  \item{\code{limit_price/l}}{ \code{numeric} **required** for bracket orders}
+#' }
+#' @param stop_loss \code{(named list)} Additional parameters for stop-loss leg of advanced orders:
+#' \itemize{
+#'   \item{\code{stop_price/s}}{ \code{numeric} **required** for bracket orders}
+#'  \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified}
+#' }
 #' @inheritParams account
-#' @inherit orders_get return
+#' @inherit orders return
 #' @examples 
-#' # For market order (`type` is assumed to be "market" when `stop_price` and `limit_price` are not specified):
+#' # For market order (`type` is assumed to be `"market"` when `stop` and `limit` are not specified):
 #' order_submit(ticker = "AAPL", qty = 100, side = "buy")
-#' # Or you can submit a limit order (`type` is assumed to be "limit" when only `limit_price` is set):
+#' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 #' order_submit(ticker = "AAPL", qty = 100, side = "sell", lim = 120)
 #' @importFrom httr POST
-#' @importFrom rlang abort
+#' @importFrom rlang abort `%||%`
 #' @export
-order_submit <- function(ticker, qty, side, type = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, extended_hours = FALSE, live = FALSE, v = 2){
+order_submit <- function(ticker, qty, side, type = NULL, time_in_force = "day", limit = NULL, stop = NULL, extended_hours = FALSE, client_order_id = NULL, order_class = NULL, take_profit = NULL, stop_loss = NULL, live = FALSE, v = 2){
+  `%||%` <- rlang::`%||%`
   #Set URL & Headers
   url = get_url(live)
   headers = get_headers(live)
@@ -143,8 +155,39 @@ order_submit <- function(ticker, qty, side, type = NULL, time_in_force = "day", 
     type <- "stop"
   } else if (!is.null(stop_price) && !is.null(limit_price)) {
     type <- "stop_limit"
-  } else {
-    type <- "market"
+  } else if (!is.null(order_class)) {
+    if (order_class %in% c("bracket", "oco", "oto")) {
+      .o <- list(take_profit.limit_price = take_profit$l, stop_loss.stop_price = stop_loss$s, stop_loss.limit_price = stop_loss$l)
+      .o <- purrr::imap(.o[1:2], ~{
+        if (is.null(.x)) paste0(.y, " is missing.") else NULL
+      })
+      # parameter parsing, error checking & warnings for advanced orders
+      if (order_class == "bracket") {
+        if (!is.null(extended_hours) && isTRUE(extended_hours)) {
+          rlang::warn(paste0("Extended hours not supported, changing to extended_hours to FALSE."))
+          extended_hours <- F
+        }
+        if (!time_in_force %in% c("day","gtc")) {
+          rlang::abort("time_in_force must be 'day' or 'gtc'. See documentation for details.")
+        }
+        
+        if ((is.null(take_profit$l) || is.null(stop_loss$l))) {
+          rlang::abort(paste0(.o[[1]],.o[[2]]))
+        } 
+      } else if (order_class == "oco") {
+        if (type != "limit") {
+          rlang::warn("'oco' orders must be type = 'limit'. changing type to 'limit'.")
+          type <- "limit"
+        }
+        if ((is.null(take_profit$l) || is.null(stop_loss$l))) {
+          rlang::abort(paste0(.o[[1]],.o[[2]]))
+        }
+      } else if (order_class == "oto") {
+        if (is.null(take_profit) && is.null(stop_loss)) {
+          rlang::abort("Either take_profit or stop_loss must have at least one parameter set when order_class = 'oto'")
+        }
+      }
+    }
   }
   #Convert ticker argument to upper if lower
   if(grepl("^[[:lower:]]+$",ticker)){ticker <- toupper(ticker)}
@@ -155,10 +198,10 @@ order_submit <- function(ticker, qty, side, type = NULL, time_in_force = "day", 
   bodyl$extended_hours <- extended_hours
   
   #Send Request
-  orders = httr::POST(url = paste0(url,"/",paste0("v",v),"/orders"), body = bodyl, encode = "json",headers)
-  orders = response_text_clean(orders)
-  orders <- orders_transform(orders)
-  return(orders)
+  out = httr::POST(url = paste0(url,"/",paste0("v",v),"/orders"), body = bodyl, encode = "json",headers)
+  out = response_text_clean(out)
+  out <- orders_transform(out)
+  return(out)
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
@@ -189,7 +232,7 @@ submit_orders <- order_submit
 #'  \item{`id`}{`(character)` vector of cancel order ids}
 #'  \item{`status`}{`(integer)` vector of cancel order statuses}
 #' } 
-#' @inherit orders_get return
+#' @inherit orders return
 #' @examples 
 #' # Cancel by the order id
 #' order <- order_submit("AAPL", 1, "buy", "market", live = F)
@@ -217,7 +260,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   if (is.null(ticker_id)) stop("order_id is required.")
   
   #Gather the open order ID for the symbol specified
-  open_orders = orders_get(status = "open", live = live, silent = TRUE)
+  open_orders = orders(status = "open", live = live, silent = TRUE)
   
   
   #Check if any open orders before proceeding. 
@@ -266,7 +309,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
       .out <- orders_transform(cancel$body)
       .q$.query <- append(cancel[1:2], get0(".query", envir = .q, ifnotfound = NULL))
     } else {
-      .out <- orders_get(ticker_id = .y)
+      .out <- orders(ticker_id = .y)
     }
     # Coerce dates to R objects
     
@@ -301,7 +344,7 @@ cancel_orders <- order_cancel
 #' @param limit_price `(numeric)` If order type was a limit, then enter the limit price here. Defaults to replaced order's existing limit price (if applicable.)
 #' @param stop_price `(numeric)` If order type was a stop, then enter the stop price here. Defaults to replaced order's existing stop price (if applicable.)
 #' @inheritParams account
-#' @inherit orders_get return
+#' @inherit orders return
 #' @examples
 #' \dontrun{
 #' # Set a stop_loss and update it. Only works during market hours
@@ -310,7 +353,7 @@ cancel_orders <- order_cancel
 #' # Give the order a moment to process
 #' Sys.sleep(10) 
 #' # Get the filled price
-#' os <- orders_get(status = "filled")
+#' os <- orders(status = "filled")
 #' filled_price <- os[os$id %in% o$id, "filled_avg_price", drop = T]
 #' # Set the stop loss at 5% less than the purchase price
 #' stop_loss <- order_submit("BYND", 1, "sell", "stop", stop_price = filled_price * .95)
@@ -326,7 +369,7 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
   url = get_url(live)
   headers = get_headers(live)
   
-  open_orders = orders_get(status = "open", live = live, silent = TRUE)
+  open_orders = orders(status = "open", live = live, silent = TRUE)
   .oo <- tryCatch(nrow(open_orders), error = function(e) 0)
   if (nchar(ticker_id) > 15 && .oo > 0) { #If order id supplied then do this
     order_id <- ticker_id
