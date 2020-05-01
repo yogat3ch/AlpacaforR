@@ -111,8 +111,14 @@ get_orders <- orders
 #' @family Orders
 #' @title Submit, Cancel & Replace Orders, 
 #' 
-#' @description Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected. See [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details. 
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`.
+#' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.
+#' \itemize{
+#'  \item{\code{action = 'submit'}}{ All arguments can be submitted.}
+#'  \item{\code{action = 'replace'}}{ `qty`, `time_in_force`, `limit`, `stop`, `client_order_id` are all eligible.}
+#'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is necessary.}
+#'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
+#'  }
+#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`).
 #' @param action \code{(character)} The action to take:
 #' \itemize{
 #'   \item{\code{"submit"/"s"}}{ [Request a new order](https://alpaca.markets/docs/api-documentation/api-v2/orders/#request-a-new-order) **Default**}
@@ -131,11 +137,11 @@ get_orders <- orders
 #'   \item{\code{order_class = "oco"}}{ `type = "limit"`}
 #' }
 #' See [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders) for details.
-#' @param time_in_force \code{(character)} The time in force for the order. I.E `"day"`, `"gtc"`, `"opg"` etc. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Default `"day"`. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders). 
-#' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"`. 
-#' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"`. 
+#' @param time_in_force \code{(character)} The time in force for the order. *Optional* when `action = "replace"`. Args can be `"day"`, `"gtc"`, `"opg"` etc. Default `"day"`. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders). 
+#' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
+#' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
 #' @param extended_hours \code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with `type = 'limit'` and `time_in_force = 'day'` on the V2 API.
-#' @param client_order_id \code{(character)} <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
+#' @param client_order_id \code{(character)} <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. *Optional* for `action = 'replace'/'submit'`.
 #' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'`, `type` can be omitted as it will always be `'market'`, *note* that order replacement is not supported for `order_class = 'bracket'`. 
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
 #' \itemize{
