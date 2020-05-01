@@ -1152,6 +1152,7 @@ orders_transform <- function(o) {
 #' @keywords internal
 #' @importFrom rlang abort current_env env_bind env_get caller_env `!!!`
 #' @importFrom purrr imap_chr map imap
+#' @importFrom stringr str_count
 order_check <- function(penv = NULL, ...) {
   # get rlang fns while testing (so you don't have to manually load the package each time)
   `!!!` <- rlang::`!!!`
@@ -1169,111 +1170,132 @@ order_check <- function(penv = NULL, ...) {
       rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
     }
   }
+  # ticker_id ----
+  # Fri May 01 11:15:39 2020
+  # Check if ticker is id
+  .is_id <- tryCatch({
+    all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36, length(.is_id) > 0)
+  }, error = function(e) F)
+  if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
+    #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
+    .oo <- orders(ticker_id)
+    if (.oo$side == "buy") {
+      side <- "sell";message("`side` set to 'sell'")
+      if (is.null(qty)) qty <- .oo$qty;message(paste0("`qty` set to ",qty))
+      ticker_id <- .oo$symbol;message(paste0("`ticker_id` set to ",.oo$symbol))
+      if (isTRUE(client_order_id)) client_order_id <- .oo$id;message(paste0("`client_order_id` set to ", .oo$id))
+    }
+  } else if (!isTRUE(.is_id)) {
+    #Convert ticker argument to upper if action is submit
+    ticker_id <- toupper(ticker_id)
+  }
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
-  if (action == "s" && !is.null(side)) {
-    side <- tolower(substr(side, 0, 1))
-    side <- ifelse(side == "b", "buy", "sell")
-  } else if (is.null(side) && action == "s") {
-    if ((order_class %||% "none") == "bracket") {
-      message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
-      side <- "buy"
-    } else {
-      rlang::abort("side is required for order submissions and replacements.") 
-    }
-  } 
-  # if quantity is missing ----
-  # Thu Apr 30 20:17:38 2020
-  if (action == "s" && is.null(qty)) {
-    rlang::abort("qty must be set.")
-  }
-  # fix names for take_profit and stop_loss
-  if (!is.null(take_profit)) names(take_profit) <- "limit_price"
-  if (!is.null(stop_loss)) {
-    stop_loss <- stop_loss[sort(names(stop_loss))]
-    names(stop_loss) <- c("limit_price", "stop_price")
-  }
-  # set type if partialled and order_class is NULL  ----
-  # Thu Apr 30 20:20:16 2020
-  if (!is.null(type) && is.null(order_class)){
-    type <- tolower(type)
-    if (grepl("s", type) && grepl("l", type)) {
-      type <- "stop_limit"
-    } else if (substr(type,1,1) == "s") {
-      type <- "stop"
-    } else if (substr(type,1,1) == "l") {
-      type <- "limit"
-    } else if (substr(type,1,1) == "m") {
-      type <- "market"
-    }
-  } else if ((order_class %||% "none") == "bracket" && is.null(type)) {
-    message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
-    type <- "market"
-  } else if ((order_class %||% "none") == "oco" && type != "limit") {
-    message("order_class: 'oco' requires type = 'limit'. `type` set to 'limit'.")
-    type <- "limit"
-  } 
-  
-  
-  if (is.null(order_class)) {
-    # smart detect type in the absence of order_class and throw errors
-    if (is.null(type) || type == "limit") {
-      # if just limit is provided
-      if (is.null(stop) && !is.null(limit)) {
-        type <- "limit"
-        message("`type` set to 'limit'")
+  if (action == "s") {
+    if (!is.null(side)) {
+      side <- tolower(substr(side, 0, 1))
+      side <- ifelse(side == "b", "buy", "sell")
+    } else if (is.null(side)) {
+      if ((order_class %||% "none") == "bracket") {
+        side <- "buy"
+        message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
+      } else if ((order_class %||% "none") == "oto") {
+        side <- "buy"
+        message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
+      } else if ((order_class %||% "none") == "oco") {
+        side <- "sell"
+        message("order_class: 'oco' requires side = 'sell', `side` set to 'sell'.")
+      } else {
+        rlang::abort("`side` is required for order submissions.")
       }
-      if (type %in% c("limit", "stop_limit") && is.null(limit)) rlang::abort(paste0("Please set limit price."))
-    } else if (is.null(type) || type == "stop") { 
-      # if just stop is provided
-      if (!is.null(stop) && is.null(limit)) {
+    }
+    
+    # if quantity is missing ----
+    # Thu Apr 30 20:17:38 2020
+    if (is.null(qty)) {
+      rlang::abort("qty must be set.")
+    }
+    # fix names for take_profit and stop_loss
+    if (!is.null(take_profit)) names(take_profit) <- "limit_price"
+    if (!is.null(stop_loss)) {
+      .n <- purrr::imap_chr(stop_loss, ~{
+        if (grepl("^l", .y, ignore.case = T)) "limit_price" else "stop_price"
+      })
+      names(stop_loss) <- .n
+    }
+    # set type if partialled and order_class is NULL  ----
+    # Thu Apr 30 20:20:16 2020
+    
+    if (!is.null(type) && is.null(order_class)){
+      type <- tolower(type)
+      if (grepl("s", type) && grepl("l", type)) {
+        type <- "stop_limit"
+      } else if (substr(type,1,1) == "s") {
         type <- "stop"
-        message("`type` set to 'stop'")
+      } else if (substr(type,1,1) == "l") {
+        type <- "limit"
+      } else if (substr(type,1,1) == "m") {
+        type <- "market"
       }
-      if (type %in% c("stop", "stop_limit") && is.null(stop)) rlang::abort(paste0("Please set stop price."))
-    } else if ((!is.null(stop) && !is.null(limit)) || type == "stop_limit") {
-      if (!is.null(stop) && !is.null(limit)) type <- "stop_limit"
-      if (is.null(stop) || is.null(limit)) {
+    } else if ((order_class %||% "none") == "bracket" && (type %||% "none") != "market") {
+      message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
+      type <- "market"
+    } else if ((order_class %||% "none") == "oco" && (type %||% "none") != "limit") {
+      
+      message("order_class: 'oco' requires type = 'limit'. `type` set to 'limit'.")
+      type <- "limit"
+    } else if ((order_class %||% "none") == "oto" && (type %||% "none") != 'market') {
+        message("order_class: 'oto' requires type = 'market'. `type` set to 'market'.")
+        type <- "market"
+    }
+    
+    
+    if (is.null(order_class)) {
+      # smart detect type in the absence of order_class
+      if (is.null(type) && !is.null(limit) && is.null(stop)) {
+        # if just limit is provided
+        if (is.null(stop) && is.null(type)) {
+          type <- "limit";message("`type` set to 'limit'")
+        }
+      } else if (is.null(type) && !is.null(stop) && is.null(limit)) { 
+        # if just stop is provided
+        if (is.null(limit) && is.null(type)) {
+          type <- "stop";message("`type` set to 'stop'")
+        }
+      } else if (!is.null(stop) && !is.null(limit)) {
+        if (is.null(type)) type <- "stop_limit";message("`type` set to 'stop_limit'")
+      } else if (is.null(type)) {
+        rlang::abort("`type` must be set.")
+      }
+      # throw errors if not detected or arguments dont match
+      if (type == "limit" && is.null(limit)){ 
+        rlang::abort(paste0("Please set limit price."))
+      } else if (type == "stop" && is.null(stop)) {
+        rlang::abort(paste0("Please set stop price."))
+      } else if ((is.null(stop) || is.null(limit)) && type == "stop_limit") {
         rlang::abort(paste0(paste0(unlist(purrr::imap(list(stop = stop, limit = limit), ~{
           if (is.null(.x)) .y else NULL
         })), collapse = ", "), " must be set."))
+      } 
+    } else if (!is.null(order_class)) {
+      # if order class is specified, set required arguments accordingly or throw errors
+      # order_class Advanced orders ----
+      # Thu Apr 30 15:05:26 2020  
+      if ((is.null(take_profit) && is.null(stop_loss)) && order_class == "oto") {
+        rlang::abort("`take_profit` or `stop_loss` must have at least one parameter set when order_class = 'oto'")
+      } else if ((is.null(take_profit) || is.null(stop_loss)) && order_class %in% c('oto','bracket')) {
+        rlang::abort("`take_profit` must be set, and `stop_loss` must have at least one parameter set when order_class = 'oco'/'bracket'")
       }
-    } else if (is.null(type)) {
-      rlang::abort("`type` must be set.")
-    }
-  } else if (!is.null(order_class)) {
-    # if order class is specified, set required arguments accordingly or throw errors
-    # order_class Advanced orders ----
-    # Thu Apr 30 15:05:26 2020
-    if (order_class %in% c("bracket", "oco", "oto")) {
-      .o <- list(take_profit.limit_price = take_profit$l, stop_loss.stop_price = stop_loss$s, stop_loss.limit_price = stop_loss$l)
-      .o <- purrr::imap(.o[1:2], ~{
-        if (is.null(.x)) paste0(.y, " is required.") else NULL
-      })
       # parameter parsing, error checking & warnings for advanced orders
       if (order_class == "bracket") {
-        if (!is.null(extended_hours) && isTRUE(extended_hours)) {
-          extended_hours <- F
-          rlang::warn(paste0("Extended hours not supported for order_class = 'bracket', `extended_hours` set to FALSE."))
-        }
         if (!time_in_force %in% c("day","gtc")) {
           rlang::abort("time_in_force must be 'day' or 'gtc' when `order_class = 'bracket'. See documentation for details.")
         }
-        if ((is.null(take_profit$l) || is.null(stop_loss$l))) {
-          rlang::abort(paste0(.o[[1]],.o[[2]]))
-        } 
-      } else if (order_class == "oco") {
-        if (is.null(take_profit$l) || is.null(stop_loss$l)) {
-          rlang::abort(paste0(.o[[1]],.o[[2]]))
-        }
-      } else if (order_class == "oto") {
-        if (is.null(take_profit) && is.null(stop_loss)) {
-          rlang::abort("Either take_profit or stop_loss must have at least one parameter set when order_class = 'oto'")
-        }
-      }
+      } 
     }
+    if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day")) rlang::abort(paste0("Extended hours only supports 'limit' orders and `time_in_force = 'day'`"))
   } 
-  out <- list(type = type, order_class = order_class, extended_hours = extended_hours, side = side, stop_loss = stop_loss, take_profit = take_profit)
+  out <- list(ticker_id = ticker_id, action = action, type = type, qty = qty, side = side, time_in_force = time_in_force, limit = limit, stop = stop, extended_hours = extended_hours, client_order_id = client_order_id, order_class = order_class, take_profit = take_profit, stop_loss = stop_loss)
 }
 
 

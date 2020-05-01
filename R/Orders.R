@@ -11,8 +11,8 @@
 #' @param after \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{after} this date exclusive as a timestamp object.
 #' @param until \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{before} this date exclusive as a timestamp object.
 #' @param direction \code{(character)} The chronological order of response based on the submission time. \code{'asc'} or \code{'desc'}. Defaults to \code{desc}.
+#' @param nested \code{(logical)} If true, the result will roll up multi-leg orders under the legs field of primary order. Default `TRUE`.
 #' @param client_order_id \code{(logical)} Whether `ticker_id` is a client_order_id, defaults to `NULL (FALSE)`
-#' @param silent \code{(logical)} TRUE / FALSE on if you want the "no orders to cancel" message to print to the console. Default to FALSE.
 #' @inheritParams account
 #' @return Order `(tibble)` [Order object](https://alpaca.markets/docs/api-documentation/api-v2/orders/#order-entity) or Array of Order Objects with the following information:
 #' \itemize{
@@ -55,7 +55,7 @@
 #' @importFrom httr parse_url build_url GET
 #' @importFrom purrr compact
 #' @export
-orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", client_order_id = NULL, live = FALSE, v = 2){
+orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", client_order_id = NULL, nested = T, live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -77,13 +77,15 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
                      limit = limit,
                      after = after,
                      until = until,
-                     direction = direction)
+                     direction = direction,
+                     nested = nested)
   # Build the url
   .url <- httr::build_url(.url)
   # Query
   out <- httr::GET(.url, headers)
   # Clean
   out <- orders_transform(out)
+  
   
   if (!is.null(ticker_id) && .char < 15 && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
     out = dplyr::filter(out, symbol %in% ticker_id)
@@ -118,7 +120,14 @@ get_orders <- orders
 #'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`).
+#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`). 
+#' To expedite the setting of stops and limits for open positions, if an Order ID from a `'buy'` order is provided when `action = "submit"`, then the following will be assumed:
+#' \itemize{
+#'   \item{\code{side = 'sell'}}
+#'   \item{If \code{qty} is not provided, it will be populated from the buy order}
+#'   \item{`ticker_id` will be set to the symbol from the buy order.}
+#'   \item{If `client_order_id = TRUE`, the `client_order_id` will be set to the buy Order ID provided, effectively linking the orders for your records.}
+#' }
 #' @param action \code{(character)} The action to take:
 #' \itemize{
 #'   \item{\code{"submit"/"s"}}{ [Request a new order](https://alpaca.markets/docs/api-documentation/api-v2/orders/#request-a-new-order) **Default**}
@@ -135,22 +144,27 @@ get_orders <- orders
 #'   \item{\code{stop} & \code{limit} are set}{ `type = "stop_limit"`}
 #'   \item{\code{order_class = "bracket"}}{ `type = "market"`}
 #'   \item{\code{order_class = "oco"}}{ `type = "limit"`}
+#'   \item{\code{order_class = "oto"}}{ `type = "market"`}
 #' }
 #' See [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders) for details.
 #' @param time_in_force \code{(character)} The time in force for the order. *Optional* when `action = "replace"`. Args can be `"day"`, `"gtc"`, `"opg"` etc. Default `"day"`. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders). 
 #' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
 #' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
 #' @param extended_hours \code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with `type = 'limit'` and `time_in_force = 'day'` on the V2 API.
-#' @param client_order_id \code{(character)} <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. *Optional* for `action = 'replace'/'submit'`.
-#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'`, `type` can be omitted as it will always be `'market'`, *note* that order replacement is not supported for `order_class = 'bracket'`. 
+#' @param client_order_id \code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
+#' \itemize{
+#'   \item{\code{`action = 'replace'/'submit'`}}{ *Optional* character vector}
+#'  \item{\code{`action = 'submit'`}}{ If an Order ID is provided to `ticker_id`, this can be a \code{(logical)} to indicate whether the `client_order_id` should be set as the Order ID to effectively link the associated buy & sell orders for your records.}
+#' } 
+#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all orders placed with `order_class = 'bracket'`. 
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
 #' \itemize{
 #'  \item{\code{'limit_price'/'l'}}{ \code{numeric} **required** for `'bracket'` & `'oco'` order classes.}
 #' }
-#' @param stop_loss \code{(named list)} Additional parameters for stop-loss leg of advanced orders:
+#' @param stop_loss \code{(named list)} Additional parameters for stop-loss leg of advanced orders
 #' \itemize{
 #'   \item{\code{stop_price/s}}{ \code{numeric} **required** for bracket orders}
-#'   \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. **required** for `'bracket'` & `'oco'` order classes}
+#'   \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. **Required** for `'bracket'` & `'oco'` order classes}
 #' }
 #' @inheritParams account
 #' @inherit orders return
@@ -160,12 +174,11 @@ get_orders <- orders
 #' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 #' order_submit(ticker = "AAPL", qty = 100, side = "sell", lim = 120)
 #' @importFrom httr POST PATCH DELETE parse_url build_url
-#' @importFrom rlang abort `%||%`
-#' @importFrom purrr imap 
+#' @importFrom rlang abort
+#' @importFrom purrr modify_depth compact
 #' @importFrom jsonlite toJSON
 #' @export
 order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, type = NULL, time_in_force = "day", limit = NULL, stop = NULL, extended_hours = NULL, client_order_id = NULL, order_class = NULL, take_profit = NULL, stop_loss = NULL, live = FALSE, v = 2){
-  `%||%` <- rlang::`%||%`
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -179,16 +192,13 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
     ot <- order_check(environment()) 
     list2env(ot, envir = environment())
   }
-  if (action == "s") {
-    #Convert ticker argument to upper if action is submit
-    ticker_id <- toupper(ticker_id)
-  }
+  # detect the argument provided to ticker_id
+  .char <- tryCatch(nchar(ticker_id), error = function(e) 0)
   
-  if (action %in% c("s", "r")) {
+  if (action == "s") {
     #Create body with order details if action is submit or replace
     bodyl <-
-      jsonlite::toJSON(
-        purrr::modify_depth(purrr::compact(
+        append(purrr::modify_depth(purrr::compact(
           list(
             symbol = ticker_id,
             qty = qty,
@@ -197,20 +207,34 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
             time_in_force = time_in_force,
             limit_price = limit,
             stop_price = stop,
-            extended_hours = extended_hours,
             client_order_id = client_order_id,
-            order_class = order_class,
-            take_profit = take_profit,
-            stop_loss = stop_loss)
+            order_class = order_class
+            )
+        ),-1, .f = as.character),
+        purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
+        stop_loss = stop_loss)), -1, .f = as.character))
+    bodyl$extended_hours <- extended_hours
+    bodyl <- jsonlite::toJSON(bodyl, auto_unbox = T)
+  } else if (action == "r") {
+    bodyl <-
+      jsonlite::toJSON(
+        purrr::modify_depth(purrr::compact(
+          list(
+            qty = qty,
+            side = side,
+            time_in_force = time_in_force,
+            limit_price = limit,
+            stop_price = stop,
+            client_order_id = client_order_id)
         ),-2, .f = as.character),
-      auto_unbox = T)
+        auto_unbox = T)
   }
   browser()
   # create the base url
   .url$path <- list(paste0("v",v), "orders")
   if (action %in% c("r","c")) {
     # if replacing or canceling, append the order ID
-    if (nchar(ticker_id) != 36) rlang::abort(paste0("`ticker_id` has invalid number of characters. Expected: 36 | Actual: ", nchar(ticker_id)))
+    if (.char != 36) rlang::abort(paste0("`ticker_id` has invalid number of characters. Expected: 36 | Actual: ", nchar(ticker_id)))
     .url$path <- append(.url$path, ticker_id)
   }
   .url <- httr::build_url(.url)
