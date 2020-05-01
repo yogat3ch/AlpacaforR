@@ -1169,27 +1169,24 @@ order_check <- function(penv = NULL, ...) {
       rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
     }
   }
-  # if side is partialled ----
+  # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
-  if (action == "s") {
+  if (action == "s" && !is.null(side)) {
     side <- tolower(substr(side, 0, 1))
     side <- ifelse(side == "b", "buy", "sell")
-  }
+  } else if (is.null(side) && action == "s") {
+    if ((order_class %||% "none") == "bracket") {
+      message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
+      side <- "buy"
+    } else {
+      rlang::abort("side is required for order submissions and replacements.") 
+    }
+  } 
   # if quantity is missing ----
   # Thu Apr 30 20:17:38 2020
   if (action == "s" && is.null(qty)) {
     rlang::abort("qty must be set.")
   }
-  # if side is missing ----
-  # Thu Apr 30 17:30:01 2020 
-  if (is.null(side) && action == "s") {
-    if ((order_class %||% "none") == "bracket") {
-      message("order_class: 'bracket' requires side = 'buy', setting side to 'buy'.")
-      side <- "buy"
-    } else {
-     rlang::abort("side is required for order submissions and replacements.") 
-    }
-  } 
   # fix names for take_profit and stop_loss
   if (!is.null(take_profit)) names(take_profit) <- "limit_price"
   if (!is.null(stop_loss)) {
@@ -1210,10 +1207,10 @@ order_check <- function(penv = NULL, ...) {
       type <- "market"
     }
   } else if ((order_class %||% "none") == "bracket" && is.null(type)) {
-    message("'bracket' order_class requires type = 'market'. `type` set to 'limit'.")
+    message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
     type <- "market"
   } else if ((order_class %||% "none") == "oco" && type != "limit") {
-    message("'oco' order_class requires type = 'limit'. `type` set to 'limit'.")
+    message("order_class: 'oco' requires type = 'limit'. `type` set to 'limit'.")
     type <- "limit"
   } 
   
@@ -1262,10 +1259,6 @@ order_check <- function(penv = NULL, ...) {
         if (!time_in_force %in% c("day","gtc")) {
           rlang::abort("time_in_force must be 'day' or 'gtc' when `order_class = 'bracket'. See documentation for details.")
         }
-        if (side != "buy") {
-          message("side must be 'buy' when order_class = 'bracket'. `side` set to 'buy'.")
-          side <- "buy"
-        }
         if ((is.null(take_profit$l) || is.null(stop_loss$l))) {
           rlang::abort(paste0(.o[[1]],.o[[2]]))
         } 
@@ -1280,7 +1273,7 @@ order_check <- function(penv = NULL, ...) {
       }
     }
   } 
-  out <- list(type = type, order_class = order_class, extended_hours = extended_hours, side = side)
+  out <- list(type = type, order_class = order_class, extended_hours = extended_hours, side = side, stop_loss = stop_loss, take_profit = take_profit)
 }
 
 

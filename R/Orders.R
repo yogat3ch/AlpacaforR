@@ -180,20 +180,28 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   
   if (action %in% c("s", "r")) {
     #Create body with order details if action is submit or replace
-    bodyl <- jsonlite::toJSON(purrr::map_depth(purrr::compact(list(
-      symbol = ticker_id,
-      qty = qty,
-      side = side,
-      type = type,
-      time_in_force = time_in_force,
-      limit_price = limit,
-      stop_price = stop,
-      extended_hours = extended_hours,
-      client_order_id = client_order_id,
-      order_class = order_class,
-      take_profit = take_profit,
-      stop_loss = stop_loss
-    )), -1, as.character), auto_unbox = T)
+    bodyl <-
+      jsonlite::toJSON(append(
+        purrr::modify_depth(purrr::compact(
+          list(
+            symbol = ticker_id,
+            qty = qty,
+            side = side,
+            type = type,
+            time_in_force = time_in_force,
+            limit_price = limit,
+            stop_price = stop,
+            extended_hours = extended_hours,
+            client_order_id = client_order_id,
+            order_class = order_class
+          )
+        ),-1, .f = as.character),
+        purrr::modify_depth(purrr::compact(
+          list(take_profit = take_profit,
+               stop_loss = stop_loss)
+        ),-1, .f = as.character)
+      ),
+      auto_unbox = T)
   }
   browser()
   # create the base url
