@@ -113,9 +113,9 @@ get_orders <- orders
 #' 
 #' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.
 #' \itemize{
-#'  \item{\code{action = 'submit'}}{ All arguments can be submitted.}
-#'  \item{\code{action = 'replace'}}{ `qty`, `time_in_force`, `limit`, `stop`, `client_order_id` are all eligible.}
-#'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is necessary.}
+#'  \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are *required*.}
+#'  \item{\code{action = 'replace'}}{ `qty`, `time_in_force`, `limit`, `stop`, `client_order_id` are all eligible. Only one is *required*.}
+#'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
 #' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`).
@@ -187,7 +187,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   if (action %in% c("s", "r")) {
     #Create body with order details if action is submit or replace
     bodyl <-
-      jsonlite::toJSON(append(
+      jsonlite::toJSON(
         purrr::modify_depth(purrr::compact(
           list(
             symbol = ticker_id,
@@ -199,14 +199,10 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
             stop_price = stop,
             extended_hours = extended_hours,
             client_order_id = client_order_id,
-            order_class = order_class
-          )
-        ),-1, .f = as.character),
-        purrr::modify_depth(purrr::compact(
-          list(take_profit = take_profit,
-               stop_loss = stop_loss)
-        ),-1, .f = as.character)
-      ),
+            order_class = order_class,
+            take_profit = take_profit,
+            stop_loss = stop_loss)
+        ),-2, .f = as.character),
       auto_unbox = T)
   }
   browser()
