@@ -240,9 +240,9 @@ submit_orders <- order_submit
 # order_cancel ----
 # Wed Apr 22 20:22:55 2020
 #' @family Orders
-#' @title Cancel Order function
+#' @title Cancel Order function (Deprecated)
 #' 
-#' @description Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See [Orders: DELETE](https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders) in the Alpaca API V2 documentation for details.
+#' @description order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See [Orders: DELETE](https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders) in the Alpaca API V2 documentation for details.
 #' @param ticker_id `(character)` The ticker symbol(s) or order ID(s). Use `"cancel_all"` to cancel all open orders.
 #' @inheritParams account
 #' @return Order `(tibble)` with details about canceled orders. This function places the request to cancel an order. In most cases the order is canceled instantly, but sometimes it's not. Connect to the [Alpaca Streaming API](https://alpaca.markets/docs/api-documentation/api-v2/streaming/) via the websocket functions to receive order updates (See \code{\link[AlpacaforR]{ws_create}}). 
@@ -277,9 +277,11 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
   if (is.null(ticker_id)) stop("order_id is required.")
-  
+  if (grepl(deparse(sys.calls()[[sys.nframe()-1]]), "cancel_order|order_cancel")) {
+    message("`cancel_order` & `order_cancel` are deprecated. Please use `order_submit` with `action = 'cancel'/'cancel_all' instead.`")
+  }
   #Gather the open order ID for the symbol specified
-  open_orders = orders(status = "open", live = live, silent = TRUE)
+  open_orders = orders(status = "open", live = live)
   
   
   #Check if any open orders before proceeding. 
@@ -345,7 +347,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
 #' @family Orders
 #' @rdname order_cancel
 #' @title cancel_orders
-#' @description `cancel_orders` is deprecated. Use \code{\link[AlpacaforR]{order_cancel}} instead.
+#' @description `cancel_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`.
 #' @examples cancel_orders()
 #' @export
 cancel_orders <- order_cancel
@@ -354,9 +356,9 @@ cancel_orders <- order_cancel
 # order_replace ----
 # Wed Apr 22 20:22:23 2020
 #' @family Orders
-#' @title Replace Order Details
+#' @title Replace Order Details (Deprecated)
 #' 
-#' @description Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See [Orders: PATCH](https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order) for details.
+#' @description Use \code{\link[AlpacaforR]{order_submit}} with `action = "replace"`. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See [Orders: PATCH](https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order) for details.
 #' @param ticker_id `(character)` The ticker symbol or the order id.
 #' @param qty `(integer)` The amount of shares to replace. Defaults to orders existing quantity.
 #' @param time_in_force `(character)` The type of time order. I.E day, gtc, opg, cls, ioc, fok. Defaults to the replaced order's existing time in force. Please see [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for more info.
@@ -385,10 +387,13 @@ cancel_orders <- order_cancel
 #' @export
 order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price=NULL, live = FALSE, v = 2){
   #Set URL & Headers
+  if (grepl(deparse(sys.calls()[[sys.nframe()-1]]), "replace_order|order_replace")) {
+    message("`replace_order` & `order_replace` are deprecated. Please use `order_submit` with `action = 'replace'`")
+  }
   url = get_url(live)
   headers = get_headers(live)
   
-  open_orders = orders(status = "open", live = live, silent = TRUE)
+  open_orders = orders(status = "open", live = live)
   .oo <- tryCatch(nrow(open_orders), error = function(e) 0)
   if (nchar(ticker_id) > 15 && .oo > 0) { #If order id supplied then do this
     order_id <- ticker_id
@@ -428,9 +433,9 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 }
 #----------------------------------------------------------------------------------------------
 #' @family Orders
-#' @title replace_orders
+#' @title replace_orders (Deprecated)
 #' @rdname order_replace
-#' @description `replace_orders` is deprecated. Use \code{\link[AlpacaforR]{order_replace}}
+#' @description Use \code{\link[AlpacaforR]{order_submit}} with `action = "replace"`.
 #' @examples replace_orders()
 #' @export
 replace_orders <- order_replace
