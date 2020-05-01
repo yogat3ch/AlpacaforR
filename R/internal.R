@@ -1123,20 +1123,22 @@ orders_transform <- function(o) {
   }
   
   if (grepl("^4", .code)) {
-    rlang::warn(paste("Code:",.code,",\n Message:", .message))
+    rlang::warn(paste0("Code: ",.code,",\nMessage:", .message))
     return(.o)
   }
-  if (is.list(.o) && length(.o) > 0) {
+  if (is.list(.o) && length(.o) > 0 && .method != "DELETE") {
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
-  } else if (length(.o) == 0) {
+    suppressMessages({
+      suppressWarnings({
+        .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+        o <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
+      })})
+  } else if (length(.o) == 0 && .method == "GET") {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
-    return(.o)
+    o <- .o
+  } else if (.method == "DELETE") {
+    o <- .o
   }
-  suppressMessages({
-    suppressWarnings({
-      o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-      o <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
-    })})
   return(o)
 }
 
@@ -1167,9 +1169,20 @@ order_check <- function(penv = NULL, ...) {
       rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
     }
   }
+  # if side is partialled ----
+  # Thu Apr 30 20:32:52 2020
+  if (action == "s") {
+    side <- tolower(substr(side, 0, 1))
+    side <- ifelse(side == "b", "buy", "sell")
+  }
+  # if quantity is missing ----
+  # Thu Apr 30 20:17:38 2020
+  if (action == "s" && is.null(qty)) {
+    rlang::abort("qty must be set.")
+  }
   # if side is missing ----
   # Thu Apr 30 17:30:01 2020 
-  if (is.null(side)) {
+  if (is.null(side) && action == "s") {
     if ((order_class %||% "none") == "bracket") {
       message("order_class: 'bracket' requires side = 'buy', setting side to 'buy'.")
       side <- "buy"
@@ -1177,13 +1190,14 @@ order_check <- function(penv = NULL, ...) {
      rlang::abort("side is required for order submissions and replacements.") 
     }
   } 
-  # fix names 
+  # fix names for take_profit and stop_loss
   if (!is.null(take_profit)) names(take_profit) <- "limit_price"
   if (!is.null(stop_loss)) {
     stop_loss <- stop_loss[sort(names(stop_loss))]
     names(stop_loss) <- c("limit_price", "stop_price")
   }
-  # set type based on partial or other arguments
+  # set type if partialled and order_class is NULL  ----
+  # Thu Apr 30 20:20:16 2020
   if (!is.null(type) && is.null(order_class)){
     type <- tolower(type)
     if (grepl("s", type) && grepl("l", type)) {
@@ -1192,11 +1206,13 @@ order_check <- function(penv = NULL, ...) {
       type <- "stop"
     } else if (substr(type,1,1) == "l") {
       type <- "limit"
-    } 
-  } else if (order_class == "bracket" && is.null(type)) {
+    } else if (substr(type,1,1) == "m") {
+      type <- "market"
+    }
+  } else if ((order_class %||% "none") == "bracket" && is.null(type)) {
     message("'bracket' order_class requires type = 'market'. `type` set to 'limit'.")
     type <- "market"
-  } else if (order_class == "oco" && type != "limit") {
+  } else if ((order_class %||% "none") == "oco" && type != "limit") {
     message("'oco' order_class requires type = 'limit'. `type` set to 'limit'.")
     type <- "limit"
   } 
