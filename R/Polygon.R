@@ -230,6 +230,7 @@
 #'  \item{\code{'ref'/'reference'}}{ View all reference endpoints.}
 #'  \item{\code{'sto'/'stocks'}}{ View all stock endpoints}
 #' }
+#' Alternatively, if you know how to call the endpoint but would like a list of it's details, add '+' to the end of it (ie 'tt+' or 'ticker types+'.
 #'@details Optional query parameters are mentioned if present. See the [Polygon API docs](https://polygon.io/docs) for details on parameters and response data. Required path parameters are in **bold**. The first option for each required parameter is used as a default if none are specified. Endpoints are:
 #' \itemize{
 #' \item{`t`}{[Tickers](https://polygon.io/docs/#get_v2_reference_tickers_anchor): Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities. | Arguments: sort = `(cha)` ticker, -ticker, type, type = `(cha)` *Optional* NULL, etp, cs, market = `(cha)` *Optional* NULL, stocks, indices, locale = `(cha)` *Optional* NULL, us, g, search = `(cha)` *Optional* NULL, microsoft, perpage = `(num)` 50, page = `(num)` 1, active = `(log)` *Optional* NULL, TRUE, FALSE}
@@ -274,9 +275,11 @@ polygon <- function(ep = NULL, ..., params = NULL){
   ep <- tolower(ep)
   # quick-view
   .qv <- substr(ep, 0 ,3)
+  .ref <- grepl("\\+", ep)
+  ep <- gsub("\\+","",ep)
   if (.qv %in% c("all", "ref", "sto")) {
     qv <- .ep[list(all = c(1:24), ref = c(1:6), sto = c(7:24))[[.qv]]]
-    if (grepl("\\+",ep)) {
+    if (.ref) {
       return(qv)
     } else {
       return(data.frame(name = purrr::map_chr(qv, purrr::pluck, "nm")))
@@ -294,6 +297,9 @@ polygon <- function(ep = NULL, ..., params = NULL){
     }
     ep <- paste0(stringr::str_match(ep, "^\\w"), .suf)
     e_p <- .ep[[ep]]
+  }
+  if (.ref) {
+    return(e_p)
   }
   if (ep == "a") {
     rlang::abort("See ?market_data for aggregates endpoint.")
