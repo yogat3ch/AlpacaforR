@@ -224,7 +224,13 @@
 #' @family Polygon
 #' 
 #' @description  This function calls all Endpoints from the [Polygon API docs](https://polygon.io/docs).
-#' @param ep `(character)` Non-case-sensitive reference to the endpoint to be called as an abbreviation or by name. Optional query parameters are mentioned if present. See linked endpoint documentation for details on parameters and response data. Required path parameters are in **bold**. The first option is used as a default for a parameter if none are specified. Endpoints are:
+#' @param ep `(character)` Non-case-sensitive reference to the endpoint to be called as an abbreviation or by name. See Details for full endpoint details. Use the following keywords to quick-view abbreviations and full names for endpoints while programming (add a '+' to any keyword to return a list with full details: abbv, name, url, description, parameters etc):
+#' \itemize{
+#'   \item{\code{'all'}}{ View all endpoints that Alpaca users have access to.}
+#'  \item{\code{'ref'/'reference'}}{ View all reference endpoints.}
+#'  \item{\code{'sto'/'stocks'}}{ View all stock endpoints}
+#' }
+#'@details Optional query parameters are mentioned if present. See the [Polygon API docs](https://polygon.io/docs) for details on parameters and response data. Required path parameters are in **bold**. The first option for each required parameter is used as a default if none are specified. Endpoints are:
 #' \itemize{
 #' \item{`t`}{[Tickers](https://polygon.io/docs/#get_v2_reference_tickers_anchor): Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities. | Arguments: sort = `(cha)` ticker, -ticker, type, type = `(cha)` *Optional* NULL, etp, cs, market = `(cha)` *Optional* NULL, stocks, indices, locale = `(cha)` *Optional* NULL, us, g, search = `(cha)` *Optional* NULL, microsoft, perpage = `(num)` 50, page = `(num)` 1, active = `(log)` *Optional* NULL, TRUE, FALSE}
 #' \item{`tt`}{[Ticker Types](https://polygon.io/docs/#get_v2_reference_types_anchor): Get the mapping of ticker types to descriptions / long names}
@@ -264,10 +270,20 @@
 
 polygon <- function(ep = NULL, ..., params = NULL){
   if (is.null(ep)) rlang::abort("Endpoint required. See ?AlpacaforR::polygon for details.")
-  .url <- httr::parse_url(get_url_poly())
-  params <- append(list(...), params)
   # get endpoint object
   ep <- tolower(ep)
+  # quick-view
+  .qv <- substr(ep, 0 ,3)
+  if (.qv %in% c("all", "ref", "sto")) {
+    qv <- .ep[list(all = c(1:24), ref = c(1:6), sto = c(7:24))[[.qv]]]
+    if (grepl("\\+",ep)) {
+      return(qv)
+    } else {
+      return(data.frame(name = purrr::map_chr(qv, purrr::pluck, "nm")))
+    }
+  }
+  .url <- httr::parse_url(get_url_poly())
+  params <- append(list(...), params)
   if (ep %in% names(.ep)) {
     e_p <- .ep[[ep]]
   } else {
