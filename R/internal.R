@@ -27,7 +27,7 @@ try_date <- function(.x) {
 }
 
 #' @title Create API amenable boundaries based on user input for market_data
-#' @family bars
+#' @family Market-Data
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #'@param from See \code{\link[AlpacaforR]{market_data}}
 #'@param to See \code{\link[AlpacaforR]{market_data}}
@@ -41,9 +41,13 @@ try_date <- function(.x) {
 #' @importFrom stringr str_extract str_detect
 #' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz wday make_date year interval `%within%` floor_date int_start duration ceiling_date int_end days hour as_datetime as_date
 #' @importFrom dplyr lead
+#' @importFrom magrittr `%>%`
 bars_bounds <- function(...) {
-  #trickery to get the variables from the calling environment
+  `%>%` <- magrittr::`%>%`
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
   
+  #trickery to get the variables from the calling environment
   .vn = c(.tf_num = ".tf_num", from = "from", to = "to", after = "after", until = "until", v = "v", timeframe = "timeframe", multiplier = "multiplier", .tf_order = ".tf_order")
   if (rlang::is_named(list(...))) {
     rlang::env_bind(rlang::current_env(), ...)
@@ -123,14 +127,14 @@ bars_bounds <- function(...) {
           .out <- lubridate::int_start(.qs[[.q]])
         }
         
-      } else if (exists(".w")) {
+      } else if (exists(".w", inherits = F)) {
         # lubridate does not support multi-weeks to floor_date, so we just subtract multiplier - 1 weeks
         .out <- .out - lubridate::duration(multiplier - 1, "weeks")
       }
     } else {
       # To include the ending boundary, we need to add a full cycle of multiplier * timeframe
       .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = F) + lubridate::duration(multiplier, timeframe)
-      if (exists(".q")) {
+      if (exists(".q", inherits = F)) {
         # Convert to the appropriate quarter boundary
         .out <- lubridate::int_end(.qs[[.q]])
       }
@@ -164,7 +168,7 @@ bars_bounds <- function(...) {
       .dt
     })
   } else if (v == 2) {
-    .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York")))
+    .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York"))
   }
   #browser(expr = any(purrr::map_lgl(.bounds, ~ get0("dbg", .GlobalEnv, ifnotfound = F) && (length(.x) == 0 || lubridate::year(.x) > {lubridate::year(lubridate::today()) + 1} || is.na(.x)))))
   return(.bounds)
@@ -173,7 +177,7 @@ bars_bounds <- function(...) {
 # bars_complete ----
 # Wed Apr 01 17:24:47 2020
 #' @title Query the API as many times as necessary to fill a market_data query
-#' @family bars 
+#' @family Market-Data
 #' @description This function uses the output from bars_missing and fills the missing data. It's arguments are represented in the first object \code{.vn}. 
 #'@details The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, **all params must be named**. 
 #' @param \code{bars} Returned by \code{bars_get}
@@ -186,7 +190,9 @@ bars_bounds <- function(...) {
 #' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%|%" "%||%" is_named
 #' @keywords internal
 bars_complete <- function(bars, .missing, ...) {
-  
+  `%>%` <- magrittr::`%>%`
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
   .vn <- c(v = "v", timeframe = "timeframe", multiplier = "multiplier", limit = "limit", unadjusted = "unadjusted", full = "full", .tf_num = ".tf_num", .tf_order = ".tf_order")
   if (rlang::is_named(list(...))) {
     rlang::env_bind(rlang::current_env(), ...)
@@ -310,7 +316,7 @@ bars_complete <- function(bars, .missing, ...) {
           .m_tib <- bars_missing(ext$.out, .bounds = .bounds, .tf_reduce = ext$.tf_reduce, ticker = ticker)
           # and here
           # add 1 to the count, or if it doesn't exist yes, make it 1
-          .count <- 1 + (get0(".count") %||% 0)
+          .count <- 1 + (get0(".count", inherits = F) %||% 0)
           if (.count == 2) break # for IPO where there might consistently be missing bars but no new bars will ever return because they don't exist
         }
         #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
@@ -326,7 +332,7 @@ bars_complete <- function(bars, .missing, ...) {
 
 # bars_expected ----
 #' @title Return a Date/Datetime vector that the user expects
-#' @family bars
+#' @family Market-Data
 #' @description An internal function for use when param `full = T` in \code{\link[AlpacaforR]{market_data}} that creates a vector of expected Date/Datetimes that are expected from a given call to either v1 or v2 API. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @param bars \code{(list)} (Required) Output from \code{\link[AlpacaforR]{bars_get}}
 #' @param v See \code{\link[AlpacaforR]{market_data}}
@@ -343,7 +349,10 @@ bars_complete <- function(bars, .missing, ...) {
 #' @importFrom dplyr filter mutate mutate_if mutate_at vars
 #' @keywords internal
 bars_expected <- function(bars, ...) {
-  
+  `%>%` <- magrittr::`%>%`
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
+  `%|%` <- rlang::`%|%`
   .vn <- c(.bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v", .tf_num = ".tf_num", .tf_order = ".tf_order")
   if (rlang::is_named(list(...))) {
     rlang::env_bind(rlang::current_env(), ...)
@@ -466,6 +475,9 @@ bars_expected <- function(bars, ...) {
 #' @importFrom lubridate with_tz parse_date_time
 #' @importFrom stringr str_extract str_replace
 bars_get <- function(url, ...) {
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
+  `%>%` <- magrittr::`%>%`
   .vn <- c(url = "url", v = "v", .tf_order = ".tf_order", timeframe = "timeframe")
   if (rlang::is_named(list(...))) {
     rlang::env_bind(rlang::current_env(), ...)
@@ -482,7 +494,7 @@ bars_get <- function(url, ...) {
     .query <- list()
     .query$status_code <- agg_quote$status_code
     .query$url <- url
-    .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York"))
+    .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York")
     if (agg_quote$status_code != 200) {
       message(paste(url, "\nReturned status code", agg_quote$status_code, "- Returning NULL"))
       return(NULL)
@@ -548,7 +560,7 @@ bars_get <- function(url, ...) {
 # bars_missing ----
 # Sun Mar 29 16:09:40 2020
 #' @title Determine missing values in bars objects
-#' @family bars
+#' @family Market-Data
 #' @description Internal function for comparing actual data to expected data and returning missing data. The function is intended for use in an environment where its parameters already exist.  See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}
 #' @param bars Output from \code{\link[AlpacaforR]{bars_get}}
 #' @param v See \code{\link[AlpacaforR]{market_data}}
@@ -575,6 +587,9 @@ bars_get <- function(url, ...) {
 #' @importFrom stringr str_extract
 
 bars_missing <- function(bars, ..., .tf_reduce = F) {
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
+  `%>%` <- magrittr::`%>%`
   .vn = c(.bounds = ".bounds", v = "v", timeframe = "timeframe", multiplier = "multiplier", .tf_num = ".tf_num", unadjusted = "unadjusted", .tf_order = ".tf_order")
   #ticker must be named if df is passed without query object (as in bars_complete)
   
@@ -846,15 +861,17 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
 # bars_transform ----
 # Sun Mar 29 16:09:30 2020
 #' @title Transform bars objects
-#' @family bars
+#' @family Market-Data
 #' 
 #' @description Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
 #' @importFrom purrr imap
 #' @importFrom dplyr mutate_at vars rename
 #' @importFrom lubridate force_tz
+#' @importFrom magrittr `%>%`
 
 bars_transform <- function(bars) {
+  `%>%` <- magrittr::`%>%`
   bars = purrr::imap(bars, ~{
     if (!any("data.frame" %in% class(.x))) {
       message(paste0("The symbol ", .y, " returned no data.")) 
@@ -869,8 +886,7 @@ bars_transform <- function(bars) {
 # bars_url ----
 # Sun Mar 29 16:07:34 2020
 #' @title Create URLs for market_data endpoints
-#' @family bars
-#' @md
+#' @family Market-Data
 #'
 #' @description Internal function for generating query urls. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @param ticker See \code{\link[AlpacaforR]{market_data}}
@@ -887,6 +903,8 @@ bars_transform <- function(bars) {
 #' @importFrom stringr str_extract str_sub
 #' @importFrom httr parse_url build_url
 bars_url <- function(..., limit = NULL) {
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
   .vn <- c(ticker = "ticker", .bounds = ".bounds", multiplier = "multiplier", timeframe = "timeframe", v = "v", unadjusted = "unadjusted")
   if (rlang::is_named(list(...))) {
     rlang::env_bind(rlang::current_env(), ...)
@@ -989,7 +1007,7 @@ get_headers <- function(live=FALSE){
 # Sun Mar 29 16:02:51 2020
 #' @title Return the Alpaca URL
 #' 
-#' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
+#' @description  Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
 #' @keywords internal
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
 get_url <- function(live=FALSE){
@@ -1006,7 +1024,7 @@ get_url <- function(live=FALSE){
 # Sun Mar 29 16:04:24 2020
 #' @title Return the polygon URL
 #' 
-#' Get Polygon's URL for the Server Request that is sent to interact with the API.
+#' @description Get Polygon's URL for the Server Request that is sent to interact with the API.
 #' @keywords internal
 #' @return The correct URL for Polygon's API.
 get_url_poly <- function(){
@@ -1019,7 +1037,7 @@ get_url_poly <- function(){
 # Sun Mar 29 16:02:00 2020
 #' @title Clean API responses
 #' 
-#' Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
+#' @description Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
 #' @param dat The response from our server GET request usually in a json format.
 #' @keywords internal
 #' @return The response in a readable format as a list.
@@ -1040,8 +1058,8 @@ response_text_clean <- function(dat){
 # pos_transform ----
 # Sun May 03 08:55:27 2020
 #' @title transform positions objects
-#' 
-#' Cleans arrays of position objects, and position objects
+#' @family Positions
+#' @description Cleans arrays of position objects, and position objects
 #' @keywords internal
 #' @importFrom stringr str_extract
 #' @importFrom rlang abort
@@ -1088,7 +1106,7 @@ pos_transform <- function(pos) {
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
 #' 
-#' remove $ from cash quantity strings and convert to numeric
+#' @description remove $ from cash quantity strings and convert to numeric
 #' @keywords internal 
 #' @importFrom stringr str_replace_all
 toNum <- function(x){
@@ -1098,8 +1116,8 @@ toNum <- function(x){
 # orders_transform ----
 # Sun May 03 08:55:15 2020
 #' @title Transform order objects
-#' 
-#' Replaces plain text quantities and dates with respective R objects
+#' @family Orders
+#' @description Replaces plain text quantities and dates with respective R objects
 #' @param orders A dataframe returned from any orders_* endpoint
 #' @return \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
 #' @keywords internal
@@ -1127,8 +1145,8 @@ orders_transform <- function(orders) {
 # wl_transform ----
 # Sun May 03 08:55:01 2020
 #' @title Transform watchlist objects
-#' 
-#' Replaces timestamps with POSIXct in watchlist info
+#' @family Watchlist
+#' @description Replaces timestamps with POSIXct in watchlist info
 #' @param wl The watchlist object
 #' @return \code{(tibble)} with respective R compliant objects (POSIXct)
 #' @keywords internal
@@ -1139,6 +1157,8 @@ orders_transform <- function(orders) {
 #' @importFrom purrr map
 
 wl_transform <- function(wl, action, wl_info = NULL) {
+  `%||%` <- rlang::`%||%`
+  `%>%` <- magrittr::`%>%`
   if (class(wl) == "response") {
     if (length(wl$content) == 0 && grepl("^2", wl$status_code)) {
       message(paste0("Watchlist deleted successfully"))
@@ -1189,16 +1209,17 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 # wl_nm2id ----
 # Sun May 03 08:54:50 2020
 #' @title Look up watchlist id from name
-#' 
-#' fetch the watchlist id corresponding to a watchlist name
+#' @family Watchlist
+#' @description fetch the watchlist id corresponding to a watchlist name
 #' @param nm \code{(character)} *required* the name of the watchlist
 #' @inheritParams account_get
 #' @return id \code{(character)} the id of the watchlist OR, if no id, the array of watchlists
 #' @keywords internal
 #' @importFrom httr GET
-#' @importFrom rlang warn caller_env env_bind env_get is_named
+#' @importFrom rlang warn caller_env env_bind env_get is_named `!!!`
 #' @importFrom purrr map
 wl_nm2id <- function(nm, ..., e = environment()) {
+  `!!!` <- rlang::`!!!`
   # if watchlist_id is a name
   # get the list of watchlists
   .vn = c(v = "v", .url = ".url")
@@ -1237,14 +1258,23 @@ wl_nm2id <- function(nm, ..., e = environment()) {
 
 # poly_transform ----
 # Sun May 03 08:54:26 2020
+#' @family Polygon
 #' @title transform polygon.io reference endpoints
 #' @keywords internal 
-#' coerce data objects returned from the various polygon.io endpoints to R compliant objects
+#' @description coerce data objects returned from the various polygon.io endpoints to R compliant objects
 #' @param resp The response object from httr
 #' @param ep The endpoint
 #' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
+#' @importFrom rlang warn expr call2 `%||%` is_quosures `!!!` `!!` is_expression
+#' @importFrom lubridate as_date as_datetime origin
+#' @importFrom dplyr vars mutate_at rename
+#' @importFrom purrr map_lgl modify_depth map_int map_if walk2
+#' @importFrom tibble tibble as_tibble
 
 poly_transform <- function(resp, ep) {
+  `%||%` <- rlang::`%||%`
+  `!!!` <- rlang::`!!!`
+  `!!` <- rlang::`!!`
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   .message <- .resp$error
@@ -1278,7 +1308,7 @@ poly_transform <- function(resp, ep) {
   } else if (ep == "e") {
     .o <- list(.tbl = .resp)
   } else if (ep %in% c("ht", "hq")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
   } else if (ep %in% c("lt", "lq")) {
     .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
     .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
@@ -1296,7 +1326,7 @@ poly_transform <- function(resp, ep) {
     # TODO on a weekday
     return(NULL)
   } else if (ep %in% c("pc", "gd")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
+    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
   } else {
 
   }
@@ -1322,7 +1352,7 @@ poly_transform <- function(resp, ep) {
     } else if (is.function(.o$.f)) {
       out <- do.call(dplyr::mutate_at, args = .o[1:3])
     } else if(rlang::is_expression(.o$.f)) {
-      out <- eval(call2(dplyr::mutate_at, !!!list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f)))
+      out <- eval(rlang::call2(dplyr::mutate_at, !!!list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f)))
     }
     
   } else {
@@ -1334,14 +1364,16 @@ poly_transform <- function(resp, ep) {
 }
 # ws_msg ----
 # Sun May 03 08:52:35 2020
-#' @title Update Websocket message objects
+#' @family Websockets
+#'  @title Update Websocket message objects
 #' @keywords internal
 #' 
-#' Used in ws_create to to instantiate and update websocket message objects
+#' @description Used in ws_create to to instantiate and update websocket message objects
 #' @importFrom dplyr bind_rows
 #' @importFrom tibble tibble
 #' @importFrom lubridate now
 #' @importFrom stringr str_remove
+
 ws_msg <- function(out, msg) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)

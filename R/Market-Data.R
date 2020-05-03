@@ -79,6 +79,7 @@
 #' @importFrom stringr str_detect str_extract regex
 #' @importFrom purrr map_chr map_lgl keep
 #' @importFrom rlang abort warn
+#' @importFrom magrittr `%>%`
 #' @export
 
 # Generate the list in the docs:
@@ -87,7 +88,7 @@
 
 
 market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sys.Date()-7, to = Sys.Date(), after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
-  
+  `%>%` <- magrittr::`%>%`
   #param check:  Thu Mar 26 08:34:13 2020 ----
   if((is.null(from) || is.null(to)) && (is.null(start) || is.null(end))){
     stop("Please enter either 'from' & 'to' or 'after' & 'until' arguments.")
