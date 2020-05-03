@@ -36,8 +36,9 @@
 
 
 calendar <- function(from = NULL, to = NULL, v = 2){
+  `%>%` <- magrittr::`%>%`
   #Set URL & Headers
-  url = httr::parse_url(get_url())
+  .url = httr::parse_url(get_url())
   headers = get_headers()
   .bounds <- list(from = from, to = to)
   #If dates were given, make sure they are in a string format. I add plus 1 to the "to" date, or it will always return one day before the day "to"
@@ -45,7 +46,7 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   .null <- purrr::map_lgl(.bounds, is.null)
   # Check for null values and warn if NULL
   if (any(.null)){
-    message(paste0(paste0(names(.null)[.null], collapse = ", "), " arg(s) is/are NULL, coercing to ", lubridate::today()))
+    message(paste0(paste0(names(.null)[.null], collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
     .bounds <- purrr::map(.bounds, ~{
       if (is.null(.x)) lubridate::today() - lubridate::days(1) else try_date(.x)
     })
@@ -56,27 +57,27 @@ calendar <- function(from = NULL, to = NULL, v = 2){
       message(paste0(.y, " is a ",lubridate::wday(.x, label = T, abbr = F),", Calendar API will return data for the previous Friday or following Monday"))
     }
   })
-  url$path <- list(
-    version = version,
+  .url$path <- list(
+    version = paste0("v",v),
     endpoint = "calendar"
   )
-  url$query <- list(
+  .url$query <- list(
     start = as.character(.bounds[[1]]),
     end = as.character(.bounds[[2]])
   )
-  url <- httr::build_url(url)
-  calendar = httr::GET(url = url, headers)
+  .url <- httr::build_url(.url)
+  calendar = httr::GET(url = .url, headers)
   calendar =  response_text_clean(calendar)
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars(date), lubridate::ymd, tz = Sys.timezone()) %>% 
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars(date), lubridate::ymd, tz = "America/New_York") %>% 
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("session")), ~paste0(stringr::str_sub(., start = 1, end = 2),":",stringr::str_sub(.,start = 3, end = 4))) %>% 
     dplyr::mutate(
       day = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
-        end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
+        start = lubridate::ymd_hm(paste(date, open), tz = "America/New_York"),
+        end = lubridate::ymd_hm(paste(date, close), tz = "America/New_York")
       ),
       session = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, session_open), tz = Sys.timezone()),
-        end = lubridate::ymd_hm(paste(date, session_close), tz = Sys.timezone())
+        start = lubridate::ymd_hm(paste(date, session_open), tz = "America/New_York"),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = "America/New_York")
       ),
       dow = lubridate::wday(lubridate::as_date(date), label = T)
     ) %>%

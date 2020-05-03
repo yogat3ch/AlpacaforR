@@ -153,18 +153,18 @@ bars_bounds <- function(...) {
     .bounds <- purrr::imap(.bounds, ~{
       if ((.y == "from" || .y == "after") && lubridate::is.Date(.x)){
         # If it's the start/after - use the beginning of the trading day
-        .dt <- lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone())
+        .dt <- lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"))
         
       } else if (lubridate::is.Date(.x)) {
         # If its the end/until - use the end of the trading day
-        .dt <- lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = Sys.timezone())
+        .dt <- lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"))
       } else {
         .dt <- .x
       }
       .dt
     })
   } else if (v == 2) {
-    .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), Sys.timezone()))
+    .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York")))
   }
   #browser(expr = any(purrr::map_lgl(.bounds, ~ get0("dbg", .GlobalEnv, ifnotfound = F) && (length(.x) == 0 || lubridate::year(.x) > {lubridate::year(lubridate::today()) + 1} || is.na(.x)))))
   return(.bounds)
@@ -406,7 +406,7 @@ bars_expected <- function(bars, ...) {
       # dat aggregates:
       # 1. computed at close, thus we exclude today
       # 2. start at floor_date Monday 
-      .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), Sys.timezone())
+      .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), "America/New_York"))
       
       .expected <- try({seq(.from, .bounds[[2]], by = paste0(.multiplier, " ", .timeframe, "s"))})
       # dates that are trading days (match the .cal) and less than today
@@ -418,7 +418,7 @@ bars_expected <- function(bars, ...) {
     } else if (.tf_num == 5) {
       # Change the day of the month of each expected value to match that of the starting actual value.
       .day <- lubridate::day(.x$time[1])
-      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), Sys.timezone())) %>% purrr::reduce(c)
+      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), "America/New_York"))) %>% purrr::reduce(c)
       .exp <- data.frame(expected = .expected) %>% 
         dplyr::mutate(y = lubridate::year(expected),
                       m = lubridate::month(expected))
@@ -441,7 +441,7 @@ bars_expected <- function(bars, ...) {
     }
     
     if (.tf_num > 2) {
-      .expected <- lubridate::force_tz(lubridate::as_date(.expected), tz = Sys.timezone())
+      .expected <- lubridate::force_tz(lubridate::as_date(.expected), tz = "America/New_York"))
     }
     .expected <- subset(.expected, subset = .expected >= .bounds[[1]] & .expected <= .cutoff)
     #browser(expr = length(.expected) == 0 || class(.expected) == "try-error")
@@ -482,7 +482,7 @@ bars_get <- function(url, ...) {
     .query <- list()
     .query$status_code <- agg_quote$status_code
     .query$url <- url
-    .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())
+    .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York"))
     if (agg_quote$status_code != 200) {
       message(paste(url, "\nReturned status code", agg_quote$status_code, "- Returning NULL"))
       return(NULL)
@@ -522,7 +522,7 @@ bars_get <- function(url, ...) {
       .query <- list()
       .query$status_code <- agg_quote$status_code
       .query$url <- .url
-      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = Sys.timezone())  
+      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York"))  
       if (agg_quote$status_code != 200) {
         message(paste("Call", .murl, "returned status code", agg_quote$status_code, "- Returning metadata only"))
         return(append(agg_quote[1:5], values = .query[2:3]))
@@ -615,14 +615,14 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
       .actual <- .x$time
       #browser(expr = class(.actual) == "try-error")
       # get the missing days
-      .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), tz = Sys.timezone()))
+      .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), tz = "America/New_York")))
       #browser(expr = class(.missing_dates) == "try-error")
     }
     if (length(.missing_dates) == 0) return(NULL)
     if (.tf_num < 3) {
-      .missing_dates <- lubridate::with_tz(.missing_dates, Sys.timezone())
+      .missing_dates <- lubridate::with_tz(.missing_dates, "America/New_York"))
     } else {
-      .missing_dates <- lubridate::force_tz(.missing_dates, Sys.timezone())
+      .missing_dates <- lubridate::force_tz(.missing_dates, "America/New_York"))
     }
     #browser(expr = !any(.actual %in% .expected))
     .any <- length(.missing_dates) > 0
@@ -827,7 +827,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
     #browser(expr = (length(.out[[2]]) == 0 && .any))
     if(any(class(.actual) != class(do.call(c, .out$missing)))) {
       if (lubridate::is.Date(.actual)) {
-        .out$missing <- purrr::map(.out$missing, ~lubridate::force_tz(lubridate::as_date(.x), Sys.timezone()))
+        .out$missing <- purrr::map(.out$missing, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York")))
       } else {
         #browser()
       }
@@ -861,7 +861,7 @@ bars_transform <- function(bars) {
       return(NULL)
     } 
     nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01") %>%  lubridate::force_tz(Sys.timezone()))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01") %>%  lubridate::force_tz("America/New_York")))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
       dplyr::rename((!!nms))
   })  
 }
@@ -1037,7 +1037,8 @@ response_text_clean <- function(dat){
   return(out)
 }
 
-
+# pos_transform ----
+# Sun May 03 08:55:27 2020
 #' @title transform positions objects
 #' 
 #' Cleans arrays of position objects, and position objects
@@ -1094,6 +1095,8 @@ toNum <- function(x){
   as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
 }
 
+# orders_transform ----
+# Sun May 03 08:55:15 2020
 #' @title Transform order objects
 #' 
 #' Replaces plain text quantities and dates with respective R objects
@@ -1121,7 +1124,8 @@ orders_transform <- function(orders) {
   orders
 }
 
-
+# wl_transform ----
+# Sun May 03 08:55:01 2020
 #' @title Transform watchlist objects
 #' 
 #' Replaces timestamps with POSIXct in watchlist info
@@ -1182,7 +1186,8 @@ wl_transform <- function(wl, action, wl_info = NULL) {
   out
 }
 
-
+# wl_nm2id ----
+# Sun May 03 08:54:50 2020
 #' @title Look up watchlist id from name
 #' 
 #' fetch the watchlist id corresponding to a watchlist name
@@ -1221,6 +1226,8 @@ wl_nm2id <- function(nm, ..., e = environment()) {
   return(id)
 }
 
+# .mode ----
+# Sun May 03 08:54:39 2020
 #'@title get the mode
 #'@keywords internal
 .mode <- function (v) {
@@ -1228,6 +1235,8 @@ wl_nm2id <- function(nm, ..., e = environment()) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
+# poly_transform ----
+# Sun May 03 08:54:26 2020
 #' @title transform polygon.io reference endpoints
 #' @keywords internal 
 #' coerce data objects returned from the various polygon.io endpoints to R compliant objects
@@ -1323,7 +1332,8 @@ poly_transform <- function(resp, ep) {
   if (!is.null(.o$.m)) attr(out, "map") <- .o$.m
   return(out)
 }
-
+# ws_msg ----
+# Sun May 03 08:52:35 2020
 #' @title Update Websocket message objects
 #' @keywords internal
 #' 
