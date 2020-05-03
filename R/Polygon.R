@@ -270,7 +270,7 @@
 #' @export
 
 polygon <- function(ep = NULL, ..., params = NULL){
-  if (is.null(ep)) rlang::abort("Endpoint required. See ?AlpacaforR::polygon for details.")
+  if (is.null(ep) || !is.character(ep)) rlang::abort("Endpoint (char) required. See ?AlpacaforR::polygon for details.")
   # get endpoint object
   ep <- tolower(ep)
   # quick-view
