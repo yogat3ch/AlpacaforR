@@ -1055,29 +1055,30 @@ pos_transform <- function(pos) {
     .sym <- stringr::str_extract(pos$request$url, "\\w+$")
     .code <- pos$status_code
     #browser()
-    pos <- response_text_clean(pos)
-    .message <- pos$message
+    .pos <- response_text_clean(pos)
+    .message <- .pos$message
   }
+  
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::abort(paste("Position was not modified.\n Message:", .message))
-    return(pos)
-  } else if (.sym != "positions" && .sym %in% pos$symbol && .method == "DELETE") {
+    return(.pos)
+  } else if (.sym != "positions" && .sym %in% .pos$symbol && .method == "DELETE") {
     message(paste0(.sym, " closed successfully."))
-  } else if (.method == "DELETE" && any(grepl("^2", pos$body$code))) {
-    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(pos$body$symbol[grepl("^2", pos$body$code)], collapse = ", ")))
+  } else if (.method == "DELETE" && any(grepl("^2", .pos$body$code))) {
+    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$symbol[grepl("^2", .pos$body$code)], collapse = ", ")))
   }
   
   #Check if any pos exist before attempting to return
-  if(length(pos) == 0) {
+  if(length(.pos) == 0) {
     message("No pos are open at this time.")
-  } else if(length(pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
-    # coerce to numeric in positions objects
-    pos[,c(5:6,8:ncol(pos))] <- purrr::map_dfc(pos[,c(5:6,8:ncol(pos))], as.numeric)
-    out <- tibble::as_tibble(pos)
+  } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
+    # coerce to numeric in .positions objects
+    .pos[,c(5:6,8:ncol(.pos))] <- purrr::map_dfc(.pos[,c(5:6,8:ncol(.pos))], as.numeric)
+    out <- tibble::as_tibble(.pos)
   } else {
     # if close_all
-    out <- orders_transform(pos$body)
-    attr(out, "info") <- pos[1:2]
+    out <- orders_transform(.pos$body)
+    attr(out, "info") <- .pos[1:2]
   }
   return(out)
 }
@@ -1126,20 +1127,23 @@ orders_transform <- function(o) {
     rlang::warn(paste0("Code: ",.code,",\nMessage:", .message))
     return(.o)
   }
-  if (is.list(.o) && length(.o) > 0 && .method != "DELETE") {
+  if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && .method == "DELETE")) {
+    if (.method == "DELETE") {.o <- .o$body;.q <- .o[1:2]}
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
         .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-        o <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
+        out <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
       })})
   } else if (length(.o) == 0 && .method == "GET") {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
-    o <- .o
+    out <- .o
   } else if (.method == "DELETE") {
-    o <- .o
+    # case when deleting single order
+    out <- .o
   }
-  return(o)
+  if (exists(".q", inherits = F)) attr(out, "query") <- .q
+  return(out)
 }
 
 
@@ -1196,12 +1200,9 @@ order_check <- function(penv = NULL, ...) {
       side <- tolower(substr(side, 0, 1))
       side <- ifelse(side == "b", "buy", "sell")
     } else if (is.null(side)) {
-      if ((order_class %||% "none") == "bracket") {
+      if ((order_class %||% "none") %in% c("bracket", "oto")) {
         side <- "buy"
-        message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
-      } else if ((order_class %||% "none") == "oto") {
-        side <- "buy"
-        message("order_class: 'bracket' requires side = 'buy', `side` set to 'buy'.")
+        message("order_class: ", order_class," requires side = 'buy', `side` set to 'buy'.")
       } else if ((order_class %||% "none") == "oco") {
         side <- "sell"
         message("order_class: 'oco' requires side = 'sell', `side` set to 'sell'.")
@@ -1283,7 +1284,7 @@ order_check <- function(penv = NULL, ...) {
       # Thu Apr 30 15:05:26 2020  
       if ((is.null(take_profit) && is.null(stop_loss)) && order_class == "oto") {
         rlang::abort("`take_profit` or `stop_loss` must have at least one parameter set when order_class = 'oto'")
-      } else if ((is.null(take_profit) || is.null(stop_loss)) && order_class %in% c('oto','bracket')) {
+      } else if ((is.null(take_profit) || is.null(stop_loss)) && order_class %in% c('oco','bracket')) {
         rlang::abort("`take_profit` must be set, and `stop_loss` must have at least one parameter set when order_class = 'oco'/'bracket'")
       }
       # parameter parsing, error checking & warnings for advanced orders
@@ -1293,7 +1294,7 @@ order_check <- function(penv = NULL, ...) {
         }
       } 
     }
-    if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day")) rlang::abort(paste0("Extended hours only supports 'limit' orders and `time_in_force = 'day'`"))
+    if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day" || order_class %in% c("oco","oto", "bracket"))) rlang::abort(paste0("Extended hours only supports simple 'limit' orders and `time_in_force = 'day'`"))
   } 
   out <- list(ticker_id = ticker_id, action = action, type = type, qty = qty, side = side, time_in_force = time_in_force, limit = limit, stop = stop, extended_hours = extended_hours, client_order_id = client_order_id, order_class = order_class, take_profit = take_profit, stop_loss = stop_loss)
 }

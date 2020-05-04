@@ -121,12 +121,13 @@ get_orders <- orders
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
 #' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`). 
-#' To expedite the setting of stops and limits for open positions, if an Order ID from a `'buy'` order is provided when `action = "submit"`, then the following will be assumed:
+#' To expedite the setting of stops and limits for open positions, if an Order ID from a `'buy'` order is provided when `action = "submit"`, then a `'sell'` order will be populated with the following parameters such that they do not need to be set:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
 #'   \item{If \code{qty} is not provided, it will be populated from the buy order}
 #'   \item{`ticker_id` will be set to the symbol from the buy order.}
 #'   \item{If `client_order_id = TRUE`, the `client_order_id` will be set to the buy Order ID provided, effectively linking the orders for your records.}
+#'   \item{All other parameters can be specified as usual.}
 #' }
 #' @param action \code{(character)} The action to take:
 #' \itemize{
@@ -229,7 +230,6 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
         ),-2, .f = as.character),
         auto_unbox = T)
   }
-  browser()
   # create the base url
   .url$path <- list(paste0("v",v), "orders")
   if (action %in% c("r","c")) {
@@ -308,13 +308,13 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   }
   #Gather the open order ID for the symbol specified
   open_orders = orders(status = "open", live = live)
-  
+  .nrow <- tryCatch({nrow(open_orders)}, error = function(e) 0)
   
   #Check if any open orders before proceeding. 
-  if(is.null(open_orders)){
+  if(is.null(open_orders) || .nrow == 0){
     message("There are no orders to cancel at this time.")
     return(NULL)
-  } else if (any(ticker_id %in% "cancel_all")) { #If order id is cancel_all
+  } else if (any(ticker_id %in% "cancel_all") && .nrow > 0) { #If order id is cancel_all
     message(paste0("Canceling ALL ", nrow(open_orders)," open orders"))
   } 
   
