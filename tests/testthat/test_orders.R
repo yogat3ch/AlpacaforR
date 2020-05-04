@@ -83,17 +83,25 @@ test_that("order_submit properly cancels the bracket order", {
 })
 
 test_that("order_submit properly cancels the simple sell replacement order", {
-  expect_message({.co <- order_submit(r$id, "c")}, "Order canceled successfully")
+  expect_message({.co <- order_submit(.r$id, "c")}, "Order canceled successfully")
   expect_true(is.list(.co))
   expect_equal(length(.co), 0)
 })
 
-
-
-
-
 test_that("order_submit properly places an oco order_class", {
   .o <- order_submit("AMZN", qty = 2, side = "b", type = "m")
-  expect_message(.oco <- order_submit("AMZN", order_class = "oco", qty = 2, extended_hours = T, take_profit = list(l = .lq$askprice * 1.03), stop_loss = list(s = .lq$askprice * .96)), regexp = "sell|limit", all = T)
+  expect_message(.oco <- order_submit("AMZN", order_class = "oco", qty = 2, take_profit = list(l = .lq$askprice * 1.03), stop_loss = list(s = .lq$askprice * .96)), regexp = "sell|limit", all = T)
 })
 
+
+test_that("order_submit properly places an oto order_class", {
+  .lq <- polygon("lq", symbol = "BYND")
+  expect_message(.oto <- order_submit("BYND", order_class = "oto", qty = 2, stop_loss = list(s = .lq$askprice * .96)), regexp = "oto", all = T)
+})
+
+test_that("order_submit properly cancels all open orders",{
+  .ca <- order_submit(a = "cancel_all")  
+expect_true(all(.ca$body$status %in% "pending_cancel"))
+expect_true(nrow(.ca) > 1)
+expect_s3_class(do.call(c, dplyr::select(.ca, dplyr::ends_with("at"))), "POSIXct")
+  })
