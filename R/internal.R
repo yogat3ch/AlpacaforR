@@ -1074,29 +1074,29 @@ pos_transform <- function(pos) {
     .sym <- stringr::str_extract(pos$request$url, "\\w+$")
     .code <- pos$status_code
     #browser()
-    pos <- response_text_clean(pos)
+    .pos <- response_text_clean(pos)
     .message <- pos$message
   }
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::abort(paste("Position was not modified.\n Message:", .message))
-    return(pos)
+    return(.pos)
   } else if (.sym != "positions" && .sym %in% pos$symbol && .method == "DELETE") {
     message(paste0(.sym, " closed successfully."))
   } else if (.method == "DELETE" && any(grepl("^2", pos$body$code))) {
-    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(pos$body$symbol[grepl("^2", pos$body$code)], collapse = ", ")))
+    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$symbol[grepl("^2", .pos$body$code)], collapse = ", ")))
   }
   
   #Check if any pos exist before attempting to return
-  if(length(pos) == 0) {
-    message("No pos are open at this time.")
-  } else if(length(pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
+  if(length(.pos) == 0) {
+    message("No positions are open at this time.")
+  } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
     # coerce to numeric in positions objects
-    pos[,c(5:6,8:ncol(pos))] <- purrr::map_dfc(pos[,c(5:6,8:ncol(pos))], as.numeric)
-    out <- tibble::as_tibble(pos)
+    .pos[,c(5:6,8:ncol(.pos))] <- purrr::map_dfc(.pos[,c(5:6,8:ncol(.pos))], as.numeric)
+    out <- tibble::as_tibble(.pos)
   } else {
     # if close_all
-    out <- orders_transform(pos$body)
-    attr(out, "info") <- pos[1:2]
+    out <- orders_transform(.pos$body)
+    attr(out, "info") <- .pos[1:2]
   }
   return(out)
 }
@@ -1212,7 +1212,7 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 #' @family Watchlist
 #' @description fetch the watchlist id corresponding to a watchlist name
 #' @param nm \code{(character)} *required* the name of the watchlist
-#' @inheritParams account_get
+#' @inheritParams account
 #' @return id \code{(character)} the id of the watchlist OR, if no id, the array of watchlists
 #' @keywords internal
 #' @importFrom httr GET
@@ -1278,6 +1278,7 @@ poly_transform <- function(resp, ep) {
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   .message <- .resp$error
+  # check for errors
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::warn(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .message))
     return(.resp)
@@ -1313,11 +1314,11 @@ poly_transform <- function(resp, ep) {
     .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
     .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
   } else if (ep == "do") {
-    .o <- list(.tbl = .resp[-1], .vars = "from", .f = lubridate::as_datetime, .q = .resp[1])
+    .o <- list(.tbl = .resp[-1], .vars = "from", .f = rlang::expr(~lubridate::as_datetime(., tz = "America/New_York")), .q = .resp[1])
   } else if (ep == "cm") {
     return(tibble::tibble(CM = as.character(.resp)))
   } else if (ep == "sa") {
-   .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
+    .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
   } else if (ep == "st") {
     .o <- list(.tbl = .resp$ticker[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep == "sg") {
@@ -1337,10 +1338,10 @@ poly_transform <- function(resp, ep) {
       if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
       .o$.tbl <- dplyr::bind_cols(.t, .o$.tbl[6:9]) 
     }
-    .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
-    .m <- .mode(purrr::map_int(.o$.tbl, length))
-    .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
-    .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
+  .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
+  .m <- .mode(purrr::map_int(.o$.tbl, length))
+  .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
+  .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
   }
   if (!is.null(.o$.vars)) {
     # if there are vars to be changed
