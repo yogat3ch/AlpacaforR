@@ -2,79 +2,6 @@
 
 # PACKAGE FUNCTIONS #
 #===================================================================================================
-# Internals:  Sun Jan 12 10:20:31 2020 ----
-
-#----------------------------------------------------------------------------------------------
-#' Clean Text from Server Response function
-#' 
-#' Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
-#' @param dat The response from our server GET request usually in a json format.
-#' @return The response in a readable format as a list.
-response_text_clean <- function(dat){
-  
-  dat = httr::content(dat, as = "text", encoding = "UTF-8")
-  dat = jsonlite::fromJSON(dat)
-  return(dat)
-}
-#----------------------------------------------------------------------------------------------
-
-
-
-
-
-
-#----------------------------------------------------------------------------------------------
-#' Get URL for Server Request function
-#' 
-#' Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned. 
-#' @return The correct URL according to account type (live or paper) that will be sent in the API request.
-get_url <- function(live=FALSE){
-  
-    url <- ifelse(live, 
-                  "https://api.alpaca.markets",
-                  "https://paper-api.alpaca.markets")
-  
-  return(url)
-}
-#----------------------------------------------------------------------------------------------
-#UPDATED for V2
-
-
-
-
-
-#----------------------------------------------------------------------------------------------
-#' Get Polygon URL for Server Request function
-#' 
-#' Get Polygon's URL for the Server Request that is sent to interact with the API.
-#' @return The correct URL for Polygon's API.
-get_url_poly <- function(){
-  url = "https://api.polygon.io" 
-  return(url)
-}
-#----------------------------------------------------------------------------------------------
-
-
-
-
-#----------------------------------------------------------------------------------------------
-#' Get Headers for Server Request function
-#'
-#' @return The correct headers that will be sent in the API request.
-#' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
-get_headers <- function(live=FALSE){
-  
-    ifelse(live, 
-                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-LIVE-API-KEY-ID"), 
-                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-LIVE-API-SECRET-KEY")),
-           
-                      headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
-                                                  'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
-           )
-  return(headers)
-}
-#----------------------------------------------------------------------------------------------
-#UPDATED for V2
 
 
 
@@ -1043,27 +970,56 @@ delete_from_watchlist <- function(watchlist_id = NULL, ticker = NULL, live = FAL
 #' # Get specific date range:
 #' get_calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
 #' @export
-#' @importFrom lubridate ymd
+#' @import lubridate
+#' @importFrom httr GET parse_url build_url
+#' @importFrom purrr map
+#' @importFrom magrittr "%>%"
+
 get_calendar <- function(from = NULL, to = NULL, version = "v2"){
   #Set URL & Headers
-  url = get_url()
+  url = httr::parse_url(get_url())
   headers = get_headers()
-  
-  
-  #If dates were given, make sure they are in a string format. I add plus 1 to the "to" date, or it will always return one day before the day "to"?
-  if(!is.null(to)) to <- as.character(as.Date(to)+1)
-  if(!is.null(from)) from <- as.character(as.Date(from))
-  
-  
-  
-  if(is.null(from) & is.null(to)){  #Check if any dates were given, and if not then return 
-    calendar = httr::GET(url = paste0(url,"/",version,"/calendar"), headers)
-    calendar =  response_text_clean(calendar)
-  } else{ 
-    calendar = httr::GET(url = paste0(url,"/",version,"/calendar","?start=",from,"&end=",to), headers)
-    calendar =  response_text_clean(calendar)
+  .bounds <- list(from = from, to = to)
+  #If dates were given, make sure they are in a string format. I add plus 1 to the "to" date, or it will always return one day before the day "to"
+    # 2020-03-29T18:25:01 This appears to be fixed, removing the +1
+  .null <- purrr::map_lgl(.bounds, is.null)
+  # Check for null values and warn if NULL
+  if (any(.null)){
+    message(paste0(paste0(names(.null)[.null], collapse = ", "), " arg(s) is/are NULL, coercing to ", lubridate::today()))
+    .bounds <- purrr::map(.bounds, ~{
+      if (is.null(.x)) lubridate::today() - lubridate::days(1) else lubridate::as_date(.x)
+    })
   }
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), ~ lubridate::ymd(.))
+  # Check for weekend values and warn if weekend
+  purrr::imap(.bounds, ~{
+    if (lubridate::wday(.x) %in% c(1,7)) {
+      message(paste0(.y, " is a ",lubridate::wday(.x, label = T, abbr = F),", API will return data for the previous Friday or following Monday"))
+    }
+  })
+  url$path <- list(
+    version = version,
+    endpoint = "calendar"
+  )
+  url$query <- list(
+    start = as.character(.bounds[[1]]),
+    end = as.character(.bounds[[2]])
+  )
+  url <- httr::build_url(url)
+  calendar = httr::GET(url = url, headers)
+  calendar =  response_text_clean(calendar)
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars(date), lubridate::ymd, tz = Sys.timezone()) %>% 
+    dplyr::mutate(
+      day = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, open), tz = Sys.timezone()),
+        end = lubridate::ymd_hm(paste(date, close), tz = Sys.timezone())
+      ),
+      session = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, session_open), tz = Sys.timezone()),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = Sys.timezone())
+      ),
+      dow = lubridate::wday(lubridate::as_date(date), label = T)
+    ) %>%
+    dplyr::select(date, dow, day, session, everything())
   return(calendar)
 }
 #----------------------------------------------------------------------------------------------
@@ -1104,18 +1060,39 @@ get_clock <- function(version = "v2"){
 
 
 
-
-
-
 #----------------------------------------------------------------------------------------------
 #' Get Bars function
 #' 
-#' The bars API provides time-aggregated price and volume data for a single stock or multiple.
+#' The bars API provides time-aggregated price and volume data for a single stock or multiple. **The `'v2'` API is only available for live accounts and accepts the `from`, `to`, `timeframe`, `multiplier`, and `unadjusted` arguments.**
 #' @param ticker \code{(character)} The stock or stocks (in vector format) that you want.
-#' @param from \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The starting date for the pricing data. Default is the last 5 trading days.
-#' @param to \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The ending date for the pricing data. Default is todays date.
-#' @param timeframe \code{(character)} One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.
-#' @param limit \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.
+#' @param v \code{(integer)} The API version number. If `1`, the `'v1'` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if `2`, the `'v2'` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used. 
+#' @param timeframe \code{(character)} For the `'v1'` API, one of
+#' \itemize{
+#'  \item{`'m'`/`'min'`/`'minute'`} (`multiplier` can be `1`/`5`/`15`)
+#'  \\item{`'d'`/`'day'`} (`multiplier` will be `1`)
+#' } 
+#' Not case-sensitive.
+#' For the `'v2'` API, `multiplier` can be any `integer` for any one of the following `timeframe`'s:
+#' \itemize{
+#'  \item{`'m'`/`'min'`/`'minute'`}
+#'  \item{`'h'`/`'hour'`}
+#'  \item{`'d'`/`'day'`}
+#'  \item{`'w'`/`'week'`}
+#'  \item{`'M'`/`'mo'`/`'month'`} (*Note* capitalized M for month)
+#'  \item{`'q'`/`'quarter'`}
+#'  \item{`'y'`/`'year'`} 
+#' } 
+#' Case-sensitive
+#' @param multiplier For the `'v1'` API, with `'minute'` `timeframe` one of `1`/`5`/`15`. Otherwise, defaults to `1`.
+#' For the `'v2'` API, this can be any `integer`, also defaults to `1`.
+#' @param from (equivalent to `start` in `'v1'`) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *equal to or after* this time. Default is 7 days ago. 
+#' @param to (equivalent to `end` in `'v1'`) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *equal to or before* this time. Default is today's date.
+#' @param after *`'v1'` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *after* this time. Default is 7 days ago. *Cannot be used with \code{from}*
+#' @param until *`'v1'` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *before* this time. Default is today's date. *Cannot be used with \code{from}*
+#' @param limit *v1 only* \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. *Note:* If \code{full} is set to T, this parameter is ignored and forced to 1000. 
+#' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note:* The `'v1'` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.
+#' @param unadjusted *'v2' only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. Defaults to `FALSE`.
+#' @details All \code{(Date/POSIXlt)} must be in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format. If `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. The `'v2'` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `'v2'`. For the `'v2'` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \link[lubridate]{`floor_date`} and \link[lubridate]{ceiling_date} respectively.
 #' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 #' \itemize{
 #'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
@@ -1130,87 +1107,101 @@ get_clock <- function(version = "v2"){
 #' get_bars(ticker = c("INTC","MSFT"))
 #' # Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 #' get_bars(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", timeframe = "15Min", limit = 175)
-#' @import dplyr stringr magrittr
-#' @importFrom lubridate is.POSIXct
+#' @import dplyr stringr magrittr lubridate
 #' @export
-get_bars <- function(ticker, from = Sys.Date()-6, to = Sys.Date(), timeframe = "1D", limit = NULL){
+
+# Generate the list in the docs:
+# list(m = c("m","min","minute"), h = c("h", "hour"),d = c("d", "day"), w = c("w", "week"), m = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year")) %>% purrr::map(~{paste0("\\item{",paste0(paste0("`'",.x,"'`"), collapse = '/'),"}")}) %>% do.call(c,.) %>% cat(collapse = "\n")
+# For DEBUG
+list2env(
+  list(
+    ticker = c("AMZN"),
+    v = 2,
+    multiplier = 5,
+    timeframe = "m",
+    from = lubridate::ymd("2020-02-28"),
+    to = lubridate::now() - lubridate::days(1),
+    after = NULL,
+    until = NULL,
+    limit = NULL,
+    full = F,
+    unadjusted = F
+  ),
+  envir = .GlobalEnv
+)
+
+
+get_bars <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sys.Date()-7, to = Sys.Date(), after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
   
-  #Set Url & Headers
-  url = "https://data.alpaca.markets" #Pricing data uses unique URL, see market data API documentation to learn more.
-  headers = get_headers()
+  #param check:  Thu Mar 26 08:34:13 2020 ----
+  if(is.null(ticker)){
+    stop("Please enter a stock ticker.")
+  }
+  if((is.null(from) || is.null(to)) && (is.null(start) || is.null(end))){
+    stop("Please enter either 'from' & 'to' or 'after' & 'until' arguments.")
+  }
+  if (!any(v %in% 1:2)) stop("Version 'v' must be either 1 or 2")
   
-  if(!is.null(limit)){ #If a limit value was entered then;
-    #Ensure the limit is set to 1000 or under.
-    if(limit > 1000){
-      stop("Max limit is 1000!")
+  #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
+  .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
+  # Create ordered factor or timeframe options
+  .tf_order <- purrr::map_chr(.tf_opts, tail, 1) %>% {factor(., levels = .)}
+  
+  if (v == 1) {
+    # Get the timeframe
+    timeframe <- tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
+    
+    # Check args
+    if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
+      stop("The v1 API only accepts multipliers of 1,5,15 for the minute timeframe")
+    } else if (timeframe == "day" && multiplier != 1) {
+      message("The v1 API only accepts 1 as a multiplier for day timeframe")
     }
+    
+  } else if (v == 2){
+    timeframe <- tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = F)[1]]], 1)
   }
+  # Get the timeframe as a numeric
+  .tf_num <- which(.tf_order %in% timeframe)
+  # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
+  .bounds <- bars_bounds(from = from, to = to, after = after, until = until)
   
+  message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", .bounds[[1]], "\n'to' coerced to ", .bounds[[2]]))
+  # Stop if malformed date argument with informative message
+  if (any(purrr::map_lgl(.bounds, is.na))) stop(paste0("Error: Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
-  # Timeframe handler - adding a little more flexibility to what the argument can take
-  if (stringr::str_detect(timeframe, stringr::regex("D|d|days?", ignore_case = T))) {
-    timeframe <- "1D"
-  } else if (stringr::str_detect(timeframe, stringr::regex("M|mins?|minutes?"))) {
-    digit <- ifelse(!is.na(stringr::str_extract(timeframe, "^\\d+")), stringr::str_extract(timeframe, "^\\d+"), "1")
-    timeframe <- paste0(digit,"Min")
-  }
-  
-  
-  #Check for multiple tickers or just one
-  ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
-  
-  
-  
-  #Get the trading days in between the sequence
-  week_dates = get_calendar(from,to)$date
-  
-  
-  
-  #Since the max bars requested limit is at 1000, we need to bring the 1000 most recent price dates to match.
-  if(length(week_dates) > 1000){
-    start <- length(week_dates) - 999
-    week_dates <- week_dates[start:length(week_dates)]
-  }
-  
-  
-  
-  #If limit is null then set it according to timeframe.
-  if((timeframe == "1D" | timeframe == "day") & is.null(limit)){
-    limit = length(week_dates)
-  } else if(timeframe == "15Min" & is.null(limit)){
-    limit = 250
-  } else if(timeframe == "5Min" & is.null(limit)){
-    limit = 500
-  } else if((timeframe == "1Min" | timeframe == "minute") & is.null(limit)){
-    limit = 1000
-  }
-  
-  
-  
-  #Get date/time with yyyy-mm-dd HH:MM:SS for timeframes < 1day
-  if(!(timeframe == "1D" | timeframe == "day") & (lubridate::is.POSIXct(from) | lubridate::is.POSIXct(to))){
-    from <- strftime(from, "%Y-%m-%dT%H:%M:%S%z", tz = Sys.timezone())
-    to <- strftime(to, "%Y-%m-%dT%H:%M:%S%z", tz = Sys.timezone())
-  } else if(!(timeframe == "1D" | timeframe == "day")){
-    from = paste0(from,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
-    to = paste0(to,stringr::str_extract(format(Sys.time(), "%Y-%m-%dT%H:%M:%OS%z"), "T.*"))
+  if (full) {
+    if (v == 1) {
+      url <- bars_url(.bounds = .bounds)
+      
+    } else if (v == 2) {
+      # Form the URL
+      url <- bars_url(.bounds = .bounds)
+      # retrieve the data
+      bars <- bars_get(url)
+      .expected <- bars_expected(bars)
+      .missing <- bars_missing(bars)
+      bars <- bars_complete(bars, .missing = .missing)
+    }
   } else {
-    from = paste0(from,"T20:30:00-04:00")
-    to = paste0(to,"T20:30:00-04:00")
+    # Submit request as is for full = F:  Tue Mar 17 21:35:54 2020 ----
+    # Coerce to ISO8601 for call
+    if (v == 1) {
+      # build the URL
+      url <- bars_url(ticker)
+      # retrieve the data
+      bars <- bars_get(url)
+    } else if (v == 2) {
+      # build the URL
+      url <- bars_url(ticker)
+      # retrieve the data
+      bars <- bars_get(url)
+    }
+  # End case where full = F ---- Fri Mar 27 11:19:05 2020
+     
   }
-  
-  
-  
-  #Send Request                                                                                 
-  bars = httr::GET(url = paste0(url,"/v1/bars/",timeframe,"?symbols=",ticker,"&limit=",limit,"&start=",from,"&end=",to), headers)
-  bars = response_text_clean(bars)
-  
   #Rename columns to quantmod standard and reformat time column
-  bars = lapply(bars, function(l){
-    nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(l, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01")) %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
-      dplyr::rename((!!nms))
-  })
+  bars <- bars_transform(bars)
   return(bars)
 }
 #----------------------------------------------------------------------------------------------
@@ -1300,14 +1291,32 @@ get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
 #----------------------------------------------------------------------------------------------
 #' Get Polygon Aggregate Pricing Data
 #' 
-#' This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions.
-#' @param ticker Specify which symbol you want to call by inserting ticker as a string.
-#' @param multiplier Size of the timespan multiplier. Default to 1.
-#' @param timespan Size of the time window i.e "minute", "hour", "day", "week", month", "quarter", or "year". Default to day.
-#' @param from The starting date for the pricing data. 
-#' @param to The ending date for the pricing data. 
-#' @param unadjusted Set to true if the results should NOT be adjusted for splits.
-#' @return A list object containing all information the API responds with. 
+#' This function provides aggregate pricing data from Polygon. Polygon provides consolidated market data. Consolidated stock market data is an aggregated reporting of all securities exchanges’ and alternative trading venues’ quote and trade data. It is the most relied upon type of market data, providing investors and traders globally with a unified view of U.S. stock market prices and volumes. It also underpins the National Best Bid and Offer (NBBO), which provides investors with a continuous view of the best available displayed buy and sell prices, and through Rule 611 ensures that investors receive the best available displayed prices on their trades, with a few exceptions. For more info see the \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Polygon.io API Documentation for the Aggregate endpoint}
+#' @param ticker \code{(character)} Specify which symbol(s) you want to call by inserting ticker(s) as a single string or character vector.
+#' @param multiplier \code{(integer)} Size of the timespan multiplier. Defaults to 1.
+#' @param timespan \code{(character)} Size of the time window i.e "minute" (m), "hour" (h), "day"(d), "week"(w), month"(M/mo), "quarter"(q), or "year"(y). Defaults to day.
+#' @param from \code{(character/Date/POSIXct)} The starting date for the pricing data in the form YYYY-MM-DD. Datetimes/POSIXct will be coerced to Dates. 
+#' @param to \code{(character/Date/POSIXct)} The ending date for the pricing data in the form YYYY-MM-DD. Datetimes/POSIXct will be coerced to Dates.
+#' @param unadjusted \code{(logical)} Set to true if the results should **NOT** be adjusted for splits. Defaults to FALSE.
+#' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+#' \itemize{
+#'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+#'  \item{\code{open}}{  open price as a numeric object.}
+#'  \item{\code{high}}{  high price as a numeric object.}
+#'  \item{\code{low}}{  low price as a numeric object.}
+#'  \item{\code{close}}{  close price as a numeric object.}
+#'  \item{\code{volume}}{  volume (in millions) as a numeric object.}
+#'  \item{\code{vw}}{ weighted volume? *Note:* Polygon does not document what this variable is. }
+#'  \item{\code{n}}{ Number of items in aggregate window }
+#' }
+#' each \code{data.frame} has a "query" attribute with the following metadata for the query returned by the Polygon API (accessed via `attr(df, "query")`):
+#' \itemize{
+#' \item{\code{ticker}} {\code{(string)} Ticker symbol requested}
+#' \item{\code{status}} {\code{(string)} Status of the response}
+#' \item{\code{queryCount}} {\code{(integer)} Number of aggregate ( min or day ) used to generate the response}
+#' \item{\code{resultsCount}} {\code{(integer)} Total number of results generated}
+#' \item{\code{adjusted}} {\code{(logical)} If this response was adjusted for splits}
+#' }
 #' @examples
 #' # Getting default pricing data on AMZN (daily): 
 #' get_poly_agg_quote(ticker = "AMZN",from = "2019-04-01", to = "2019-04-12")
@@ -1317,26 +1326,90 @@ get_meta <- function(ticker=NULL, endpoint=NULL, perpage=NULL,version="v1"){
 #' get_poly_agg_quote("AMZN", from = "2018-01-01", to = "2019-04-12", timespan = "quarter")
 #' # Getting yearly pricing data on AMZN: 
 #' get_poly_agg_quote("AMZN", from = "2015-01-01", to = "2019-12-31", timespan = "year")
+#' @importFrom lubridate as_date
+#' @importFrom purrr map
 #' @export
-get_poly_agg_quote <- function(ticker=NULL,multiplier = 1, timespan = "day", from=NULL, to=NULL, unadjusted=FALSE){
+
+# For DEBUG
+list2env(list(ticker = "AMZN", multiplier = 3, timeframe = "day", from = lubridate::ymd("2019-12-01"), to = lubridate::today(), unadjusted = F), envir = .GlobalEnv)
+get_poly_agg_quote <- function(ticker = NULL, multiplier = 1, timespan = "day", from = NULL, to = NULL, unadjusted = FALSE){
   if(is.null(ticker)){
     stop("Please enter a stock ticker.")
   }
   if(is.null(from) | is.null(to)){
     stop("Please enter a date in the 'from' or 'to' argument.")
   }
-  
+  # quick detection of timespan abbreviations
+  if (timespan == "m") {
+    timespan <- "minute"
+  } else if (timespan == "h") {
+    timespan <- "hour"
+  } else if (timespan == "d") {
+    timespan <- "day"
+  } else if (timespan == "w") {
+    timespan <- "week"
+  } else if (timespan == "M" || timespan == "mo") {
+    timespan <- "month"
+  } else if (timespan == "q") {
+    timespan <- "quarter"
+  } else if (timespan == "y") {
+    timespan <- "year"
+  }
   #Set URL
   path_url = get_url_poly()
-  full_path_url = paste0(path_url,"/v2/aggs/ticker/",ticker,"/range/",multiplier,"/",timespan,"/",from,"/",to,"?unadjusted=",unadjusted,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID"))
   
-  #Send Request
-  agg_quote = httr::GET(url = full_path_url)
-  agg_quote = response_text_clean(agg_quote)
+  # Add names such that output list is labelled
+  names(ticker) <- ticker
   
-  #Create a column for date/time
-  agg_quote$results$t = as.POSIXct(agg_quote$results$t/1000, origin = "1970-01-01")
-  return(agg_quote)
+  agg_quotes <- purrr::map(ticker, ~{
+    agg_quote <- list(results = list(n = NA))
+    .ctr <- 1
+    
+      message(paste0("Retrieving data for: ", .x))
+      full_path_url = paste0(path_url,"/v2/aggs/ticker/",.x,"/range/",multiplier,"/",timespan,"/",lubridate::as_date(from),"/",lubridate::as_date(to),"?unadjusted=",unadjusted,"&apiKey=",Sys.getenv("APCA-LIVE-API-KEY-ID")) 
+      message(paste0("Fetching ", full_path_url))
+      #Send Request
+      agg_quote = httr::GET(url = full_path_url)
+      if (agg_quote$status_code != 200) {
+        message(paste("Ticker", .x, "returned status code", agg_quote$status_code, "- Returning NULL"))
+        return(NULL)
+      }
+      agg_quote = response_text_clean(agg_quote)
+      if (length(agg_quote$results) == 0) {
+        message(paste("Ticker", .x, "returned no data", "- Returning response metadata only"))
+        return(agg_quote[1:5])
+      }
+      # Get the query meta-info returned by the API
+      query <- agg_quote[1:5]
+      # If there are any gaps in the data indicated by NA values for n
+      # if (anyNA(agg_quote$results$n)) {
+      #   # transform to to datetime
+      #   .t = as.POSIXct(agg_quote$results$t/1000, tz = Sys.timezone(), origin = lubridate::origin)
+      #   # Get the cutoff point for full data
+      #   .cutoff <- agg_quote$results$n %>% is.na %>% which %>% {min(.) - 1}
+      #   # Generate a new from date
+      #   from <- lubridate::as_date(.t[.cutoff])
+      #   message(paste("Missing ata detected, re-querying for range:", paste0(c(from,to), collapse = " - ")))
+      #   if (.ctr == 1) {
+      #     results <- agg_quote$results[1:.cutoff,]
+      #   } else {
+      #     results <- cbind.data.frame(results, agg_quote$results)
+      #   }
+      #   
+      #   .ctr <- .ctr + 1
+      # }
+    
+    
+    # Generate new calls, filling in missing data, until no data is missing
+    
+    # convert from nanoseconds to seconds
+    agg_quote$results$t = agg_quote$results$t/1000
+    
+    agg_quote <- bars_transform(agg_quote["results"])$results
+    attr(agg_quote, "query") <- query
+    return(agg_quote)
+  })
+  return(agg_quotes)
 }
 #----------------------------------------------------------------------------------------------
 
@@ -1419,14 +1492,6 @@ get_poly_historic_info <- function(ticker=NULL,type=NULL,date=NULL){
   return(historic)
 }
 #----------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
 
 
 

@@ -6,32 +6,41 @@
 \usage{
 get_bars(
   ticker,
-  from = Sys.Date() - 6,
-  to = Sys.Date(),
+  start = Sys.Date() - 7,
+  end = Sys.Date(),
+  after = NULL,
+  until = NULL,
   timeframe = "1D",
-  limit = NULL
+  limit = NULL,
+  full = F
 )
 }
 \arguments{
 \item{ticker}{\code{(character)} The stock or stocks (in vector format) that you want.}
 
-\item{from}{\code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The starting date for the pricing data. Default is the last 5 trading days.}
+\item{start}{\code{(Date(or POSIXlt)/Datetime(or POSIXct)/character)} in YYYY-MM-DD (HH:MM) \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} Return data *equal to or after* this time. Default is 7 days ago.}
 
-\item{to}{\code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The ending date for the pricing data. Default is todays date.}
+\item{end}{\code{(Date(or POSIXlt)/Datetime(or POSIXct)/character)} in YYYY-MM-DD / YY-MM-DD HH:MM \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} Return data *equal to or before* this time. Default is today's date.}
+
+\item{after}{\code{(Date(or POSIXlt)/Datetime(or POSIXct)/character)} in YYYY-MM-DD (HH:MM) \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} Return data *after* this time. Default is 7 days ago. *Cannot be used with \code{start}*}
+
+\item{until}{\code{(Date(or POSIXlt)/Datetime(or POSIXct)/character)} in YYYY-MM-DD / YY-MM-DD HH:MM \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} Return data *before* this time. Default is today's date. *Cannot be used with \code{end}*}
 
 \item{timeframe}{\code{(character)} One of "minute", "1Min", "5Min", "15Min", "day" or "1D". minute is an alias of 1Min. Similarly, day is of 1D. Defaults to "1D" as a string.}
 
-\item{limit}{\code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults according to timeframe chosen. If timeframe "1D or day" then the limit is set to the # of days. If "15Min" the default is 250, if "5Min" the default is 500, and if "1Min or minute" then the default is the max, 1000.}
+\item{limit}{\code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. *Note:* If \code{full} is set to T, this parameter is ignored and forced to 1000.}
+
+\item{full}{\code{(logical)} If the requested from, to dates/times exceed that which can be returned in a single call of 1000 bars, the API will be called repeatedly to return the **full** dataset. *Note:* The API has a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute.}
 }
 \value{
 \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 \itemize{
- \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
- \item{\code{open}}{  open price as a numeric object.}
- \item{\code{high}}{  high price as a numeric object.}
- \item{\code{low}}{  low price as a numeric object.}
- \item{\code{close}}{  close price as a numeric object.}
- \item{\code{volume}}{  volume (in millions) as a numeric object.}
+\item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+\item{\code{open}}{  open price as a numeric object.}
+\item{\code{high}}{  high price as a numeric object.}
+\item{\code{low}}{  low price as a numeric object.}
+\item{\code{close}}{  close price as a numeric object.}
+\item{\code{volume}}{  volume (in millions) as a numeric object.}
 }
 }
 \description{

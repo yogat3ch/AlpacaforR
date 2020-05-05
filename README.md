@@ -77,6 +77,12 @@ Not all functions require this since some functions use the same URL regardless 
 
 <br>
 
+## A Note on Timezones
+All Dates/Datetimes are forced (See `[lubridate::force_tz](https://lubridate.tidyverse.org/reference/force_tz.html))` to America/New York timezone in which the NYSE operates for Market-Data and Calendar functions. This means that if `[lubridate::now](https://lubridate.tidyverse.org/reference/now.html)` is used to specify 3PM in the local timezone, it will be forced to 3PM in the "America/New_York"" timezone. This eliminates needing to consistently account for timezone conversions when providing inputs to retrieve historical data. If you are looking for real-time quotes, see the Websockets (`ws_create`) & Polygon (`polygon`) functions as they are better suited for obtaining this information.
+
+The `clock` endpoint can also be used to gain an understanding of how the local time compares to "America/New_York." A timezone can be specified to the `tz` argument to determine how the market hours compare to the `tz` hours. If no `tz` argument is provided, and the local timezone differs from "America/New_York" `clock` will automatically provide the local conversion and offset. 
+
+
 ## Getting Your Account
 This is made extremely easy through the `get_account` function, which will return account details such as account id 🆔, portfolio value 💲 , buying power 🔌, cash 💵, cash withdrawable 💸, etc. See `?get_account` for more details or visit the [Account API](https://docs.alpaca.markets/api-documentation/web-api/account/) webpage to learn everything there is to know about the requests and responses for this API.
 
