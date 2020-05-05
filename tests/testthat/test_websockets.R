@@ -16,5 +16,3 @@ test_that("ws_create returns the appropriate websocket object", {
   expect_equal(.ws$ws$readyState()[1], 1)
 })
 
-.ws <- ws_create("Polygon", logfile = T)
-ws_listen(.ws, channel = "AM.BYND")

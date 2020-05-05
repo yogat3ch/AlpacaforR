@@ -1,0 +1,73 @@
+---
+title: "Websockets"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# A Websockets How-to
+```{r}
+.bo <- order_submit("BYND", qty = 1, side = "buy", type = "market")
+.bo <- orders(s = "all")
+sl_percent <- .05
+.bo[1,]$filled_avg_price * (1 - sl_percent)
+.so <- order_submit(.bo[1,]$id, side = "sell", stop = .bo[1,]$filled_avg_price * (1 - sl_percent))
+
+action = rlang::expr({
+  if (!is.null(.o$sym)) {
+    .oo <- orders()
+    .sl <- try(dplyr::filter(.oo, symbol == "AMZN", side == "sell", order_type == "stop"))
+    .sold <- tryCatch(is.null(.r) || class(.r) == "try-error" || nrow(.r) == 0 || length(nrow(.r)) == 0, error = function(e) T)
+    if (.sold) {
+      cat(paste0(.o$sym, " already sold."))
+      # notify yourself with RPushbullet or something
+    } else {
+    assign("slv", .sl$stop, out$env)
+    sl_percent <- .05
+    .slv <- .o$h * (1 - sl_percent)
+    .low <- .o$l
+      # if unsold re-set the stop
+      # get the stoploss
+      if (!is.null(slv)) {
+        # if stop loss is returned, check to see if it needs to be updated
+        if (.slv > slv) {
+          # if it does need to be updated, do so
+          slv <- .slv
+          assign("slv", slv, envir = out$env)
+          # if a replacement order was already placed
+          if (exists(".r", envir = out$env, inherits = F)) {
+            # get that order info
+            .r <- get0(".r", envir = out$env, inherits = F)
+            # update the stop loss
+            .r <- order_submit(.r$id, action = "r", stop = slv)
+            if (isTRUE(grepl(.r$code, "^4"))) {
+              # update the object in the environment
+              assign(".r", .r,  envir = out$env)
+            }
+            
+          } else {
+            # if it's the first  time replacing the order stop, do so
+            .r <- order_submit(.so$id, action = "r", stop = slv)
+            # and save the details
+            assign(".r", .r, envir = out$env)
+          }
+          cat(paste0("Stop updated to: ",slv))
+        }
+        
+      } else {
+        # if sl is not yet saved in the environment, save it
+        slv <- .slv
+        assign("slv", slv, envir = out$env)
+      }
+    }
+  } else {
+    # do nothing
+  }
+})
+.ws <- ws_create("Polygon", logfile = T, logbars = T, action = action)
+.ws$ws$connect()
+ws_listen(.ws, channel = "AM.BYND")
+.ws$ws$close()
+```
+

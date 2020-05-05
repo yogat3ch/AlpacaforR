@@ -297,7 +297,7 @@ submit_orders <- order_submit
 #' @importFrom purrr compact pmap map 
 #' @importFrom dplyr bind_rows
 #' @seealso positions
-#' @export
+n
 order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))

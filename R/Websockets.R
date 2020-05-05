@@ -8,10 +8,17 @@
 #' @param api `(character)` The streaming API to connect to, either `"Alpaca"/"a"` or `"Polygon"/"p"`. 
 #' @param logfile \code{(character/logical)} Either a logical indicating whether to use a logfile (defaults to *"ws_{API}.log"* in the working directory if `TRUE`), where `{API}` is `a/p` depending on the API selected. If you wish to specify a file name & path, this will be the path to and name of the text file where logs for this session will be stored. IE if you want to save all message in `Alpaca.log` in the `"logs"` folder, add `logfile = "logs\Alpaca"`. If `".log"` is not included in the name it will be appended. Tilde path expansion is performed if necessary, see \link[base]{path.expand}. Previous logfiles of the same name will be reused without overwrite. No logs created if `FALSE`. **Default `TRUE`**.
 #' @param logbars `(logical)` *Polygon only* Flag to indicate whether to save streaming tick data from [Polygon.io channels](https://polygon.io/sockets). Tick data is saved into a `.csv` instead of a `.log` file. The filename will be `[Channel].csv` where channel is the name of the channel supplied to the `channel` argument in \code{\link[AlpacaforR]{ws_listen}}. If a path was specified to `logfile`, these CSV will reside in the same directory as the logfile.
-#' @details The function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the `[OBJECT]$ws$close()` method, where `[OBJECT]` is the object returned from `ws_create`. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of two things. 
+#' @param action `(expression)` An R expression, see \code{\link[rlang]{rlang::expr}}. This expression will be executed upon receipt of each message. Useful for setting trailing stop algorithms, or executing an order based on specific criteria. **Note** that all values and objects necessary to the function of the `action` should be defined within the expression. Calls to objects stored in the global environment are likely to cause errors. *Tidy evaluation is supported.* The relevant objects that may be referred to when writing this expression are:
+#' \itemize{
+#'   \item{\code{.o}}{ Data returned in message. For Polygon subscriptions, `.o` is a `data.frame`. See [Polygon - Sockets: Stock Schemas](https://polygon.io/sockets) for the properties specific to each channel.}
+#'   \item{\code{out$env}}{ The environment in the `list` returned by this function.}
+#' }  
+#' @param toConsole `(logical)` Whether to print messages to the console. All open/close/error status messages will be printed by default, but subscribed feed messages may be muted with this argument. Default `TRUE`.
+#' @details The function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the `[OBJECT]$ws$close()` method, where `[OBJECT]` is the object returned from `ws_create`. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of following: 
 #' \enumerate{
+#'  \item{For simple functions, use the `action` argument.}
+#'  \item{Use a background process with \code{\link[later]{later::later}} or \code{\link[callr]{callr::r_bg}} to monitor the `[OBJECT]$env$lastmessage` object or the `[OBJECT]$env$msgs` or `[OBJECT]$env$bars` (Polygon) object and perform an action when a specific message appears.}
 #'  \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions in the `onMessage` method.}
-#'  \item{Use a background process with \code{\link[later]{later}} or \code{\link[callr]{r_bg}} to monitor the `[OBJECT]$env$lastmessage` object or the `[OBJECT]$env$msgs` object and perform an action when a specific message appears.}
 #' }
 #' @return `(list)` With the following objects:
 #' \itemize{
@@ -34,6 +41,7 @@
 #' @importFrom tibble tibble
 #' @importFrom stringr str_split str_remove
 #' @importFrom magrittr `%>%`
+#' @importFrom rlang eval_tidy is_expression
 #' @import websocket
 #' @examples 
 #' \dontrun{
@@ -51,7 +59,7 @@
 #' }
 #' @export
 
-ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
+ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F, action = NULL, toConsole = T) {
   `%>%` <- magrittr::`%>%`
   api <- tolower(substr(api, 0, 1))
   if (!interactive()) stop("ws_create only runs properly in an interactive session")
@@ -100,20 +108,18 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F) {
       .msg <- paste0(purrr::imap_chr(.o, ~{
          .msg <- paste0(.y,": ",.x)
        }), collapse = " | ")
-      
-      
+      # If listening to a subscription channel
+      ws_log(.o, out, logbars, logfile)
     }
-    
-    ws_msg(out, .msg)
+    if (!is.null(action) && rlang::is_expression(action)) rlang::eval_tidy(action)
+    ws_msg(out, .msg, toConsole)
     if (.log)  write(.msg, file = logfile, append = T)
     return(.msg)
   })
   ws$onClose(function(event) {
-    if (event$code == 1000) {
-      .r <- "closed by user" 
-    } else if (event$code == 1006) {
-      .r <- "end of trading hours"
-    }
+    print(event$code)
+    .r <- c(`1000` = "closed by user", `1005` = "no status received", `1006` = "end of trading hours")[as.character(event$code)]
+    
     .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket client disconnected with code: ", event$code,
         " and reason: ", .r, "\n")
     ws_msg(out, .msg)
