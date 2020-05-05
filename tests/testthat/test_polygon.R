@@ -1,9 +1,7 @@
 #' @include internal.R
 #' @include Polygon.R
-library(dplyr)
-library(magrittr)
-library(rlang)
 library(testthat)
+`-` <- lubridate::`.__T__-:base`
 
 context("Test all endpoints accessible from the polygon function")
 
@@ -173,9 +171,11 @@ test_that("Condition Mappings is accessible and returns appropriate data", {
 test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
   .resp <- polygon("Snapshot: All Tickers")
   expect_identical(attr(.resp, "query")$status, "OK")
-  if (polygon("Market Status")$market == "open") {
+  if (polygon("Market Status")$market %in% c("open", "extended-hours")) {
     expect_s3_class(.resp, "tbl")
     expect_length(.resp, 33)
+    expect_s3_class(.resp$updated, "POSIXct")
+    expect_gt(nrow(.resp), 1)
   } else {
     # if the market is closed
   }
@@ -184,9 +184,12 @@ test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
 test_that("Snapshot: Single Ticker is accessible and returns appropriate data", {
   .resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")
   expect_identical(attr(.resp, "query")$status, "OK")
-  if (polygon("Market Status")$market == "open") {
+  if (polygon("Market Status")$market %in% c("open", "extended-hours")) {
     expect_s3_class(.resp, "tbl")
     expect_length(.resp, 33)
+    expect_identical(.resp$ticker, "BYND")
+    expect_s3_class(.resp$updated, "POSIXct")
+    expect_equal(nrow(.resp), 1)
   } else {
     # if the market is closed
   }
@@ -195,11 +198,12 @@ test_that("Snapshot: Single Ticker is accessible and returns appropriate data", 
 test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
   .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
   expect_identical(attr(.resp, "query")$status, "OK")
-  if (polygon("Market Status")$market == "open") {
+  if (polygon("Market Status")$market %in% c("open", "extended-hours")) {
     expect_s3_class(.resp, "tbl")
     expect_length(.resp, 33)
+    expect_s3_class(.resp$lastQuote.t,  "POSIXct")
   } else {
-    # if the market is closed
+  
   }
 })
 
