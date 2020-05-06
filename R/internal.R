@@ -157,11 +157,11 @@ bars_bounds <- function(...) {
     .bounds <- purrr::imap(.bounds, ~{
       if ((.y == "from" || .y == "after") && lubridate::is.Date(.x)){
         # If it's the start/after - use the beginning of the trading day
-        .dt <- lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"))
+        .dt <- lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York")
         
       } else if (lubridate::is.Date(.x)) {
         # If its the end/until - use the end of the trading day
-        .dt <- lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"))
+        .dt <- lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York")
       } else {
         .dt <- .x
       }
@@ -415,7 +415,7 @@ bars_expected <- function(bars, ...) {
       # dat aggregates:
       # 1. computed at close, thus we exclude today
       # 2. start at floor_date Monday 
-      .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), "America/New_York"))
+      .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), "America/New_York")
       
       .expected <- try({seq(.from, .bounds[[2]], by = paste0(.multiplier, " ", .timeframe, "s"))})
       # dates that are trading days (match the .cal) and less than today
@@ -427,7 +427,7 @@ bars_expected <- function(bars, ...) {
     } else if (.tf_num == 5) {
       # Change the day of the month of each expected value to match that of the starting actual value.
       .day <- lubridate::day(.x$time[1])
-      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), "America/New_York"))) %>% purrr::reduce(c)
+      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), "America/New_York")) %>% purrr::reduce(c)
       .exp <- data.frame(expected = .expected) %>% 
         dplyr::mutate(y = lubridate::year(expected),
                       m = lubridate::month(expected))
@@ -450,7 +450,7 @@ bars_expected <- function(bars, ...) {
     }
     
     if (.tf_num > 2) {
-      .expected <- lubridate::force_tz(lubridate::as_date(.expected), tz = "America/New_York"))
+      .expected <- lubridate::force_tz(lubridate::as_date(.expected), tz = "America/New_York")
     }
     .expected <- subset(.expected, subset = .expected >= .bounds[[1]] & .expected <= .cutoff)
     #browser(expr = length(.expected) == 0 || class(.expected) == "try-error")
@@ -534,7 +534,7 @@ bars_get <- function(url, ...) {
       .query <- list()
       .query$status_code <- agg_quote$status_code
       .query$url <- .url
-      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York"))  
+      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York")  
       if (agg_quote$status_code != 200) {
         message(paste("Call", .murl, "returned status code", agg_quote$status_code, "- Returning metadata only"))
         return(append(agg_quote[1:5], values = .query[2:3]))
@@ -630,14 +630,14 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
       .actual <- .x$time
       #browser(expr = class(.actual) == "try-error")
       # get the missing days
-      .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), tz = "America/New_York")))
+      .missing_dates <- try(lubridate::as_datetime(setdiff(.expected, .actual), tz = "America/New_York"))
       #browser(expr = class(.missing_dates) == "try-error")
     }
     if (length(.missing_dates) == 0) return(NULL)
     if (.tf_num < 3) {
-      .missing_dates <- lubridate::with_tz(.missing_dates, "America/New_York"))
+      .missing_dates <- lubridate::with_tz(.missing_dates, "America/New_York")
     } else {
-      .missing_dates <- lubridate::force_tz(.missing_dates, "America/New_York"))
+      .missing_dates <- lubridate::force_tz(.missing_dates, "America/New_York")
     }
     #browser(expr = !any(.actual %in% .expected))
     .any <- length(.missing_dates) > 0
@@ -842,7 +842,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
     #browser(expr = (length(.out[[2]]) == 0 && .any))
     if(any(class(.actual) != class(do.call(c, .out$missing)))) {
       if (lubridate::is.Date(.actual)) {
-        .out$missing <- purrr::map(.out$missing, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York")))
+        .out$missing <- purrr::map(.out$missing, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York"))
       } else {
         #browser()
       }
@@ -878,7 +878,7 @@ bars_transform <- function(bars) {
       return(NULL)
     } 
     nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01") %>%  lubridate::force_tz("America/New_York")))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01", tz = "America/New_York"))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
       dplyr::rename((!!nms))
   })  
 }
@@ -1055,14 +1055,12 @@ response_text_clean <- function(dat){
   return(out)
 }
 
-# pos_transform ----
-# Sun May 03 08:55:27 2020
 #' @title transform positions objects
-#' @family Positions
+#' 
 #' @description Cleans arrays of position objects, and position objects
 #' @keywords internal
 #' @importFrom stringr str_extract
-#' @importFrom rlang abort
+#' @importFrom rlang warn
 #' @importFrom purrr map_dfc
 #' @importFrom tibble as_tibble
 pos_transform <- function(pos) {
@@ -1075,22 +1073,25 @@ pos_transform <- function(pos) {
     .code <- pos$status_code
     #browser()
     .pos <- response_text_clean(pos)
-    .message <- pos$message
+    .message <- .pos$message
   }
+  
   if(any(grepl(pattern = "^4", x = .code))) {
-    rlang::abort(paste("Position was not modified.\n Message:", .message))
+    rlang::warn(paste("Position was not modified.\n Message:", .message))
     return(.pos)
-  } else if (.sym != "positions" && .sym %in% pos$symbol && .method == "DELETE") {
+  } else if (.sym != "positions" && .sym %in% .pos$symbol && .method == "DELETE") {
     message(paste0(.sym, " closed successfully."))
-  } else if (.method == "DELETE" && any(grepl("^2", pos$body$code))) {
+  } else if (.method == "DELETE" && any(grepl("^2", .pos$body$code))) {
     message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$symbol[grepl("^2", .pos$body$code)], collapse = ", ")))
   }
   
   #Check if any pos exist before attempting to return
   if(length(.pos) == 0) {
     message("No positions are open at this time.")
+    out <- .pos
   } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
-    # coerce to numeric in positions objects
+    browser()
+    # coerce to numeric in .positions objects
     .pos[,c(5:6,8:ncol(.pos))] <- purrr::map_dfc(.pos[,c(5:6,8:ncol(.pos))], as.numeric)
     out <- tibble::as_tibble(.pos)
   } else {
@@ -1102,7 +1103,7 @@ pos_transform <- function(pos) {
 }
 
 
- 
+
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
 #' 
@@ -1113,34 +1114,211 @@ toNum <- function(x){
   as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
 }
 
-# orders_transform ----
-# Sun May 03 08:55:15 2020
 #' @title Transform order objects
-#' @family Orders
+#' 
 #' @description Replaces plain text quantities and dates with respective R objects
 #' @param orders A dataframe returned from any orders_* endpoint
 #' @return \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
 #' @keywords internal
-#' @importFrom dplyr mutate_at vars ends_with
+#' @importFrom dplyr mutate_at mutate_if vars ends_with
 #' @importFrom lubridate ymd_hms
 #' @importFrom tibble as_tibble
-#' @importFrom rlang `%||%`
+#' @importFrom rlang `%||%` warn
 #' @importFrom purrr map
 
-orders_transform <- function(orders) {
-  if (is.list(orders) && length(orders) > 0) {
-    orders <- tibble::as_tibble(purrr::map(orders, rlang::`%||%`, NA))
-  } else if (length(orders) == 0) {
-    # if an empty list
-    return(orders)
+orders_transform <- function(o) {
+  if (class(o) == "response") {
+    if (length(o$content) == 0 && grepl("^2", o$status_code)) {
+      message(paste0("Order canceled successfully"))
+    } else if (grepl("^5", o$status_code)) {
+      rlang::warn("Failed to cancel order.")
+    }
+    .method <- o$request$method
+    .code <- o$status_code
+    .o <- response_text_clean(o)
+    .message <- .o$message
+  } else if (class(o) != "response") {
+    .code <- 200
+    .o <- o
   }
-  suppressMessages({
-  suppressWarnings({
-  orders <- dplyr::mutate_at(orders, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-  orders <- dplyr::mutate_if(orders, ~is.character(.) && is.numeric(as.numeric(toNum(.))), list(toNum))  
-  })})
-  orders
+  
+  if (grepl("^4", .code)) {
+    rlang::warn(paste0("Code: ",.code,",\nMessage:", .message))
+    return(.o)
+  }
+  if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && .method == "DELETE")) {
+    if (.method == "DELETE") {.o <- .o$body;.q <- .o[1:2]}
+    .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
+    suppressMessages({
+      suppressWarnings({
+        .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+        out <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
+      })})
+  } else if (length(.o) == 0 && .method == "GET") {
+    message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
+    out <- .o
+  } else if (.method == "DELETE") {
+    # case when deleting single order
+    out <- .o
+  }
+  if (exists(".q", inherits = F)) attr(out, "query") <- .q
+  return(out)
 }
+
+
+#' @title order_check
+#' @description smart detect: type, order_class, extended_hours. Fix names for take_profit, stop_loss if partialled. Throw errors/warnings for specific criteria
+#' @param penv \code{environment} the parent environment, otherwise a named list of arguments from the parent environment
+#' @param ... named arguments. Will automatically get arguments from enclosing environment. 
+#' @return \code{(list)} returns list with appropriate arguments, to be merged with parent environment via `list2env`
+#' @keywords internal
+#' @importFrom rlang abort current_env env_bind env_get caller_env `!!!` `%||%`
+#' @importFrom purrr imap_chr map imap
+#' @importFrom stringr str_count
+order_check <- function(penv = NULL, ...) {
+  # get rlang fns while testing (so you don't have to manually load the package each time)
+  `!!!` <- rlang::`!!!`
+  `%||%` <- rlang::`%||%`
+  # add the arguments to the environment ----
+  # Thu Apr 30 17:29:18 2020
+  .o <- try(list2env(as.list(penv), environment()))
+  if (class(.o) == "try-error"){
+    .vn <- c(ticker_id = "ticker_id", action = "action", type = "type", qty = "qty", side = "side", time_in_force = "time_in_force", limit = "limit", stop = "stop", extended_hours = "extended_hours", client_order_id = "client_order_id", order_class = "order_class", take_profit = "take_profit", stop_loss = "stop_loss")
+    if (rlang::is_named(list(...))) {
+      rlang::env_bind(rlang::current_env(), ...)
+    }
+    if (!all(.vn %in% ls(all.names = T))) {
+      .cev <- rlang::caller_env()
+      rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+    }
+  }
+  # ticker_id ----
+  # Fri May 01 11:15:39 2020
+  # Check if ticker is id
+  .is_id <- tryCatch({
+    .out <- all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36)
+    length(.out) > 0 && .out
+  }, error = function(e) F)
+  if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
+    #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
+    .oo <- orders(ticker_id)
+    if (.oo$side == "buy") {
+      side <- "sell";message("`side` set to 'sell'")
+      if (is.null(qty)) qty <- .oo$qty;message(paste0("`qty` set to ",qty))
+      ticker_id <- .oo$symbol;message(paste0("`ticker_id` set to ",.oo$symbol))
+      if (isTRUE(client_order_id)) client_order_id <- .oo$id;message(paste0("`client_order_id` set to ", .oo$id))
+    }
+  } else if (!isTRUE(.is_id)) {
+    #Convert ticker argument to upper if action is submit
+    ticker_id <- toupper(ticker_id)
+  }
+  # if side is partialled or missing ----
+  # Thu Apr 30 20:32:52 2020
+  if (action == "s") {
+    if (!is.null(side)) {
+      side <- tolower(substr(side, 0, 1))
+      side <- ifelse(side == "b", "buy", "sell")
+    } else if (is.null(side)) {
+      if ((order_class %||% "none") %in% c("bracket", "oto")) {
+        side <- "buy"
+        message("order_class: ", order_class," requires side = 'buy', `side` set to 'buy'.")
+      } else if ((order_class %||% "none") == "oco") {
+        side <- "sell"
+        message("order_class: 'oco' requires side = 'sell', `side` set to 'sell'.")
+      } else {
+        rlang::abort("`side` is required for order submissions.")
+      }
+    }
+    
+    # if quantity is missing ----
+    # Thu Apr 30 20:17:38 2020
+    if (is.null(qty)) {
+      rlang::abort("qty must be set.")
+    }
+    # fix names for take_profit and stop_loss
+    if (!is.null(take_profit)) names(take_profit) <- "limit_price"
+    if (!is.null(stop_loss)) {
+      .n <- purrr::imap_chr(stop_loss, ~{
+        if (grepl("^l", .y, ignore.case = T)) "limit_price" else "stop_price"
+      })
+      names(stop_loss) <- .n
+    }
+    # set type if partialled and order_class is NULL  ----
+    # Thu Apr 30 20:20:16 2020
+    
+    if (!is.null(type) && is.null(order_class)){
+      type <- tolower(type)
+      if (grepl("s", type) && grepl("l", type)) {
+        type <- "stop_limit"
+      } else if (substr(type,1,1) == "s") {
+        type <- "stop"
+      } else if (substr(type,1,1) == "l") {
+        type <- "limit"
+      } else if (substr(type,1,1) == "m") {
+        type <- "market"
+      }
+    } else if ((order_class %||% "none") == "bracket" && (type %||% "none") != "market") {
+      message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
+      type <- "market"
+    } else if ((order_class %||% "none") == "oco" && (type %||% "none") != "limit") {
+      
+      message("order_class: 'oco' requires type = 'limit'. `type` set to 'limit'.")
+      type <- "limit"
+    } else if ((order_class %||% "none") == "oto" && (type %||% "none") != 'market') {
+      message("order_class: 'oto' requires type = 'market'. `type` set to 'market'.")
+      type <- "market"
+    }
+    
+    
+    if (is.null(order_class)) {
+      # smart detect type in the absence of order_class
+      if (is.null(type) && !is.null(limit) && is.null(stop)) {
+        # if just limit is provided
+        if (is.null(stop) && is.null(type)) {
+          type <- "limit";message("`type` set to 'limit'")
+        }
+      } else if (is.null(type) && !is.null(stop) && is.null(limit)) { 
+        # if just stop is provided
+        if (is.null(limit) && is.null(type)) {
+          type <- "stop";message("`type` set to 'stop'")
+        }
+      } else if (!is.null(stop) && !is.null(limit)) {
+        if (is.null(type)) type <- "stop_limit";message("`type` set to 'stop_limit'")
+      } else if (is.null(type)) {
+        rlang::abort("`type` must be set.")
+      }
+      # throw errors if not detected or arguments dont match
+      if (type == "limit" && is.null(limit)){ 
+        rlang::abort(paste0("Please set limit price."))
+      } else if (type == "stop" && is.null(stop)) {
+        rlang::abort(paste0("Please set stop price."))
+      } else if ((is.null(stop) || is.null(limit)) && type == "stop_limit") {
+        rlang::abort(paste0(paste0(unlist(purrr::imap(list(stop = stop, limit = limit), ~{
+          if (is.null(.x)) .y else NULL
+        })), collapse = ", "), " must be set."))
+      } 
+    } else if (!is.null(order_class)) {
+      # if order class is specified, set required arguments accordingly or throw errors
+      # order_class Advanced orders ----
+      # Thu Apr 30 15:05:26 2020  
+      if ((is.null(take_profit) && is.null(stop_loss)) && order_class == "oto") {
+        rlang::abort("`take_profit` or `stop_loss` must have at least one parameter set when order_class = 'oto'")
+      } else if ((is.null(take_profit) || is.null(stop_loss)) && order_class %in% c('oco','bracket')) {
+        rlang::abort("`take_profit` must be set, and `stop_loss` must have at least one parameter set when order_class = 'oco'/'bracket'")
+      }
+      # parameter parsing, error checking & warnings for advanced orders
+      if (order_class == "bracket") {
+        if (!time_in_force %in% c("day","gtc")) {
+          rlang::abort("time_in_force must be 'day' or 'gtc' when `order_class = 'bracket'. See documentation for details.")
+        }
+      } 
+    }
+    if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day" || order_class %in% c("oco","oto", "bracket"))) rlang::abort(paste0("Extended hours only supports simple 'limit' orders and `time_in_force = 'day'`"))
+  } 
+  out <- list(ticker_id = ticker_id, action = action, type = type, qty = qty, side = side, time_in_force = time_in_force, limit = limit, stop = stop, extended_hours = extended_hours, client_order_id = client_order_id, order_class = order_class, take_profit = take_profit, stop_loss = stop_loss)
+}
+
+
 
 # wl_transform ----
 # Sun May 03 08:55:01 2020
@@ -1377,11 +1555,11 @@ poly_transform <- function(resp, ep) {
 #' @importFrom tibble tibble
 #' @importFrom lubridate now
 #' @importFrom stringr str_remove
-ws_msg <- function(out, msg) {
+ws_msg <- function(out, msg, toConsole = T) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
   assign("lastmessage", msg, out$env)
-  cat("Message: ", msg, "\n")
+  if (toConsole) cat("Message: ", msg, "\n")
   if (exists("msgs", out$env)) {
     wsmsg <- get("msgs", out$env)
     wsmsg <- dplyr::bind_rows(wsmsg, tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = stringr::str_remove(msg, "^\\d{4}\\-\\d{2}\\-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\,\\s")))
@@ -1404,8 +1582,8 @@ ws_msg <- function(out, msg) {
 #' @params logbars `(logical)` The flag as to whether to log bars on the drive as CSV or not
 #' @return bars `(tibble)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data points. Additionally, a CSV with the name of the Subscription channel if `logbars = T` in the local or specified directory.
 #' @details The rows of the bars object is halfed if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
-ws_log <- function(.o, out, logbars) {
-  # If listening to a subscription channel & logging bars
+ws_log <- function(.o, out, logbars, logfile) {
+  # If listening to a subscription chacnnel & logging bars
   if (.o$ev %in% c("T", "Q", "A", "AM") && logbars) {
     # Create the name of the CSV log for Polygon channels
     .log_ev <- paste0(stringr::str_remove(logfile, basename(logfile)), paste0(.o$ev,".",.o$sym,".csv"))
