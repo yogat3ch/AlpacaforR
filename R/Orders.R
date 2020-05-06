@@ -170,10 +170,31 @@ get_orders <- orders
 #' @inheritParams account
 #' @inherit orders return
 #' @examples 
+#' # most orders (except limit) must be placed during market hours
 #' # For market order (`type` is assumed to be `"market"` when `stop` and `limit` are not specified):
-#' order_submit(ticker = "AAPL", qty = 100, side = "buy")
+#' (bo <- order_submit("AAPL", qty = 1, side = "buy"))
 #' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
-#' order_submit(ticker = "AAPL", qty = 100, side = "sell", lim = 120)
+#' (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
+#' # cancel an order with `action = "cancel"`
+#' order_submit(so$id, a = "c")
+#' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
+#' (so <- order_submit(bo$id, stop = 120, cli = T))
+#' so$client_order_id == bo$id
+#' # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
+#' order_submit(so$id, a = "r", stop = 123)
+#' # Complex orders can be submitted as well
+#' # Here is an example of setting a "bracket" order
+#' # first retrieve the going price
+#' (.lq <- polygon("lq", symbol = "AMZN"))
+#' # sell if the price moves up 3% by setting `take_profit`
+#' tp <- list(l = .lq$askprice * 1.03)
+#' # hedge risk by setting a stop if it loses 5% and limit if it loses 6% with `stop_loss`
+#' sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
+#' # note that the names of these list items can be partial
+#' (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
+#' # side is assumed to be buy, and type is assumed to be market
+#' # all open orders can be canceled with `action = "cancel_all"`
+#' order_submit(a = "cancel_all")
 #' @importFrom httr POST PATCH DELETE parse_url build_url
 #' @importFrom rlang abort
 #' @importFrom purrr modify_depth compact

@@ -4,8 +4,8 @@
 #' @title Get Positions
 #'
 #' @description The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See [Positions](https://alpaca.markets/docs/api-documentation/api-v2/positions/) for details.
-#' @param tickers `(character)` Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector. Use `"close_all"` to close all positions. 
-#' @param action `(character)` `"get"/"g"` to get all positions or those specified by `tickers`. `"close","c"` to close positions specified by `tickers`. Use `tickers = "close_all"` to close all positions - `action` is automatically set to `"close"` when `tickers = "close_all"`.
+#' @param tickers `(character)` Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector. 
+#' @param action `(character)` `"get"/"g"` to get all positions or those specified by `tickers`. `"close","c"` to close positions specified by `tickers`. Use `"close_all"` to close all positions. 
 #' @inheritParams account
 #' @return Position `(tibble)` [Position object](https://alpaca.markets/docs/api-documentation/api-v2/positions/#position-entity) or array of Position objects of length 0 if no positions, otherwise with length of the number of positions, each with the following attributes: 
 #'\itemize{
@@ -28,19 +28,24 @@
 #' }
 #' @examples 
 #' positions(ticker = "AAPL", live = FALSE)
-#' positions(ticker = "AAPL", live = TRUE)
+#' positions("AAPL", live = TRUE)
 #' positions() # all paper positions
 #' positions(live = TRUE) # all live positions
+#' #close a single position with `action  = "cancel"`
+#' positions("aapl", a = "c")
+#' #cancel all paper positions
+#' positions(a = "cancel_all")
 #' @importFrom httr GET parse_url build_url
 #' @importFrom purrr map_dfr compact
 #' @importFrom tibble as_tibble
 #' @export
 positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
   action <- c(g = "get", c = "close")[substr(action,1,1)]
+  if (is.character(tickers)) tickers <- toupper(tickers)
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .all <- ifelse(length(tickers) == 0, F, tickers == "close_all")
+  .all <- ifelse(action == "close_all", T, F)
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -72,7 +77,7 @@ positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
     pos = httr::GET(url = .url, headers)
     out <- pos_transform(pos)
     if (length(tickers) > 0) {
-      out <- out[out$symbol %in% toupper(tickers),]
+      out <- out[out$symbol %in% tickers,]
     }
   }
   return(out)

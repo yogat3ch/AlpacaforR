@@ -19,6 +19,6 @@ if (.op) {
     expect_message(positions(.p$symbol[1], action = "c"), regexp = paste0(.p$symbol[1], " closed successfully"))
   })
   if (nrow(.p) > 1) {
-    expect_message(.cp <- positions("close_all"), regexp = "All positions closed successfully")
+    expect_message(.cp <- positions(a = "close_all"), regexp = "All positions closed successfully")
   }
 }
