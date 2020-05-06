@@ -1,7 +1,6 @@
 #' @include internal.R
 #' @include Clock.R
 
-library(testthat)
 context("calendar functions correctly")
 test_that("calendar returns the appropriate response", {
   expect_message({.c <- calendar()}, regexp = "from, to arg(s) is/are NULL")

@@ -1,10 +1,8 @@
 #' @import internal.R
 #' @import Orders.R
-#' @importFrom lubridate is.POSIXct
 
-library(testthat)
 context("Test that family: orders throws errors/messages as expected.")
-order_cancel("cancel_all")
+order_submit(a = "cancel_all")
 test_that("orders returns no orders properly.", {
   #assumes no open orders
   expect_message(orders(), regexp = "No open orders for the selected query/filter criteria at this time. Try removing the `ticker_id` filter or setting status = 'all' to see all orders.")

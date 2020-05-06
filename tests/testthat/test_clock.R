@@ -1,7 +1,6 @@
 #' @include internal.R
 #' @include Clock.R
 
-library(testthat)
 context("Clock functions correctly")
 test_that("clock returns the appropriate response", {
   .c <- clock()

@@ -1,7 +1,5 @@
-#' @import Watchlist.R
-#' @import internal.R
-
-library(testthat)
+#' @include Watchlist.R
+#' @include internal.R
 
 context("Watchlist family of functions works as intended.")
 

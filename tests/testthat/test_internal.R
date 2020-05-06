@@ -1,9 +1,8 @@
 #' @include internal.R
-#' @include alpaca4R.R
+#' @include Calendar.R
 library(dplyr)
 library(magrittr)
 library(rlang)
-library(testthat)
 #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
 .tf_opts <-
   list(

@@ -1,9 +1,7 @@
 #' @include internal.R
 #' @include Market-Data.R
 library(dplyr)
-library(magrittr)
-library(rlang)
-library(testthat)
+
 
 # market_data ----
 # Wed Apr 15 16:27:58 2020

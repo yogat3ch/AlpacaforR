@@ -1,7 +1,6 @@
-#' @import Positions.R
-#' @import internal.R
+#' @include  Positions.R
+#' @include internal.R
 
-library(testthat)
 context("Test that the Positions family of functions works properly")
 
 test_that("Positions returns the appropriate data", {

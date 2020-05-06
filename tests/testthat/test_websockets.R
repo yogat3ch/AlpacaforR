@@ -1,6 +1,6 @@
-#' @import Websockets.R
-#' @import internal.R
-library(testthat)
+#' @include Websockets.R
+#' @include internal.R
+
 library(websocket)
 
 context("Websocket tests")

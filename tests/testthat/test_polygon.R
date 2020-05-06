@@ -1,6 +1,6 @@
 #' @include internal.R
 #' @include Polygon.R
-library(testthat)
+
 `-` <- lubridate::`.__T__-:base`
 
 context("Test all endpoints accessible from the polygon function")
