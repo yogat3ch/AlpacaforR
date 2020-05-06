@@ -1580,8 +1580,8 @@ ws_msg <- function(out, msg, toConsole = T) {
 #' @params .o `(list)` The raw message content from the Websocket
 #' @params out `(list)` The ws_create out object
 #' @params logbars `(logical)` The flag as to whether to log bars on the drive as CSV or not
-#' @return bars `(tibble)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data points. Additionally, a CSV with the name of the Subscription channel if `logbars = T` in the local or specified directory.
-#' @details The rows of the bars object is halfed if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
+#' @return bars `(list)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data as a `tibble` for each polygon subscription channel, each named according to the channel from which it came. Additionally, a CSV named by the Subscription channel if `logbars = T` in the local or specified directory with the same data.
+#' @details The rows of the each of the bars objects are halved if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
 ws_log <- function(.o, out, logbars, logfile) {
   # If listening to a subscription chacnnel & logging bars
   if (.o$ev %in% c("T", "Q", "A", "AM") && logbars) {
@@ -1597,13 +1597,19 @@ ws_log <- function(.o, out, logbars, logfile) {
   }
   if (.o$ev %in% c("T", "Q", "A", "AM")) {
     if (!exists("bars", envir = out$env, inherits = F)) {
-      assign("bars", tibble::as_tibble(.o), out$env)
+      bars <- list()
+      bars[[paste0(.o$ev,".",.o$sym)]] <- tibble::as_tibble(.o)
+      assign("bars", bars, out$env)
     } else {
       .bars <- get0("bars", out$env, inherits = F)
-      .bars <- dplyr::bind_rows(.bars, tibble::as_tibble(.o))
+      .nm <- paste0(.o$ev,".",.o$sym)
+      .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], tibble::as_tibble(.o))
       if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
         # half it's size by removing the first half
-        .bars <- .bars[- c(1:(nrow(.bars) %/% 2)),]
+        .bars <- purrr::map(.bars, ~{
+          .x[- c(1:(nrow(.x) %/% 2)),]
+        })
+        
       }
       assign("bars", .bars, out$env)
     }

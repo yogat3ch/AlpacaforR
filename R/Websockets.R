@@ -13,6 +13,7 @@
 #'   \item{\code{.o}}{ Data returned in message. For Polygon subscriptions, `.o` is a `data.frame`. See [Polygon - Sockets: Stock Schemas](https://polygon.io/sockets) for the properties specific to each channel.}
 #'   \item{\code{out$env}}{ The environment in the `list` returned by this function.}
 #' }  
+#' @param aenv \code{(environment)} An environment can be supplied in which `action` will be evaluated. Useful to make variables available to the evaluation of `action` from the global or other environments to avoid overwrite/removal of these dependent variables if they reside in the current global environment. One use case: if certain functions within `action` for a Polygon websocket are triggered by messages from the Alpaca websocket. The associated `env` from the Alpaca websocket list object may be included as a part of this environment such that these functions can be triggered as intended. 
 #' @param toConsole `(logical)` Whether to print messages to the console. All open/close/error status messages will be printed by default, but subscribed feed messages may be muted with this argument. Default `TRUE`.
 #' @details The function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the `[OBJECT]$ws$close()` method, where `[OBJECT]` is the object returned from `ws_create`. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of following: 
 #' \enumerate{
@@ -25,8 +26,12 @@
 #'  \item{`ws`}{`(environment)`  The Websocket environment object.}
 #'  \item{`env`}{`(environment)` Environment in which the `lastmessage` and `tibble` of messages will be stored.}
 #' }
-#' @return `lastmessage` \code{(character)} **Note** An invisible object *assigned to the `env` environment* that can be called explicitly (sending it's name to the console) to return the last message received from the websocket.
-#' @return `msgs` `(tibble)`  object *assigned to the `env` environment* that stores the timestamps `ts` and message content `msg` for all messages received via the websocket. 
+#' Within `env` are the following variables:
+#' \itemize{
+#'   \item{\code{lastmessage}}{ \code{(character)} **Note** An object with the last message received from the websocket.}
+#'  \item{\code{msgs}}{ \code{(tibble)}  object that stores the timestamps `ts` and message content `msg` for all messages received via the websocket.}
+#'  \item{\code{bars}}{ \code{(list)} For Polygon websockets, all channel data are stored in this object as `tibble`s named according to the channel.}
+#' }
 #' @return `logfile` \code{(file)} A file is created in the working directory with the name supplied as the `logfile` argument, if the `logfile` is `TRUE` the name will be `ws.log` with a log for this and all future websocket sessions called with the same `logfile` parameters:
 #' \itemize{
 #'  \item{The time the connection is created}
@@ -59,7 +64,7 @@
 #' }
 #' @export
 
-ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F, action = NULL, toConsole = T) {
+ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F, action = NULL, aenv = NULL, toConsole = T) {
   `%>%` <- magrittr::`%>%`
   api <- tolower(substr(api, 0, 1))
   if (!interactive()) stop("ws_create only runs properly in an interactive session")
@@ -111,7 +116,14 @@ ws_create <- function(api = c("a", "p")[1], logfile = T, logbars = F, action = N
       # If listening to a subscription channel
       ws_log(.o, out, logbars, logfile)
     }
-    if (!is.null(action) && rlang::is_expression(action)) rlang::eval_tidy(action)
+    if (rlang::is_environment(cenv)) {
+      parent.env(aenv) <- environment()
+      .aenv <- aenv
+    } else {
+      .aenv <- environment()
+    }
+    
+    if (!is.null(action) && rlang::is_expression(action)) rlang::eval_tidy(action, env = .aenv)
     ws_msg(out, .msg, toConsole)
     if (.log)  write(.msg, file = logfile, append = T)
     return(.msg)
