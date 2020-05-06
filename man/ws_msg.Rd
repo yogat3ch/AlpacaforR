@@ -4,7 +4,7 @@
 \alias{ws_msg}
 \title{Update Websocket message objects}
 \usage{
-ws_msg(out, msg)
+ws_msg(out, .o = NULL, msg, toConsole = T)
 }
 \description{
 Update Websocket message objects

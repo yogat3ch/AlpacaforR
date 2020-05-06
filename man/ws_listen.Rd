@@ -7,29 +7,12 @@
 ws_listen(ws, channel = NULL, unsub = F)
 }
 \arguments{
-\item{ws}{\code{(list/Websocket)} The websocket list or Websocket object created with \link[AlpacaforR]{\code{ws_create}}.}
-
-\item{channel}{\code{(character)} A character vector of the channel(s) to connect to.
-For an Alpaca websocket object provided to \code{ws} these are:
-\itemize{
-\item{\code{"Account"/"a"}}{\link{Alpaca account stream}(https://alpaca.markets/docs/api-documentation/api-v2}
-\item(\code{"Trade"/"t"}}{\href{https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates}{Alpaca trade stream}
-}
-The Default is to connect to both.
-For a Polygon websocket object provided to \code{ws} these are:
-\href{https://polygon.io/sockets}{Available Channels}:
-\itemize{
-\item{T.* Trades}
-\item{Q.* Quotes}
-\item{A.* Aggregate ( per second )}
-\item{AM.* Aggregate ( per minute )}
-}
-where * is the ticker symbol and the argument is case-insensitive. IE \code{"am.bynd"} will subscribe to by minute aggregates for Beyond Meat. Multiple channels can be subscribed to using a character vector.}
+\item{ws}{\code{(list/Websocket)} The websocket list or Websocket object created with \code{\link[AlpacaforR]{ws_create}}.}
 
 \item{unsub}{\code{(logical)} flag indicating whether to unsubscribe from the arguments provided to \code{channel} \emph{Polygon only}.}
 }
 \value{
-Returns nothing. All received messages are stored according to the parameters provided to \link[AlpacaforR]{\code{ws_create}}.
+Returns nothing. All received messages are stored according to the parameters provided to \code{\link[AlpacaforR]{ws_create}}.
 }
 \description{
 Given the \verb{websocket environment} the function will first authenticate using the environment variables \code{APCA-LIVE-API-KEY-ID} and \code{APCA-LIVE-API-SECRET-KEY}. If these are unset, please see the \href{https://github.com/jagg19/AlpacaforR}{package documentation} for instruction on setting them. Secondly, it will subscribe to any channels specified to the \code{channel} argument. Must be called on each Websocket object individually.
@@ -37,6 +20,7 @@ Given the \verb{websocket environment} the function will first authenticate usin
 \examples{
  \dontrun{
  # must be run in an interactive session
+ # See ?AlpacaforR::ws_create for tutorial on creating a connection
  if (interactive()) {
    if (attr(ws$ws, "api") == "a") {
      # Subscribe to Alpaca trade and account updated by default

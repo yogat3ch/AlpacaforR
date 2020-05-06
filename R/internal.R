@@ -29,7 +29,7 @@ try_date <- function(.x) {
 }
 
 #' @title Create API amenable boundaries based on user input for market_data
-#' @family Market-Data
+
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #'@param from See \code{\link[AlpacaforR]{market_data}}
 #'@param to See \code{\link[AlpacaforR]{market_data}}
@@ -179,7 +179,7 @@ bars_bounds <- function(...) {
 # bars_complete ----
 # Wed Apr 01 17:24:47 2020
 #' @title Query the API as many times as necessary to fill a market_data query
-#' @family Market-Data
+#'
 #' @description This function uses the output from bars_missing and fills the missing data. It's arguments are represented in the first object \code{.vn}. 
 #'@details The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, **all params must be named**. 
 #' @param \code{bars} Returned by \code{bars_get}
@@ -334,7 +334,7 @@ bars_complete <- function(bars, .missing, ...) {
 
 # bars_expected ----
 #' @title Return a Date/Datetime vector that the user expects
-#' @family Market-Data
+#'
 #' @description An internal function for use when param `full = T` in \code{\link[AlpacaforR]{market_data}} that creates a vector of expected Date/Datetimes that are expected from a given call to either v1 or v2 API. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @param bars \code{(list)} (Required) Output from \code{\link[AlpacaforR]{bars_get}}
 #' @param v See \code{\link[AlpacaforR]{market_data}}
@@ -465,7 +465,7 @@ bars_expected <- function(bars, ...) {
 # bars_get ----
 # Sun Mar 29 16:07:49 2020
 #' @title Retrieve market data from the respective API
-#' @family bars
+#'
 #' @description Internal function for retrieving data from Alpaca API and outputting data.frame with query attribute. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @param url \code{(character)} the url rendered by \code{\link[AlpacaforR]{bars_url}}
 #' @return \code{(list)} See \code{\link[AlpacaforR]{market_data}} as the output is the same.
@@ -562,7 +562,7 @@ bars_get <- function(url, ...) {
 # bars_missing ----
 # Sun Mar 29 16:09:40 2020
 #' @title Determine missing values in bars objects
-#' @family Market-Data
+#'
 #' @description Internal function for comparing actual data to expected data and returning missing data. The function is intended for use in an environment where its parameters already exist.  See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}
 #' @param bars Output from \code{\link[AlpacaforR]{bars_get}}
 #' @param v See \code{\link[AlpacaforR]{market_data}}
@@ -863,7 +863,7 @@ bars_missing <- function(bars, ..., .tf_reduce = F) {
 # bars_transform ----
 # Sun Mar 29 16:09:30 2020
 #' @title Transform bars objects
-#' @family Market-Data
+#'
 #' 
 #' @description Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
@@ -888,7 +888,7 @@ bars_transform <- function(bars) {
 # bars_url ----
 # Sun Mar 29 16:07:34 2020
 #' @title Create URLs for market_data endpoints
-#' @family Market-Data
+#'
 #'
 #' @description Internal function for generating query urls. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @param ticker See \code{\link[AlpacaforR]{market_data}}
@@ -1123,8 +1123,8 @@ pos_transform <- function(pos) {
 #' @description transform account activities
 #' @param resp Reponse from account_activities endpoint
 #' @keywords internal
-#' @importFrom dplyr mutate_at vars
-#' @importFrom rlang warn `%>%`
+#' @importFrom dplyr mutate_at vars `%>%`
+#' @importFrom rlang warn
 #' @importFrom stringr str_extract
 #' @importFrom lubridate as_datetime
 #' @importFrom tibble as_tibble
@@ -1381,7 +1381,7 @@ order_check <- function(penv = NULL, ...) {
 # wl_transform ----
 # Sun May 03 08:55:01 2020
 #' @title Transform watchlist objects
-#' @family Watchlist
+#'
 #' @description Replaces timestamps with POSIXct in watchlist info
 #' @param wl The watchlist object
 #' @return \code{(tibble)} with respective R compliant objects (POSIXct)
@@ -1445,7 +1445,7 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 # wl_nm2id ----
 # Sun May 03 08:54:50 2020
 #' @title Look up watchlist id from name
-#' @family Watchlist
+#'
 #' @description fetch the watchlist id corresponding to a watchlist name
 #' @param nm \code{(character)} *required* the name of the watchlist
 #' @inheritParams account
@@ -1494,7 +1494,7 @@ wl_nm2id <- function(nm, ..., e = environment()) {
 
 # poly_transform ----
 # Sun May 03 08:54:26 2020
-#' @family Polygon
+#'
 #' @title transform polygon.io reference endpoints
 #' @keywords internal 
 #' @description coerce data objects returned from the various polygon.io endpoints to R compliant objects
@@ -1613,7 +1613,7 @@ poly_transform <- function(resp, ep) {
 #' @importFrom tibble tibble
 #' @importFrom lubridate now
 #' @importFrom stringr str_remove
-ws_msg <- function(out, msg, toConsole = T) {
+ws_msg <- function(out, .o = NULL, msg, toConsole = T) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
   assign("lastmessage", msg, out$env)
@@ -1630,21 +1630,59 @@ ws_msg <- function(out, msg, toConsole = T) {
   } else {
     assign("msgs", tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = msg), out$env)
   }
+  if (!is.null(.o)) {
+    if (.o$ev %in% c("T", "Q", "A", "AM")) {
+      if (!exists("bars", envir = out$env, inherits = F)) {
+        bars <- list()
+        bars[[paste0(.o$ev,".",.o$sym)]] <- tibble::as_tibble(.o)
+        assign("bars", bars, out$env)
+      } else {
+        .bars <- get0("bars", out$env, inherits = F)
+        .nm <- paste0(.o$ev,".",.o$sym)
+        .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], tibble::as_tibble(.o))
+        if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
+          # half it's size by removing the first half
+          .bars <- purrr::map(.bars, ~{
+            .x[- c(1:(nrow(.x) %/% 2)),]
+          })
+        }
+        assign("bars", .bars, out$env)
+      }
+    }
+  }
 }
-#' @family Websockets
+
 #' @keywords internal
 #' @title ws_log
 #' @description Performs logging of streaming bars data based on input options to ws_create
-#' @params .o `(list)` The raw message content from the Websocket
-#' @params out `(list)` The ws_create out object
-#' @params logbars `(logical)` The flag as to whether to log bars on the drive as CSV or not
+#' @param .o `(list)` The raw message content from the Websocket
+#' @param out `(list)` The ws_create out object
+#' @param log_bars `(logical)` The flag as to whether to log bars on the drive as CSV or not
 #' @return bars `(list)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data as a `tibble` for each polygon subscription channel, each named according to the channel from which it came. Additionally, a CSV named by the Subscription channel if `logbars = T` in the local or specified directory with the same data.
 #' @details The rows of the each of the bars objects are halved if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
-ws_log <- function(.o, out, logbars, logfile) {
+#' @importFrom rlang `!!!` is_named env_get env_bind current_env caller_env
+#' @importFrom purrr map
+ws_log <- function(..., penv = NULL) {
+  if (!.log) return(NULL) # stop if no logging
+  `!!!` <- rlang::`!!!`
+  # add the arguments to the environment ----
+  # Thu Apr 30 17:29:18 2020
+  .e <- try(list2env(as.list(penv), environment()))
+  if (class(.e) == "try-error"){
+    .vn <- c(.o = ".o", .log = ".log", .msg = ".msg", out = "out", log_bars = "log_bars", log_msgs = "log_msgs", log_path = "log_path", logfile = "logfile")
+    if (rlang::is_named(list(...))) {
+      rlang::env_bind(rlang::current_env(), ...)
+    }
+    if (!all(.vn %in% ls(all.names = T))) {
+      .cev <- rlang::caller_env()
+      rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
+      browser(expr = !all(.vn %in% ls(all.names = T)))
+    }
+  }
   # If listening to a subscription chacnnel & logging bars
-  if (.o$ev %in% c("T", "Q", "A", "AM") && logbars) {
+  if (.o$ev %in% c("T", "Q", "A", "AM") && log_bars) {
     # Create the name of the CSV log for Polygon channels
-    .log_ev <- paste0(stringr::str_remove(logfile, basename(logfile)), paste0(.o$ev,".",.o$sym,".csv"))
+    .log_ev <- paste0(log_path, paste0(.o$ev,".",.o$sym,".csv"))
     
     # if the file doesnt exist, create it
     if (!file.exists(.log_ev)) {
@@ -1653,24 +1691,6 @@ ws_log <- function(.o, out, logbars, logfile) {
     } 
     write(paste0(paste0(.o, collapse = ", "),"\n"), file = .log_ev, append = T)
   }
-  if (.o$ev %in% c("T", "Q", "A", "AM")) {
-    if (!exists("bars", envir = out$env, inherits = F)) {
-      bars <- list()
-      bars[[paste0(.o$ev,".",.o$sym)]] <- tibble::as_tibble(.o)
-      assign("bars", bars, out$env)
-    } else {
-      .bars <- get0("bars", out$env, inherits = F)
-      .nm <- paste0(.o$ev,".",.o$sym)
-      .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], tibble::as_tibble(.o))
-      if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
-        # half it's size by removing the first half
-        .bars <- purrr::map(.bars, ~{
-          .x[- c(1:(nrow(.x) %/% 2)),]
-        })
-        
-      }
-      assign("bars", .bars, out$env)
-    }
-    
-  }
+  
+  if (log_msgs) write(.msg, file = logfile, append = T)
 }

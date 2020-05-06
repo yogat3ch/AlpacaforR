@@ -8,14 +8,14 @@
 \usage{
 positions(tickers = NULL, action = "get", live = FALSE, v = 2)
 
-get_positions(ticker = NULL, live = FALSE, version = "v2")
+get_positions(tickers = NULL, action = "get", live = FALSE, v = 2)
 
 close_all_positions(live = FALSE)
 }
 \arguments{
-\item{tickers}{\code{(character)} Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector. Use \code{"close_all"} to close all positions.}
+\item{tickers}{\code{(character)} Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector.}
 
-\item{action}{\code{(character)} \code{"get"/"g"} to get all positions or those specified by \code{tickers}. \verb{"close","c"} to close positions specified by \code{tickers}. Use \code{tickers = "close_all"} to close all positions - \code{action} is automatically set to \code{"close"} when \code{tickers = "close_all"}.}
+\item{action}{\code{(character)} \code{"get"/"g"} to get all positions or those specified by \code{tickers}. \verb{"close","c"} to close positions specified by \code{tickers}. Use \code{"close_all"} to close all positions.}
 
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 
@@ -51,9 +51,13 @@ Deprecated. Please use \link[AlpacaforR]{\code{positions}} with `tickers = 'clos
 }
 \examples{
 positions(ticker = "AAPL", live = FALSE)
-positions(ticker = "AAPL", live = TRUE)
+positions("AAPL", live = TRUE)
 positions() # all paper positions
 positions(live = TRUE) # all live positions
+#close a single position with `action  = "cancel"`
+positions("aapl", a = "c")
+#cancel all paper positions
+positions(a = "cancel_all")
 get_positions()
 close_all_positions(live = FALSE)
 close_all_positions()

@@ -25,14 +25,4 @@ bars_expected(bars, ...)
 \description{
 An internal function for use when param \code{full = T} in \code{\link[AlpacaforR]{market_data}} that creates a vector of expected Date/Datetimes that are expected from a given call to either v1 or v2 API. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the \emph{Details} section for \code{\link[AlpacaforR]{bars_complete}}.
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_complete}()},
-\code{\link{bars_get}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_transform}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

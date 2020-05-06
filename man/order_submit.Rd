@@ -2,41 +2,90 @@
 % Please edit documentation in R/Orders.R
 \name{order_submit}
 \alias{order_submit}
-\title{Submit Orders}
+\title{Submit, Cancel & Replace Orders,}
 \usage{
 order_submit(
-  ticker,
-  qty,
-  side,
+  ticker_id,
+  action = "submit",
+  qty = NULL,
+  side = NULL,
   type = NULL,
   time_in_force = "day",
-  limit_price = NULL,
-  stop_price = NULL,
-  extended_hours = FALSE,
+  limit = NULL,
+  stop = NULL,
+  extended_hours = NULL,
+  client_order_id = NULL,
+  order_class = NULL,
+  take_profit = NULL,
+  stop_loss = NULL,
   live = FALSE,
   v = 2
 )
 }
 \arguments{
-\item{ticker}{\code{(character)} \emph{required} The stock's symbol.}
+\item{ticker_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order ID (\emph{Required} when\code{action = "cancel"/"replace"}).
+To expedite the setting of stops and limits for open positions, if an Order ID from a \code{'buy'} order is provided when \code{action = "submit"}, then a \code{'sell'} order will be populated with the following parameters such that they do not need to be set:
+\itemize{
+\item{\code{side = 'sell'}}
+\item{If \code{qty} is not provided, it will be populated from the buy order}
+\item{\code{ticker_id} will be set to the symbol from the buy order.}
+\item{If \code{client_order_id = TRUE}, the \code{client_order_id} will be set to the buy Order ID provided, effectively linking the orders for your records.}
+\item{All other parameters can be specified as usual.}
+}}
 
-\item{qty}{\code{(integer)} \emph{required} The amount of shares to trade.}
+\item{action}{\code{(character)} The action to take:
+\itemize{
+\item{\code{"submit"/"s"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#request-a-new-order}{Request a new order} \strong{Default}}
+\item{\code{"replace"/"r"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#replace-an-order}{Replace an order}}
+\item{\code{"cancel"/"c"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#cancel-an-order}{Cancel an order}}
+\item{\code{"cancel_all"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#cancel-all-orders}{Cancel all orders}}
+}}
 
-\item{side}{\code{(character)} \emph{required} The side of the trade. I.E "buy" or "sell"}
+\item{qty}{\code{(integer)} The amount of shares to trade (\emph{required} when \code{action = "submit"}, \emph{optional} when \code{action = 'replace'}).}
 
-\item{type}{\code{(character)} The type of trade order. I.E "market","limit","stop","stop_limit", etc. This argument is assumed to be "market" unless a \code{limit_price}, \code{stop_price}, or both are set. If only \code{limit} is set, "limit" is assumed to be the type. If only \code{stop} is set, "stop" is assumed to be the type. If both are set "stop_limit" is assumed to be the type. If this argument is specified, and the requisite arguments are not set, the function will stop with error.}
+\item{side}{\code{(character)} The side of the trade. I.E \code{"buy"/"b"} or \code{"sell"/"s"}. (\emph{required} when \code{action = "submit"}). Assumed to be \code{"buy"} if \code{order_class = "bracket"}.}
 
-\item{time_in_force}{\code{(character)} The time in force for the order. I.E "day", "gtc", "opg". In the V2 API, Immediate Or Cancel (IOC) & Fill or Kill (FOK) is added. Default is "day". Please see \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force}{Understand Orders} for more info.}
+\item{type}{\code{(character)} The type of trade order. I.E \code{"market"/"m"},\code{"limit"/"l"},\code{"stop"/"s"},\code{"stop_limit"/"sl"}, etc. Default \code{NULL}. Typically \emph{required} except in certain situations where it can be assumed:
+\itemize{
+\item{\code{stop} is set}{ \code{type = "stop"}}
+\item{\code{limit} is set}{ \code{type = "limit"}}
+\item{\code{stop} & \code{limit} are set}{ \code{type = "stop_limit"}}
+\item{\code{order_class = "bracket"}}{ \code{type = "market"}}
+\item{\code{order_class = "oco"}}{ \code{type = "limit"}}
+\item{\code{order_class = "oto"}}{ \code{type = "market"}}
+}
+See \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{Understand Orders} for details.}
 
-\item{extended_hours}{\code{(logical)} Default: \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Only works with type limit and time_in_force day on the V2 API.}
+\item{time_in_force}{\code{(character)} The time in force for the order. \emph{Optional} when \code{action = "replace"}. Args can be \code{"day"}, \code{"gtc"}, \code{"opg"} etc. Default \code{"day"}. Please see \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force}{Understand Orders: Time in Force} for all types and more info. Must be \code{"day"} or \code{"gtc"} for \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{Advanced Orders}.}
+
+\item{limit}{\code{(numeric)} limit price. \emph{Required} if type is \code{"limit"} or \code{"stop_limit"} for \code{action = 'replace'/'submit'}.}
+
+\item{stop}{\code{(numeric)} stop price. \emph{Required} if type is \code{"stop"} or \code{"stop_limit"} for \code{action = 'replace'/'submit'}.}
+
+\item{extended_hours}{\code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with \code{type = 'limit'} and \code{time_in_force = 'day'} on the V2 API.}
+
+\item{client_order_id}{\code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
+\itemize{
+\item{\code{`action = 'replace'/'submit'`}}{ \emph{Optional} character vector}
+\item{\code{`action = 'submit'`}}{ If an Order ID is provided to \code{ticker_id}, this can be a \code{(logical)} to indicate whether the \code{client_order_id} should be set as the Order ID to effectively link the associated buy & sell orders for your records.}
+}}
+
+\item{order_class}{\code{(character)} \code{'simple'}, \code{'bracket'}, \code{'oco'} or \code{'oto'}. \emph{Required for advanced orders.} For details of non-simple order classes, please see \href{https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders}{Advanced Orders}. If \code{order_class = 'bracket'}, \code{type} can be omitted as it will always be \code{'market'}, this is also true with \code{order_class = "oco"} as \code{type} will always be \code{'limit'}. \emph{Note} that order replacement is not supported for all orders placed with \code{order_class = 'bracket'}.}
+
+\item{take_profit}{\code{(named list)} Additional parameters for take-profit leg of advanced orders:
+\itemize{
+\item{\code{'limit_price'/'l'}}{ \code{numeric} \strong{required} for \code{'bracket'} & \code{'oco'} order classes.}
+}}
+
+\item{stop_loss}{\code{(named list)} Additional parameters for stop-loss leg of advanced orders
+\itemize{
+\item{\code{stop_price/s}}{ \code{numeric} \strong{required} for bracket orders}
+\item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. \strong{Required} for \code{'bracket'} & \code{'oco'} order classes}
+}}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 
 \item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
-
-\item{limit}{\code{(numeric)} If order type was a limit, then enter the limit price here.}
-
-\item{stop}{\code{(numeric)} If order type was a stop, then enter the stop price here.}
 }
 \value{
 Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#order-entity}{Order object} or Array of Order Objects with the following information:
@@ -73,19 +122,46 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 }
 \description{
-Places a new order of the specified stock, quantity, buy / sell, type of order, time in force, and limit / stop prices if selected. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#request-a-new-order}{Orders: POST}.
+Places/Replaces/Cancels an order, or cancels all orders depending on argument to \code{action}. See parameter documentation and \href{https://alpaca.markets/docs/api-documentation/api-v2/orders}{Orders} for details.
+\itemize{
+\item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are \emph{required}.}
+\item{\code{action = 'replace'}}{ \code{qty}, \code{time_in_force}, \code{limit}, \code{stop}, \code{client_order_id} are all eligible. Only one is \emph{required}.}
+\item{\code{action = 'cancel'}}{ Only \code{ticker_id} is \emph{required}.}
+\item{\code{action = 'cancel_all'}}{ No arguments necessary.}
+}
 }
 \examples{
-# For market order (`type` is assumed to be "market" when `stop_price` and `limit_price` are not specified):
-order_submit(ticker = "AAPL", qty = 100, side = "buy")
-# Or you can submit a limit order (`type` is assumed to be "limit" when only `limit_price` is set):
-order_submit(ticker = "AAPL", qty = 100, side = "sell", lim = 120)
+# most orders (except limit) must be placed during market hours
+# For market order (`type` is assumed to be `"market"` when `stop` and `limit` are not specified):
+(bo <- order_submit("AAPL", qty = 1, side = "buy"))
+# Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
+(so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
+# cancel an order with `action = "cancel"`
+order_submit(so$id, a = "c")
+# expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
+(so <- order_submit(bo$id, stop = 120, cli = T))
+so$client_order_id == bo$id
+# replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
+order_submit(so$id, a = "r", stop = 123)
+# Complex orders can be submitted as well
+# Here is an example of setting a "bracket" order
+# first retrieve the going price
+(.lq <- polygon("lq", symbol = "AMZN"))
+# sell if the price moves up 3\% by setting `take_profit`
+tp <- list(l = .lq$askprice * 1.03)
+# hedge risk by setting a stop if it loses 5\% and limit if it loses 6\% with `stop_loss`
+sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
+# note that the names of these list items can be partial
+(br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
+# side is assumed to be buy, and type is assumed to be market
+# all open orders can be canceled with `action = "cancel_all"`
+order_submit(a = "cancel_all")
 }
 \seealso{
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},
-\code{\link{orders_get}()},
+\code{\link{orders}()},
 \code{\link{submit_orders}()}
 }
 \concept{Orders}

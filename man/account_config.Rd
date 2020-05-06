@@ -16,14 +16,24 @@ account_config(
   v = 2
 )
 
-get_config(live = FALSE)
+get_config(
+  dtbp_check = NULL,
+  no_shorting = NULL,
+  pdt_check = NULL,
+  suspend_trade = NULL,
+  trade_confirm_email = NULL,
+  live = FALSE,
+  v = 2
+)
 
 set_config(
+  dtbp_check = NULL,
+  no_shorting = NULL,
+  pdt_check = NULL,
+  suspend_trade = NULL,
+  trade_confirm_email = NULL,
   live = FALSE,
-  dtbp_check = "entry",
-  no_shorting = FALSE,
-  suspend_trade = FALSE,
-  trade_confirm_email = "all"
+  v = 2
 )
 }
 \arguments{

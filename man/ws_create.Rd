@@ -4,42 +4,64 @@
 \alias{ws_create}
 \title{ws_create: Create a Websocket to the Alpaca or Polygon API}
 \usage{
-ws_create(api = c("a", "p")[1], logfile = T, logbars = F)
+ws_create(
+  api = c("a", "p")[1],
+  log_msgs = T,
+  log_bars = F,
+  log_path = "",
+  action = NULL,
+  aenv = NULL,
+  toConsole = T
+)
 }
 \arguments{
 \item{api}{\code{(character)} The streaming API to connect to, either \code{"Alpaca"/"a"} or \code{"Polygon"/"p"}.}
 
-\item{logfile}{\code{(character/logical)} Either a logical indicating whether to use a logfile (defaults to \emph{"ws_{API}.log"} in the working directory if \code{TRUE}), where \code{{API}} is \code{a/p} depending on the API selected. If you wish to specify a file name & path, this will be the path to and name of the text file where logs for this session will be stored. IE if you want to save all message in \code{Alpaca.log} in the \code{"logs"} folder, add \code{logfile = "logs\\Alpaca"}. If \code{".log"} is not included in the name it will be appended. Tilde path expansion is performed if necessary, see \link[base]{path.expand}. Previous logfiles of the same name will be reused without overwrite. No logs created if \code{FALSE}. \strong{Default \code{TRUE}}.}
+\item{log_msgs}{\code{(logical/character)} A logical indicating whether to use a log file for websocket messages (defaults to \emph{"ws_{API}.log"} in the working directory if \code{TRUE}), where \code{{API}} is \code{a/p} depending on the API selected. Can also be the name of the text file where logs for this session will be stored. IE if you want to save all messages in \code{Alpaca.log} in the working directory, set \code{log_msgs = "Alpaca"}. If \code{".log"} is not included in the name it will be appended. Previous logfiles of the same name will be reused without overwrite. No logs created if \code{FALSE}. \strong{Default \code{TRUE}}. If a path is specified to \code{log_path}, the logs will reside in this directory.}
 
-\item{logbars}{\code{(logical)} \emph{Polygon only} Flag to indicate whether to save streaming tick data from \href{https://polygon.io/sockets}{Polygon.io channels}. Tick data is saved into a \code{.csv} instead of a \code{.log} file. The filename will be \verb{[Channel].csv} where channel is the name of the channel supplied to the \code{channel} argument in \code{\link[AlpacaforR]{ws_listen}}. If a path was specified to \code{logfile}, these CSV will reside in the same directory as the logfile.}
+\item{log_bars}{\code{(logical)} \emph{Polygon only} Flag to indicate whether to save streaming tick data from \href{https://polygon.io/sockets}{Polygon.io channels}. Tick data is saved into a \code{.csv} instead of a \code{.log} file. The filename will be \verb{[Channel].csv} where channel is the name of the channel supplied to the \code{channel} argument in \code{\link[AlpacaforR]{ws_listen}}. If a path is specified to \code{log_path}, the CSV will reside in this directory.}
+
+\item{log_path}{\code{(character)} The path where the .log (for log_msgs) or .csv (for log_bars) files are to be stored. Tilde path expansion is supported, see \code{\link[base]{path.expand}}.}
+
+\item{action}{\code{(expression)} An R expression, see \code{\link[rlang]{rlang::expr}}. This expression will be executed upon receipt of each message. Useful for setting trailing stop algorithms, or executing an order based on specific criteria. \strong{Note} that all values and objects necessary to the function of the \code{action} should be defined within the expression. Calls to objects stored in the global environment are likely to cause errors. \emph{Tidy evaluation is supported.} The relevant objects that may be referred to when writing this expression are:
+\itemize{
+\item{\code{.o}}{ Data returned in message. For Polygon subscriptions, \code{.o} is a \code{data.frame}. See \href{https://polygon.io/sockets}{Polygon - Sockets: Stock Schemas} for the properties specific to each channel.}
+\item{\code{out$env}}{ The environment in the \code{list} returned by this function.}
+}}
+
+\item{aenv}{\code{(environment)} An environment can be supplied in which \code{action} will be evaluated. Useful to make variables available to the evaluation of \code{action} from the global or other environments to avoid overwrite/removal of these dependent variables if they reside in the current global environment. One use case: if certain functions within \code{action} for a Polygon websocket are triggered by messages from the Alpaca websocket. The associated \code{env} from the Alpaca websocket list object may be included as a part of this environment such that these functions can be triggered as intended.}
+
+\item{toConsole}{\code{(logical)} Whether to print messages to the console. All open/close/error status messages will be printed by default, but subscribed feed messages may be muted with this argument. Default \code{TRUE}.}
 }
 \value{
 \code{(list)} With the following objects:
 \itemize{
-\item{\code{ws}}{\code{(environment)}  The Websocket environment object.}
-\item{\code{env}}{\code{(environment)} Environment in which the \code{lastmessage} and \code{tibble} of messages will be stored.}
+\item{\code{ws}}{ \code{(environment)}  The Websocket environment object.}
+\item{\code{env}}{ \code{(environment)} Environment in which the \code{lastmessage} and \code{tibble} of messages will be stored.}
 }
-
-\code{lastmessage} \code{(character)} \strong{Note} An invisible object \emph{assigned to the \code{env} environment} that can be called explicitly (sending it's name to the console) to return the last message received from the websocket.
-
-\code{msgs} \code{(tibble)}  object \emph{assigned to the \code{env} environment} that stores the timestamps \code{ts} and message content \code{msg} for all messages received via the websocket.
-
-\code{logfile} \code{(file)} A file is created in the working directory with the name supplied as the \code{logfile} argument, if the \code{logfile} is \code{TRUE} the name will be \code{ws.log} with a log for this and all future websocket sessions called with the same \code{logfile} parameters:
+Within \code{env} are the following variables:
 \itemize{
-\item{The time the connection is created}
-\item{The time and content of each message}
-\item{The time the connection is closed}
+\item{\code{lastmessage}}{ \code{(character)} \strong{Note} An object with the last message received from the websocket.}
+\item{\code{msgs}}{ \code{(tibble)}  object that stores the timestamps \code{ts} and message content \code{msg} for all messages received via the websocket.}
+\item{\code{bars}}{ \code{(list)} For Polygon websockets, all channel data are stored in this object as \code{tibble}s named according to the channel.}
 }
-If \code{logfile} is FALSE, no log file will be created.
 }
 \description{
 The \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca Streaming API} provides Trade & Account updates, while the \href{https://polygon.io/sockets}{Polygon Websocket API} offers Trade, Quote, Aggregate (per second) and Aggregate (per minute) streaming.
 }
 \details{
-The function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the \verb{[OBJECT]$ws$close()} method, where \verb{[OBJECT]} is the object returned from \code{ws_create}. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of two things.
+If log_msgs is \code{TRUE} or a file name is provided, the .log file will contain:
+\itemize{
+\item{The time the connection is created}
+\item{The time and content of each message}
+\item{The time the connection is closed}
+}
+This log file can be read with \code{\link[base]{readLines}} or \code{\link[utils]{read.csv}}.
+If \code{log_msgs} is FALSE, no log file will be created. This function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the \verb{[OBJECT]$ws$close()} method, where \verb{[OBJECT]} is the object returned from \code{ws_create}. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of following:
 \enumerate{
+\item{For simple functions, use the \code{action} argument.}
+\item{Use a background process with \code{\link[later]{later::later}} or \code{\link[callr]{callr::r_bg}} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
 \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions in the \code{onMessage} method.}
-\item{Use a background process with \code{\link[later]{later}} or \code{\link[callr]{r_bg}} to monitor the \verb{[OBJECT]$env$lastmessage} object or the \verb{[OBJECT]$env$msgs} object and perform an action when a specific message appears.}
 }
 }
 \examples{
@@ -48,8 +70,10 @@ The function allows a simple set-up for the majority of use cases. The connectio
 if (interactive()) {
   # Create the Alpaca Websocket and message environment. 
   ws <- ws_create("a")
+  ws$ws$connect()
   # Create the Polygon websocket and message environment, with ticks being logged.
-  wsp <- ws_create("p", logbars = T)
+  wsp <- ws_create("p", log_bars = T)
+  wsp$ws$connect()
   # if you're unable to remember which API the ws object corresponds to:
   attr(ws$ws, "api")
 }

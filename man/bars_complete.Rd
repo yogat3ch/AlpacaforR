@@ -17,14 +17,4 @@ This function uses the output from bars_missing and fills the missing data. It's
 \details{
 The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, \strong{all params must be named}.
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_get}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_transform}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

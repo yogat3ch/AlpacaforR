@@ -16,15 +16,31 @@ watchlist(
   v = 2
 )
 
-create_watchlist(name = NULL, tickers = c(NULL), live = FALSE)
+create_watchlist(
+  watchlist_id = NULL,
+  name = NULL,
+  tickers = NULL,
+  action = NULL,
+  live = FALSE,
+  v = 2
+)
 
-get_watchlist(watchlist_id = NULL, live = FALSE)
+get_watchlist(
+  watchlist_id = NULL,
+  name = NULL,
+  tickers = NULL,
+  action = NULL,
+  live = FALSE,
+  v = 2
+)
 
 update_watchlist(
   watchlist_id = NULL,
   name = NULL,
-  tickers = c(NULL),
-  live = FALSE
+  tickers = NULL,
+  action = "add",
+  live = FALSE,
+  v = 2
 )
 }
 \arguments{

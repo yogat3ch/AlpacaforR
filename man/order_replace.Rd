@@ -3,7 +3,7 @@
 \name{order_replace}
 \alias{order_replace}
 \alias{replace_orders}
-\title{Replace Order Details}
+\title{Replace Order Details (Deprecated)}
 \usage{
 order_replace(
   ticker_id,
@@ -75,9 +75,9 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 }
 \description{
-Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order}{Orders: PATCH} for details.
+Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order}{Orders: PATCH} for details.
 
-\code{replace_orders} is deprecated. Use \code{\link[AlpacaforR]{order_replace}}
+Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}.
 }
 \examples{
 \dontrun{
@@ -87,7 +87,7 @@ o <- order_submit("BYND", 1, "buy", "market")
 # Give the order a moment to process
 Sys.sleep(10) 
 # Get the filled price
-os <- orders_get(status = "filled")
+os <- orders(status = "filled")
 filled_price <- os[os$id \%in\% o$id, "filled_avg_price", drop = T]
 # Set the stop loss at 5\% less than the purchase price
 stop_loss <- order_submit("BYND", 1, "sell", "stop", stop_price = filled_price * .95)
@@ -100,13 +100,13 @@ replace_orders()
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_submit}()},
-\code{\link{orders_get}()},
+\code{\link{orders}()},
 \code{\link{submit_orders}()}
 
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_submit}()},
-\code{\link{orders_get}()},
+\code{\link{orders}()},
 \code{\link{submit_orders}()}
 }
 \concept{Orders}

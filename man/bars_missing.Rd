@@ -30,14 +30,4 @@ bars_missing(bars, ..., .tf_reduce = F)
 \description{
 Internal function for comparing actual data to expected data and returning missing data. The function is intended for use in an environment where its parameters already exist.  See notes on specifying arguments in the \emph{Details} section for \code{\link[AlpacaforR]{bars_complete}}
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_complete}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_get}()},
-\code{\link{bars_transform}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

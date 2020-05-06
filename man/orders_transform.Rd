@@ -2,11 +2,9 @@
 % Please edit documentation in R/internal.R
 \name{orders_transform}
 \alias{orders_transform}
-\title{Transform order objects
-
-Replaces plain text quantities and dates with respective R objects}
+\title{Transform order objects}
 \usage{
-orders_transform(orders)
+orders_transform(o)
 }
 \arguments{
 \item{orders}{A dataframe returned from any orders_* endpoint}
@@ -15,8 +13,6 @@ orders_transform(orders)
 \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
 }
 \description{
-Transform order objects
-
 Replaces plain text quantities and dates with respective R objects
 }
 \keyword{internal}

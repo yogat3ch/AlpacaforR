@@ -7,7 +7,7 @@
 \usage{
 assets(ticker_id = NULL, v = 2)
 
-get_assets(ticker = NULL, version = "v2")
+get_assets(ticker_id = NULL, v = 2)
 }
 \arguments{
 \item{ticker_id}{\code{(character)} Find asset details by symbol or ID. If NULL (the default), a list of assets is returned}
@@ -38,7 +38,7 @@ The assets API serves as the master list of assets available for trade and data 
 # Get a tibble of all active assets: 
 assets()
 # Get a specific asset by symbol:
-(AAPL <- assets(ticker = "AAPL"))
+(AAPL <- assets("AAPL"))
 # or by id:
 (AAPL <- assets(AAPL$id))
 get_assets()

@@ -9,14 +9,4 @@ bars_transform(bars)
 \description{
 Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_complete}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_get}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

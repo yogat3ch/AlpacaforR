@@ -7,7 +7,26 @@
 polygon(ep = NULL, ..., params = NULL)
 }
 \arguments{
-\item{ep}{\code{(character)} Non-case-sensitive reference to the endpoint to be called as an abbreviation or by name. Optional query parameters are mentioned if present. See linked endpoint documentation for details on parameters and response data. Required path parameters are in \strong{bold}. The first option is used as a default for a parameter if none are specified. Endpoints are:
+\item{ep}{\code{(character)} Non-case-sensitive reference to the endpoint to be called as an abbreviation or by name. See Details for full endpoint details. Use the following keywords to quick-view abbreviations and full names for endpoints while programming (add a '+' to any keyword to return a list with full details: abbv, name, url, description, parameters etc):
+\itemize{
+\item{\code{'all'}}{ View all endpoints that Alpaca users have access to.}
+\item{\code{'ref'/'reference'}}{ View all reference endpoints.}
+\item{\code{'sto'/'stocks'}}{ View all stock endpoints}
+}
+Alternatively, if you know how to call the endpoint but would like a list of it's details, add '+' to the end of it (ie 'tt+' or 'ticker types+'.}
+
+\item{...}{Named arguments specific to the endpoint parameters. These can also be specified in a list via the \code{params} argument.}
+
+\item{params}{\code{(list)} A named list of parameters specific to the endpoint.}
+}
+\value{
+Response \code{(tibble/list/data.frame)} depending on the endpoint. The core data of the response will be returned as the object. If query data is returned in addition to the core object, it is stored as a \code{"query"} attribute and accessed via \code{attr(object, "query")}. If a map object is returned with the response, it will be stored as a \code{"map"} attribute and accessed via \code{attr(object, "map")}.
+}
+\description{
+This function calls all Endpoints from the \href{https://polygon.io/docs}{Polygon API docs}.
+}
+\details{
+Optional query parameters are mentioned if present. See the \href{https://polygon.io/docs}{Polygon API docs} for details on parameters and response data. Required path parameters are in \strong{bold}. The first option for each required parameter is used as a default if none are specified. Endpoints are:
 \itemize{
 \item{\code{t}}{\href{https://polygon.io/docs/#get_v2_reference_tickers_anchor}{Tickers}: Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities. | Arguments: sort = \code{(cha)} ticker, -ticker, type, type = \code{(cha)} \emph{Optional} NULL, etp, cs, market = \code{(cha)} \emph{Optional} NULL, stocks, indices, locale = \code{(cha)} \emph{Optional} NULL, us, g, search = \code{(cha)} \emph{Optional} NULL, microsoft, perpage = \code{(num)} 50, page = \code{(num)} 1, active = \code{(log)} \emph{Optional} NULL, TRUE, FALSE}
 \item{\code{tt}}{\href{https://polygon.io/docs/#get_v2_reference_types_anchor}{Ticker Types}: Get the mapping of ticker types to descriptions / long names}
@@ -33,14 +52,9 @@ polygon(ep = NULL, ..., params = NULL)
 \item{\code{pc}}{\href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__prev_anchor}{Previous Close}: Get the previous day close for the specified ticker | Arguments: \strong{ticker} = \code{(cha)} AAPL, unadjusted = \code{(log)} \emph{Optional} NULL, TRUE, FALSE}
 \item{\code{a} }{Aggregates - see \code{\link[AlpacaforR]{market_data}}}
 \item{\code{gd}}{\href{https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor}{Grouped Daily (Bars)}: Get the daily OHLC for entire markets. | Arguments: \strong{locale} = \code{(cha)} US, See Locales Endpoint, \strong{market} = \code{(cha)} STOCKS, See Markets Endpoint, \strong{date} = \code{(Dat)} 2019-02-01, unadjusted = \code{(log)} \emph{Optional} NULL, TRUE, FALSE}
-}}
-
-\item{...}{Named arguments specific to the endpoint parameters. These can also be specified in a list via the \code{params} argument.}
-
-\item{params}{\code{(list)} A named list of parameters specific to the endpoint.}
 }
-\description{
-This function calls all Endpoints from the \href{https://polygon.io/docs}{Polygon API docs}.
+
+This function is not vectorized. Only a single endpoint may be called at a time. Thus any endpoints with path parameters (parameters denoted in bold) require that a single combination of path parameters be passed for a given call.
 }
 \seealso{
 Other Polygon: 

@@ -2,15 +2,11 @@
 % Please edit documentation in R/internal.R
 \name{toNum}
 \alias{toNum}
-\title{Convert money strings to numeric
-
-remove $ from cash quantity strings and convert to numeric}
+\title{Convert money strings to numeric}
 \usage{
 toNum(x)
 }
 \description{
-Convert money strings to numeric
-
 remove $ from cash quantity strings and convert to numeric
 }
 \keyword{internal}

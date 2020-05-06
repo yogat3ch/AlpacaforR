@@ -2,15 +2,11 @@
 % Please edit documentation in R/internal.R
 \name{pos_transform}
 \alias{pos_transform}
-\title{transform positions objects
-
-Cleans arrays of position objects, and position objects}
+\title{transform positions objects}
 \usage{
 pos_transform(pos)
 }
 \description{
-transform positions objects
-
 Cleans arrays of position objects, and position objects
 }
 \keyword{internal}

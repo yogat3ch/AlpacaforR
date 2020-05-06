@@ -3,7 +3,7 @@
 \name{order_cancel}
 \alias{order_cancel}
 \alias{cancel_orders}
-\title{Cancel Order function}
+\title{Cancel Order function (Deprecated)}
 \usage{
 order_cancel(ticker_id = NULL, live = FALSE, v = 2)
 
@@ -26,15 +26,15 @@ Query \code{(list)} attribute accessed via \code{attr(df, "query")} on the retur
 }
 }
 \description{
-Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders}{Orders: DELETE} in the Alpaca API V2 documentation for details.
+order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders}{Orders: DELETE} in the Alpaca API V2 documentation for details.
 
-\code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_cancel}} instead.
+\code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}.
 }
 \examples{
 # Cancel by the order id
 order <- order_submit("AAPL", 1, "buy", "market", live = F)
 order_cancel(order_id = order$id, live = F)
-# Or you can use orders_get to cancel all orders for a ticker symbol:
+# Or cancel all orders for a ticker symbol See also: positions:
 order_submit("AAPL", 1, "buy", "market", live = F)
 order_submit("AMZN", 1, "buy", "market", live = F)
 canceled_orders <- order_cancel(c("AAPL", "AMZN"))
@@ -48,16 +48,18 @@ str(canceled_orders)
 cancel_orders()
 }
 \seealso{
+positions
+
 Other Orders: 
 \code{\link{order_replace}()},
 \code{\link{order_submit}()},
-\code{\link{orders_get}()},
+\code{\link{orders}()},
 \code{\link{submit_orders}()}
 
 Other Orders: 
 \code{\link{order_replace}()},
 \code{\link{order_submit}()},
-\code{\link{orders_get}()},
+\code{\link{orders}()},
 \code{\link{submit_orders}()}
 }
 \concept{Orders}

@@ -5,14 +5,19 @@
 \title{submit_orders}
 \usage{
 submit_orders(
-  ticker,
-  qty,
-  side,
+  ticker_id,
+  action = "submit",
+  qty = NULL,
+  side = NULL,
   type = NULL,
   time_in_force = "day",
-  limit_price = NULL,
-  stop_price = NULL,
-  extended_hours = FALSE,
+  limit = NULL,
+  stop = NULL,
+  extended_hours = NULL,
+  client_order_id = NULL,
+  order_class = NULL,
+  take_profit = NULL,
+  stop_loss = NULL,
   live = FALSE,
   v = 2
 )
@@ -20,14 +25,11 @@ submit_orders(
 \description{
 \code{submit_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} instead.
 }
-\examples{
-submit_orders()
-}
 \seealso{
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},
 \code{\link{order_submit}()},
-\code{\link{orders_get}()}
+\code{\link{orders}()}
 }
 \concept{Orders}

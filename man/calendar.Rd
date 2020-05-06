@@ -7,7 +7,7 @@
 \usage{
 calendar(from = NULL, to = NULL, v = 2)
 
-get_calendar(from = NULL, to = NULL, version = "v2")
+get_calendar(from = NULL, to = NULL, v = 2)
 }
 \arguments{
 \item{from}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970.}
