@@ -59,12 +59,14 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .char <- tryCatch(nchar(ticker_id), error = function(e) 0)
-  if (is.null(ticker_id) || .char < 15) {
-    .o_id <- NULL
-  } else {
+  .is_id <- is_id(ticker_id)
+  if (.is_id) {
     # if it's an order_id
     .o_id <- ticker_id
+  } else {
+    # if its a ticker symbol
+    .o_id <- NULL
+    ticker_id <- toupper(ticker_id)
   }
   if (isTRUE(client_order_id)) {
     client_order_id <- ":by_client_order_id"
@@ -87,7 +89,7 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
   out <- orders_transform(out)
   
   
-  if (!is.null(ticker_id) && .char < 15 && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
+  if (!is.null(ticker_id) && !.is_id && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
     out = dplyr::filter(out, symbol %in% ticker_id)
   }
   return(out)
@@ -215,7 +217,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
     list2env(ot, envir = environment())
   }
   # detect the argument provided to ticker_id
-  .char <- tryCatch(nchar(ticker_id), error = function(e) 0)
+  .is_id <- is_id(ticker_id)
   
   if (action == "s") {
     #Create body with order details if action is submit or replace
@@ -255,7 +257,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   .url$path <- list(paste0("v",v), "orders")
   if (action %in% c("r","c")) {
     # if replacing or canceling, append the order ID
-    if (.char != 36) rlang::abort(paste0("`ticker_id` has invalid number of characters. Expected: 36 | Actual: ", nchar(ticker_id)))
+    if (!.is_id) rlang::abort(paste0("`ticker_id` is not an Order ID."))
     .url$path <- append(.url$path, ticker_id)
   }
   .url <- httr::build_url(.url)
@@ -318,7 +320,7 @@ submit_orders <- order_submit
 #' @importFrom purrr compact pmap map 
 #' @importFrom dplyr bind_rows
 #' @seealso positions
-n
+
 order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
@@ -339,12 +341,13 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
     message(paste0("Canceling ALL ", nrow(open_orders)," open orders"))
   } 
   
-  
+  .is_id <- is_id(ticker_id)
+  if (!.is_id) ticker_id <- toupper(ticker_id)
   # Create a list of order_ids or calls
   .o_ids <- purrr::map(ticker_id, ~{
     if (.x == "cancel_all") {
       .o <- NULL
-    } else if (nchar(.x) > 15) { #If order id supplied
+    } else if (.is_id) { #If order id supplied
       .o <- .x
     } else { # if ticker symbol is supplied
       .o <- open_orders$id[open_orders$symbol %in% .x]
@@ -370,7 +373,6 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   
   .out <- purrr::map2(.calls, .o_ids, ~{  
     cancel = httr::DELETE(url = .x, headers)
-    browser()
     cancel <- tryCatch({response_text_clean(cancel)}, error = function(e) NULL)
     if (!is.null(cancel)) {
       # if the order was pending, this endpoint returns data. If the order was new, it doesn't. This generates informative results regardless
@@ -442,7 +444,8 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
   
   open_orders = orders(status = "open", live = live)
   .oo <- tryCatch(nrow(open_orders), error = function(e) 0)
-  if (nchar(ticker_id) > 15 && .oo > 0) { #If order id supplied then do this
+  .is_id <- is_id(ticker_id)
+  if (.is_id && .oo > 0) { #If order id supplied then do this
     order_id <- ticker_id
     ticker <- open_orders$symbol[open_orders$id %in% order_id]
   } else if (.oo > 0) { #If ticker supplied then do this

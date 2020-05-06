@@ -1057,6 +1057,21 @@ response_text_clean <- function(dat){
   return(out)
 }
 
+#' @title Check if value provided to a ticker_id argument is an ID or a ticker symbol
+#' @keywords internal
+#' @description for use in functions that accept `ticker_id`
+#' @param ticker_id 
+#' @return \code{logical} indicating whether the object is a 
+#' @importFrom stringr str_count
+
+is_id <- function(ticker_id) {
+  out <- tryCatch({
+    .out <- all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36)
+    length(.out) > 0 && .out
+  }, error = function(e) F)
+  return(out)
+}
+
 #' @title transform positions objects
 #' 
 #' @description Cleans arrays of position objects, and position objects
@@ -1220,7 +1235,6 @@ orders_transform <- function(o) {
 #' @keywords internal
 #' @importFrom rlang abort current_env env_bind env_get caller_env `!!!` `%||%`
 #' @importFrom purrr imap_chr map imap
-#' @importFrom stringr str_count
 order_check <- function(penv = NULL, ...) {
   # get rlang fns while testing (so you don't have to manually load the package each time)
   `!!!` <- rlang::`!!!`
@@ -1241,10 +1255,7 @@ order_check <- function(penv = NULL, ...) {
   # ticker_id ----
   # Fri May 01 11:15:39 2020
   # Check if ticker is id
-  .is_id <- tryCatch({
-    .out <- all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36)
-    length(.out) > 0 && .out
-  }, error = function(e) F)
+  .is_id <- is_id(ticker_id)
   if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
     #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
     .oo <- orders(ticker_id)
@@ -1258,6 +1269,7 @@ order_check <- function(penv = NULL, ...) {
     #Convert ticker argument to upper if action is submit
     ticker_id <- toupper(ticker_id)
   }
+  
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {

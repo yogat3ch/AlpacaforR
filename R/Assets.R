@@ -24,7 +24,7 @@
 #' # Get a tibble of all active assets: 
 #' assets()
 #' # Get a specific asset by symbol:
-#' (AAPL <- assets(ticker = "AAPL"))
+#' (AAPL <- assets("AAPL"))
 #' # or by id:
 #' (AAPL <- assets(AAPL$id))
 #' @importFrom httr GET parse_url build_url
@@ -33,6 +33,8 @@
 #' @export
 assets <- function(ticker_id = NULL, v = 2){
   #Set URL & Headers
+  .is_id <- is_id(ticker_id)
+  if (!.is_id) ticker_id <- toupper(ticker_id) # caps if ticker
   .url = httr::parse_url(get_url())
   headers = get_headers()
   
@@ -44,8 +46,12 @@ assets <- function(ticker_id = NULL, v = 2){
   # get response
   asts = httr::GET(url = .url, headers)
   asts = response_text_clean(asts)
-  asts <- tibble::as_tibble(asts)
-  return(asts)
+  if (!is.null(asts$code)) {
+    rlang::warn("Failed to return asset.")
+    return(asts)
+  }
+  out <- tibble::as_tibble(asts)
+  return(out)
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
