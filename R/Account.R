@@ -237,7 +237,7 @@ set_config <- account_config
 account_activities <- function(activity_type = NULL, date = NULL, until = NULL, after = NULL, direction = "desc", page_size = 50, page_token = NULL, live = FALSE, v = 2){
   .dt <- purrr::compact(list(date = date, after = after, until = until))
   if (length(.dt) > 0) {
-    .dt <- purrr::map(.dt, lubridate::as_date)
+    .dt <- purrr::map(.dt, try_date)
     .na <- purrr::map_lgl(.dt, is.na)
     if (any(.na)) {
       rlang::abort(paste0("Check ", names(.na)[.na], " argument"))
@@ -259,19 +259,9 @@ account_activities <- function(activity_type = NULL, date = NULL, until = NULL, 
                      page_token = page_token)
   .url <- httr::build_url(.url)
   #Send Request
-  account_activities = httr::GET(url = .url, headers)
-  account_activities = response_text_clean(account_activities)
-  account_activities <- tibble::as_tibble(account_activities)
-  if (nrow(account_activities) > 0) {
-    suppressMessages({
-      account_activities %>%
-        dplyr::mutate_at(dplyr::vars(transaction_time), ~lubridate::as_datetime(., tz = Sys.timezone())) %>% 
-        dplyr::mutate_at(dplyr::vars(price, qty, leaves_qty, cum_qty), as.numeric)
-    })
-  } else {
-    rlang::warn(paste("No account activities matching criteria."))
-  }
-  return(account_activities)
+  aa = httr::GET(url = .url, headers)
+  out <- aa_transform(aa)
+  return(out)
 }
 #----------------------------------------------------------------------------------------------
 #NEW for V2

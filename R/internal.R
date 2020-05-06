@@ -10,9 +10,10 @@
 #' @importFrom stringr str_detect
 #' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz
 try_date <- function(.x) {
+  suppressMessages({
   if (is.character(.x) && stringr::str_detect(.x, ":")) {
     # if a character and date/time
-    .out <- lubridate::ymd_hm(.x, tz = "America/New_York")
+    .out <- tryCatch({.out <- lubridate::ymd_hm(.x, tz = "America/New_York")}, warning = function(cond) {.out <- lubridate::as_datetime(.x, tz = "America/New_York")})
   } else if (is.character(.x)) {
     .out <- lubridate::ymd(.x, tz = "America/New_York")
   } else if (any(lubridate::is.Date(.x) ||
@@ -23,6 +24,7 @@ try_date <- function(.x) {
     # If the format is incorrect return NA
     .out <- NA
   }
+  })
   return(.out)
 }
 
@@ -1102,7 +1104,51 @@ pos_transform <- function(pos) {
   return(out)
 }
 
+#' @title account activities transform
+#' @description transform account activities
+#' @param resp Reponse from account_activities endpoint
+#' @keywords internal
+#' @importFrom dplyr mutate_at vars
+#' @importFrom rlang warn `%>%`
+#' @importFrom stringr str_extract
+#' @importFrom lubridate as_datetime
+#' @importFrom tibble as_tibble
 
+aa_transform <- function(resp) {
+  `%>%` <- magrittr::`%>%`
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .sym <- stringr::str_extract(resp$request$url, "\\w+$")
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("Activities not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No Activities available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .resp <- tibble::as_tibble(.resp)
+    # coerce to numeric in positions objects
+    suppressMessages({
+      out <- .resp %>%
+        dplyr::mutate_at(dplyr::vars(transaction_time), ~lubridate::as_datetime(., tz = Sys.timezone())) %>% 
+        dplyr::mutate_at(dplyr::vars(price, qty, leaves_qty, cum_qty), as.numeric)
+    })
+    
+  }
+  return(out)
+}
 
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
