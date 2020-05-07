@@ -8,14 +8,14 @@
 #' 
 #' @description Attempts to coerce string to a valid date object in stock exchange time zone, or checks to see if it is already. If it fails to coerce to date, returns NA.
 #' @importFrom stringr str_detect
-#' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz
+#' @importFrom lubridate ymd_hm parse_date_time is.Date is.POSIXct is.POSIXlt force_tz
 try_date <- function(.x) {
   suppressMessages({
   if (is.character(.x) && stringr::str_detect(.x, ":")) {
     # if a character and date/time
     .out <- tryCatch({.out <- lubridate::ymd_hm(.x, tz = "America/New_York")}, warning = function(cond) {.out <- lubridate::as_datetime(.x, tz = "America/New_York")})
   } else if (is.character(.x)) {
-    .out <- lubridate::ymd(.x, tz = "America/New_York")
+    .out <- lubridate::parse_date_time(.x, orders = c("ymd", "mdy", "dmy"), tz = "America/New_York")
   } else if (any(lubridate::is.Date(.x) ||
                  lubridate::is.POSIXct(.x) ||
                  lubridate::is.POSIXlt(.x))) {
@@ -44,7 +44,6 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
   parent.env(cenv) <- penv
   `!!!` <- rlang::`!!!`
   try(list2env(e, env = cenv), silent = T)
-  message(paste0("fetch_vars"))
   if (!all(.vn %in% ls(all.names = T, envir = cenv))) {
     .vars <- purrr::keep(rlang::env_get_list(env = cenv, .vn, default = Inf, inherit = T), ~isTRUE(!is.infinite(.x)))
     rlang::env_bind(cenv, !!!.vars)
@@ -63,6 +62,41 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
   
 }
 
+#' @title convert timeframe to numeric `.tf_num`
+#' @description If `.tf_num` is not found in environment, create it from `timeframe`. Throw errors if arguments are unacceptable
+#' @inheritParams market_data
+#' @param ... additional arguments 
+#' @keywords internal
+#' @importFrom purrr map_chr
+#' @importFrom rlang abort warn
+
+tf_num <- function(timeframe, ...) {
+  .e <- list(...)
+  .vn <- c(multiplier = "multiplier", v = "v")
+  fetch_vars(.vn, e = .e)
+  #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
+  .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
+  # Create ordered factor or timeframe options
+  .tf_order <- purrr::map_chr(.tf_opts, tail, 1) %>% {factor(., levels = .)}
+  
+  if (v == 1) {
+    # Get the timeframe
+    timeframe <- tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
+    
+    # Check args
+    if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
+      rlang::abort("The v1 API only accepts multipliers of 1,5,15 for the minute timeframe")
+    } else if (timeframe == "day" && multiplier != 1) {
+      rlang::warn("The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.", class = "warning")
+      multiplier <- 1
+    }
+    
+  } else if (v == 2){
+    timeframe <- tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = F)[1]]], 1)
+  }
+  # Get the timeframe as a numeric
+  .tf_num <- which(.tf_order %in% timeframe)
+}
 #' @title Create API amenable boundaries based on user input for market_data
 
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
@@ -76,7 +110,7 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
 #' @importFrom rlang is_named env_bind current_env caller_env env_get warn "!!!" "%||%"
 #' @importFrom purrr map compact imap pmap map_lgl
 #' @importFrom stringr str_extract str_detect
-#' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz wday make_date year interval `%within%` floor_date int_start duration ceiling_date int_end days hour as_datetime as_date
+#' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz wday make_date year interval `%within%` floor_date int_start duration ceiling_date int_end days hour as_datetime as_date year today
 #' @importFrom dplyr lead
 #' @importFrom magrittr `%>%`
 bars_bounds <- function(...) {
@@ -91,17 +125,18 @@ bars_bounds <- function(...) {
    if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
       .date_vars <- list(from = from, to = to, after = after, until = until)
    }
-  if (length(purrr::compact(.date_vars)) < 2) {
+  if (length(purrr::compact(.date_vars)) < 1) {
     stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
   }
   # Remove NULL arguments
   .bounds <- purrr::compact(.date_vars)
   
   # Coerce to floor/ceiling dates/datetimes or fail with NA
+  if (!".tf_num" %in% ls(all.names = T)) .tf_num <- tf_num(timeframe)
   .bounds <- purrr::imap(.bounds, ~{
     .out <- try_date(.x)
     # Warn
-    if (is.na(.out)) rlang::warn(paste(.y,"could not be parsed. Returning NA"), class = "warning")
+    if (is.na(.out) || lubridate::year(.out) < 1792 || lubridate::year(.out) > lubridate::year(lubridate::today()) + 50) rlang::warn(paste(paste0("`",.y,"`"),"was parsed to", .out, "is this correct?"), class = "warning")
     # Floors or ceilings
     if (.tf_num < 3) {
       # Case less than day, to include the day requested, the boundary must be the previous day

@@ -156,8 +156,8 @@ test_that("bars_bounds returns boundaries as anticipated", {
 })
 
 test_that("bars_bounds returns NA when unexpected parameters are provided", {
-  expect_warning(bars_bounds(from = "1000-2-3", to = "4/15/2020", v = 2, timeframe = "minute", multiplier = 5), regexp = "to")
-  expect_warning(bars_bounds(from = "Feb. 25, 2020", to = "4/15/2020", v = 2, timeframe = "minute", multiplier = 5), regexp = "from")
+  expect_warning(bars_bounds(from = "1000-2-3", to = "4/15/2020", v = 2, timeframe = "minute", multiplier = 5), regexp = "`from`")
+  expect_warning(bars_bounds(from = "Feb. 25, 2020", to = lubridate::today() + lubridate::years(51), v = 2, timeframe = "minute", multiplier = 5), regexp = "`to`")
 })
 
 test_that("bars_url returns URLs as anticipated", {
