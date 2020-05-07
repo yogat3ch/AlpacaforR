@@ -31,25 +31,25 @@ test_that("A watchlist can have it's values replaced and renamed simultaneously"
   .t <- c("FB", "AAPL", "AMZN", "NFLX", "GOOG", "WMT")
   (wl <- watchlist("test", name = "test2", tickers = .t, action = "r"))
   expect_length(wl, 10)
-  expect_identical(wl$symbol, .t)
+  expect_identical(wl$symbol, c("FB", "AAPL", "AMZN", "NFLX", "GOOG", "WMT"))
   expect_identical(attr(wl, "info")$name, "test2")
 })
 
 test_that("A watchlist can be renamed and have a single asset removed", {
   (wl <- watchlist("test2", name = "FAANG", ticker = "WMT", action = "d")) 
   expect_identical(attr(wl, "info")$name, "FAANG")
-  expect_identical(wl$symbol, .t[-length(.t)])
+  expect_identical(wl$symbol, c("FB", "AAPL", "AMZN", "NFLX", "GOOG"))
 })
  
 test_that("A watchlist can be renamed and have assets added", {
   (wl <- watchlist("FAANG", "FABANGG", ticker = c("BYND", "GOOGL"), action = "a"))
   expect_identical(attr(wl, "info")$name, "FABANGG")
-  expect_identical(wl$symbol, c("BYND", "GOOGL", .t[-length(.t)]))
+  expect_identical(wl$symbol, c("BYND", "GOOGL", "FB", "AAPL", "AMZN", "NFLX", "GOOG"))
 })
 
 test_that("A watchlist can have assets simply removed", {
   (wl <- watchlist("FABANGG", tickers = c("BYND", "GOOGL"), action = "d")) 
-  expect_identical(wl$symbol, .t[-length(.t)])
+  expect_identical(wl$symbol, c("FB", "AAPL", "AMZN", "NFLX", "GOOG"))
 })
 
 test_that("A watchlist can be just renamed", {

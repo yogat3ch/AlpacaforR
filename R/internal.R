@@ -47,7 +47,7 @@ is_inf <- function(.x) {
 #' @param sf The system frames for searching if not found in previous two environments.
 #' @importFrom rlang `!!!` env_bind env_get_list caller_env
 #' @importFrom stringr str_extract
-#' @importFrom purrr keep map2_lgl
+#' @importFrom purrr keep map2_lgl walk
 
 fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
   `!!!` <- rlang::`!!!`
@@ -67,7 +67,7 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
     rlang::env_bind(cenv, !!!.vars)
     .missed <- .vn[!names(.vn) %in% ls(all.names = T, env = cenv)]
     if (length(.missed) > 0) {
-      .vars <- purrr::map(sf, ~{
+      .vars <- purrr::walk(sf, ~{
         if (identical(globalenv(), .x)) return(NULL)
         .inherit <- ifelse(identical(globalenv(), parent.env(.x)), F, T)
         .v <- purrr::keep(rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = .inherit), is_inf)
@@ -1508,23 +1508,22 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 #' @inheritParams account
 #' @return id \code{(character)} the id of the watchlist OR, if no id, the array of watchlists
 #' @keywords internal
-#' @importFrom httr GET
+#' @importFrom httr GET build_url
 #' @importFrom rlang warn caller_env env_bind env_get is_named `!!!`
 #' @importFrom purrr map
-wl_nm2id <- function(nm, ..., e = environment()) {
+wl_nm2id <- function(nm, ...) {
   `!!!` <- rlang::`!!!`
   # if watchlist_id is a name
   # get the list of watchlists
-  .vn = c(v = "v", .url = ".url")
-  .e <- try(list2env(as.list(penv), environment()))
+  .vn = list(v = c("integer", "numeric"), .url = c("character", "url"))
   if (!all(.vn %in% ls(all.names = T))){
     .e <- list(...)
     fetch_vars(.vn, e = .e)
   }
-  
-  
+
   headers <- get_headers()
   .url$path <- list(paste0("v", v), "watchlists")
+  .url <- httr::build_url(.url)
   watchlist = httr::GET(url = .url, headers)
   watchlist = response_text_clean(watchlist)
   # get the id
