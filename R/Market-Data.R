@@ -87,7 +87,7 @@
 # For DEBUG
 
 
-market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = Sys.Date()-7, to = Sys.Date(), after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
+market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
   `%>%` <- magrittr::`%>%`
   #param check:  Thu Mar 26 08:34:13 2020 ----
   if((is.null(from) || is.null(to)) && (is.null(start) || is.null(end))){
@@ -102,16 +102,15 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
   .tf_num <- tf_num(timeframe)
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   .bounds <- bars_bounds(from = from, to = to, after = after, until = until)
-  
   message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", .bounds[[1]], "\n'to' coerced to ", .bounds[[2]]))
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(.bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
   if (full) {
     # Form the URL
-    url <- bars_url(.bounds = .bounds, ticker = ticker)
+    .url <- bars_url(.bounds = .bounds, ticker = ticker)
     # retrieve the data
-    bars <- bars_get(url)
+    bars <- bars_get(.url)
     .expected <- bars_expected(bars)
     .missing <- bars_missing(bars)
     bars <- bars_complete(bars, .missing = .missing)
@@ -119,9 +118,9 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
     # Submit request as is for full = F:  Tue Mar 17 21:35:54 2020 ----
     # Coerce to ISO8601 for call
     # build the URL
-    url <- bars_url(ticker)
+    .url <- bars_url(ticker)
     # retrieve the data
-    bars <- bars_get(url)
+    bars <- bars_get(.url)
     # End case where full = F ---- Fri Mar 27 11:19:05 2020
   }
   return(bars)
