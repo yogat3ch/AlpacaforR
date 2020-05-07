@@ -5,10 +5,13 @@ library(dplyr)
 
 # market_data ----
 # Wed Apr 15 16:27:58 2020
-bars_test <- readRDS("rds/market_data.rds")
+.p <- "rds/market_data.rds"
+.p <- ifelse(basename(getwd()) != "testthat", paste0("tests/testthat/",.p), .p)
+bars_test <- readRDS(.p)
+
 context("Tests the AlpacaforR exported functions")
 test_that("market_data works when v = 2 and full = T", {
-  bars <- market_data(ticker = c("BYND"), v = 2, from = lubridate::floor_date(lubridate::now(), "year"), multiplier = 1, timeframe = "h", full = T)
+  bars <- market_data(ticker = c("BYND"), v = 2, from = "2020-01-05", until = "2020-04-05", multiplier = 1, timeframe = "h", full = T)
   expect_equal(bars %>% purrr::map(~{attr(.x, "query") <- NULL}),
                    bars_test %>% purrr::map(~{attr(.x, "query") <- NULL}))
 })
