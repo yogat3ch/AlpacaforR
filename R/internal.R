@@ -28,6 +28,41 @@ try_date <- function(.x) {
   return(.out)
 }
 
+#' @title fetch variables 
+#' @description Fetches variables from environment of containing function for use in internal function
+#' @keywords internal
+#' @param .vn named vector of variable names ie for a variable `d` `.vn = c(d = "d")`
+#' @param e The list made from ellipsis if parameters are input as ellipsis argument
+#' @param cenv The caller environment, stored automatically
+#' @param penv The parent of the caller environment, also stored automatically
+#' @param sf The system frames for searching if not found in previous two environments.
+#' @importFrom rlang `!!!` env_bind env_get caller_env
+#' @importFrom stringr str_extract
+#' @importFrom purrr map
+
+fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
+  parent.env(cenv) <- penv
+  `!!!` <- rlang::`!!!`
+  try(list2env(e, env = cenv), silent = T)
+  message(paste0("fetch_vars"))
+  if (!all(.vn %in% ls(all.names = T, envir = cenv))) {
+    .vars <- purrr::keep(rlang::env_get_list(env = cenv, .vn, default = Inf, inherit = T), ~isTRUE(!is.infinite(.x)))
+    rlang::env_bind(cenv, !!!.vars)
+    .missed <- .vn[!.vn %in% ls(all.names = T, env = cenv)]
+    if (length(.missed) > 0) {
+      .vars <- purrr::map(sf, ~{
+        .v <- purrr::keep(rlang::env_get_list(env = .x, .missed, default = Inf, inherit = T), ~isTRUE(!is.infinite(.x)))
+        rlang::env_bind(cenv, !!!.v)
+      })
+    }
+  }
+  # if (!all(.vn %in% ls(all.names = T, env = cenv))) {
+  #   browser()
+  #   stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
+  # }
+  
+}
+
 #' @title Create API amenable boundaries based on user input for market_data
 
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
@@ -51,14 +86,8 @@ bars_bounds <- function(...) {
   
   #trickery to get the variables from the calling environment
   .vn = c(.tf_num = ".tf_num", from = "from", to = "to", after = "after", until = "until", v = "v", timeframe = "timeframe", multiplier = "multiplier", .tf_order = ".tf_order")
-  if (rlang::is_named(list(...))) {
-    rlang::env_bind(rlang::current_env(), ...)
-  }
-  if (!all(.vn %in% ls(all.names = T))) {
-    .cev <- rlang::caller_env()
-    rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
-    .tf_num <- get0(".tf_num", rlang::current_env(), ifnotfound = NULL) %||% which(.tf_order %in% timeframe)
-  }
+  .e <- list(...)
+  fetch_vars(.vn, e = .e)
    if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
       .date_vars <- list(from = from, to = to, after = after, until = until)
    }
@@ -1459,6 +1488,7 @@ wl_nm2id <- function(nm, ..., e = environment()) {
   # if watchlist_id is a name
   # get the list of watchlists
   .vn = c(v = "v", .url = ".url")
+  `!!!` <- rlang::`!!!`
   if (rlang::is_named(list(...))) {
     rlang::env_bind(e, ...)
   }
@@ -1670,14 +1700,6 @@ ws_log <- function(..., penv = NULL) {
   .e <- try(list2env(as.list(penv), environment()))
   if (class(.e) == "try-error"){
     .vn <- c(.o = ".o", .log = ".log", .msg = ".msg", out = "out", log_bars = "log_bars", log_msgs = "log_msgs", log_path = "log_path", logfile = "logfile")
-    if (rlang::is_named(list(...))) {
-      rlang::env_bind(rlang::current_env(), ...)
-    }
-    if (!all(.vn %in% ls(all.names = T))) {
-      .cev <- rlang::caller_env()
-      rlang::env_bind(rlang::current_env(), !!!purrr::map(.vn[!.vn %in% ls(all.names = T)], ~rlang::env_get(env = .cev, nm = .x, default = NULL, inherit = T)))
-      browser(expr = !all(.vn %in% ls(all.names = T)))
-    }
   }
   # If listening to a subscription chacnnel & logging bars
   if (.o$ev %in% c("T", "Q", "A", "AM") && log_bars) {

@@ -73,7 +73,9 @@ suppressWarnings({
 })
 
 # Load the completed/checked data.frame for comparison
-test_results <- readRDS("rds/polygon_test.rds")
+.p <- "rds/polygon_test.rds"
+.p <- ifelse(basename(getwd()) != "testthat", paste0("tests/testthat/",.p), .p)
+test_results <- readRDS(.p)
 
 # Internals Unit Testing ----
 context("Test that all CURL Retrieval functions work properly")
