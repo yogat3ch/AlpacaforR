@@ -3,7 +3,6 @@
 
 #' @family Websockets
 #' @title ws_create: Create a Websocket to the Alpaca or Polygon API
-#' @seealso AlpacaforR ws_listen
 #' @description The [Alpaca Streaming API](https://alpaca.markets/docs/api-documentation/api-v2/streaming/) provides Trade & Account updates, while the [Polygon Websocket API](https://polygon.io/sockets) offers Trade, Quote, Aggregate (per second) and Aggregate (per minute) streaming. 
 #' @param api `(character)` The streaming API to connect to, either `"Alpaca"/"a"` or `"Polygon"/"p"`. 
 #' @param log_msgs \code{(logical/character)} A logical indicating whether to use a log file for websocket messages (defaults to *"ws_{API}.log"* in the working directory if `TRUE`), where `{API}` is `a/p` depending on the API selected. Can also be the name of the text file where logs for this session will be stored. IE if you want to save all messages in `Alpaca.log` in the working directory, set `log_msgs = "Alpaca"`. If `".log"` is not included in the name it will be appended. Previous logfiles of the same name will be reused without overwrite. No logs created if `FALSE`. **Default `TRUE`**. If a path is specified to `log_path`, the logs will reside in this directory.
@@ -152,16 +151,14 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
 
 
 #' @family Websockets
-#' @seealso AlpacaforR ws_create
 #' @title ws_listen: A function to set listening streams with the Alpaca websocket API
-#' 
-#' @description  Given the `websocket environment` the function will first authenticate using the environment variables `APCA-LIVE-API-KEY-ID` and `APCA-LIVE-API-SECRET-KEY`. If these are unset, please see the \href{https://github.com/jagg19/AlpacaforR}{package documentation} for instruction on setting them. Secondly, it will subscribe to any channels specified to the `channel` argument. Must be called on each Websocket object individually. 
+#' @description  Given the `websocket environment` the function will first authenticate using the environment variables `APCA-LIVE-API-KEY-ID` and `APCA-LIVE-API-SECRET-KEY`. If these are unset, please see the Installation vignette `vignette("Installation", "AlpacaforR")` for instruction on setting them. Secondly, it will subscribe to any channels specified to the `channel` argument. Must be called on each Websocket object individually. 
 #' @param ws \code{(list/Websocket)} The websocket list or Websocket object created with \code{\link[AlpacaforR]{ws_create}}.
-#' @param channel \code{(character)} A character vector of the channel(s) to connect to.
-#' For an Alpaca websocket object provided as `ws` these are:
+#' @param channel \code{(character)} of the channel to connect to.
+#' For an Alpaca websocket object provided as \code{ws} these are:
 #' \itemize{
 #'  \item{\code{"Account"/"a"}}{[Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
-#'  \item(\code{"Trade"/"t"}}{[Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
+#'  \item{\code{"Trade"/"t"}}{[Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
 #' }
 #' The Default is to connect to both.
 #' For a Polygon websocket object provided as `ws` these are:

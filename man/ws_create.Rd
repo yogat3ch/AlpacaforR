@@ -80,8 +80,6 @@ if (interactive()) {
 }
 }
 \seealso{
-AlpacaforR ws_listen
-
 Other Websockets: 
 \code{\link{ws_listen}()}
 }

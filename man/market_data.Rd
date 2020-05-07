@@ -10,8 +10,8 @@ market_data(
   v = 1,
   timeframe = "day",
   multiplier = 1,
-  from = Sys.Date() - 7,
-  to = Sys.Date(),
+  from = NULL,
+  to = NULL,
   after = NULL,
   until = NULL,
   limit = NULL,
@@ -24,8 +24,8 @@ get_bars(
   v = 1,
   timeframe = "day",
   multiplier = 1,
-  from = Sys.Date() - 7,
-  to = Sys.Date(),
+  from = NULL,
+  to = NULL,
   after = NULL,
   until = NULL,
   limit = NULL,
@@ -100,7 +100,7 @@ The bars API provides time-aggregated price and volume data for a single stock o
 \code{get_bars} is deprecated, use \code{\link[AlpacaforR]{market_data}} instead.
 }
 \details{
-All \code{(Date/POSIXlt)} must be in \code{YYYY-MM-DD} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format. If \code{(Datetime/POSIXct)}, \verb{YYYY-MM-DD HH:MM} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{lubridate::now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The \code{'v2'} API only accepts Dates in YYYY-MM-DD format, any arguments passed to \code{start} or \code{end} will be coerced to Date automatically if using \code{'v2'}. For the \code{'v2'} API, queries with \code{timeframe}: \code{'year'} use \code{12/31} as an aggregate date for each year. Arguments passed to \code{from} & \code{to} will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively.
+All \code{(Date/POSIXlt)} will parse correctly if in \code{YYYY-MM-DD} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or \code{(Datetime/POSIXct)}, \verb{YYYY-MM-DD HH:MM} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{lubridate::now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The \code{'v2'} API only accepts Dates in YYYY-MM-DD format, any arguments passed to \code{start} or \code{end} will be coerced to Date automatically if using \code{'v2'}. For the \code{'v2'} API, queries with \code{timeframe}: \code{'year'} use \code{12/31} as an aggregate date for each year. Arguments passed to \code{from} & \code{to} will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively.
 }
 \examples{
 # Getting one or more tickers from the v1 API: 

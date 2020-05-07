@@ -4,7 +4,7 @@
 \alias{wl_nm2id}
 \title{Look up watchlist id from name}
 \usage{
-wl_nm2id(nm, ..., e = environment())
+wl_nm2id(nm, ...)
 }
 \arguments{
 \item{nm}{\code{(character)} \emph{required} the name of the watchlist}
