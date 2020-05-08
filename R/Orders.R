@@ -4,7 +4,7 @@
 #' @family Orders
 #' @title Get Orders
 #' 
-#' @description The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See [Orders: GET](https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders)for more details.
+#' @description The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See [Orders GET](https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders)for more details.
 #' @param ticker_id \code{(character)} Specify symbol, order ID, or client_order_id (must set `client_order_id = TRUE`).
 #' @param status \code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.
 #' @param limit \code{(integer)} The maximum number of orders in response. Defaults to 50 and max is 500.
@@ -16,35 +16,35 @@
 #' @inheritParams account
 #' @return Order `(tibble)` [Order object](https://alpaca.markets/docs/api-documentation/api-v2/orders/#order-entity) or Array of Order Objects with the following information:
 #' \itemize{
-#'  \item{`id`}{`(character)` order id}
-#'  \item{`client_order_id`}{`(character)` client unique order id}
-#'  \item{`created_at`}{`(POSIXct)` nullable When the order was created}
-#'  \item{`updated_at`}{`(POSIXct)` nullable When the order was updated}
-#'  \item{`submitted_at`}{`(POSIXct)` nullable When the order was submitted}
-#'  \item{`filled_at`}{`(POSIXct)` nullable When the order was filled}
-#'  \item{`expired_at`}{`(POSIXct)` nullable When the order was expired}
-#'  \item{`canceled_at`}{`(POSIXct)` nullable When the order was canceled}
-#'  \item{`failed_at`}{`(POSIXct)` nullable When the order failed}
-#'  \item{`replaced_at`}{`(POSIXct)` nullable When the order was replaced}
-#'  \item{`replaced_by`}{`(character)` id of replacement order}
-#'  \item{`replaces`}{`(character)` id of the replaced order}
-#'  \item{`asset_id`}{`(character)` asset ID}
-#'  \item{`symbol`}{`(character)` Asset symbol}
-#'  \item{`exchange`}{`(character)` Asset exchange}
-#'  \item{`asset_class`}{`(character)` Asset class}
-#'  \item{`qty`}{`(integer)` Ordered quantity}
-#'  \item{`filled_qty`}{`(integer)` Filled quantity}
-#'  \item{`filled_avg_price`}{`(numeric)` Filled average price}
-#'  \item{`order_class`}{`(character)`}
-#'  \item{`order_type`}{`(character)`}
-#'  \item{`type`}{`(character)` Valid values: market, limit, stop, stop_limit}
-#'  \item{`side`}{`(character)` Valid values: buy, sell}
-#'  \item{`time_in_force`}{`(character)` time in force}
-#'  \item{`limit_price`}{`(numeric)` Limit price}
-#'  \item{`stop_price`}{`(numeric)` Stop price}
-#'  \item{`status`}{`(character)` Status of the order}
-#'  \item{`extended_hours`}{`(logical)` If true, eligible for execution outside regular trading hours}.
-#'  \item{`legs`}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.
+#'  \item{\code{id}}{`(character)` order id}
+#'  \item{\code{client_order_id}}{`(character)` client unique order id}
+#'  \item{\code{created_at}}{`(POSIXct)` nullable When the order was created}
+#'  \item{\code{updated_at}}{`(POSIXct)` nullable When the order was updated}
+#'  \item{\code{submitted_at}}{`(POSIXct)` nullable When the order was submitted}
+#'  \item{\code{filled_at}}{`(POSIXct)` nullable When the order was filled}
+#'  \item{\code{expired_at}}{`(POSIXct)` nullable When the order was expired}
+#'  \item{\code{canceled_at}}{`(POSIXct)` nullable When the order was canceled}
+#'  \item{\code{failed_at}}{`(POSIXct)` nullable When the order failed}
+#'  \item{\code{replaced_at}}{`(POSIXct)` nullable When the order was replaced}
+#'  \item{\code{replaced_by}}{`(character)` id of replacement order}
+#'  \item{\code{replaces}}{`(character)` id of the replaced order}
+#'  \item{\code{asset_id}}{`(character)` asset ID}
+#'  \item{\code{symbol}}{`(character)` Asset symbol}
+#'  \item{\code{exchange}}{`(character)` Asset exchange}
+#'  \item{\code{asset_class}}{`(character)` Asset class}
+#'  \item{\code{qty}}{`(integer)` Ordered quantity}
+#'  \item{\code{filled_qty}}{`(integer)` Filled quantity}
+#'  \item{\code{filled_avg_price}}{`(numeric)` Filled average price}
+#'  \item{\code{order_class}}{`(character)`}
+#'  \item{\code{order_type}}{`(character)`}
+#'  \item{\code{type}}{`(character)` Valid values: market, limit, stop, stop_limit}
+#'  \item{\code{side}}{`(character)` Valid values: buy, sell}
+#'  \item{\code{time_in_force}}{`(character)` time in force}
+#'  \item{\code{limit_price}}{`(numeric)` Limit price}
+#'  \item{\code{stop_price}}{`(numeric)` Stop price}
+#'  \item{\code{status}}{`(character)` Status of the order}
+#'  \item{\code{extended_hours}}{`(logical)` If true, eligible for execution outside regular trading hours}.
+#'  \item{\code{legs}}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.
 #' }
 #' @examples 
 #' orders(live = FALSE)
@@ -114,7 +114,6 @@ get_orders <- orders
 # Wed Apr 22 20:23:21 2020
 #' @family Orders
 #' @title Submit, Cancel & Replace Orders, 
-#' 
 #' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.
 #' \itemize{
 #'  \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are *required*.}
@@ -406,8 +405,7 @@ cancel_orders <- order_cancel
 # Wed Apr 22 20:22:23 2020
 #' @family Orders
 #' @title Replace Order Details (Deprecated)
-#' 
-#' @description Use \code{\link[AlpacaforR]{order_submit}} with `action = "replace"`. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See [Orders: PATCH](https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order) for details.
+#' @description Use \code{\link[AlpacaforR]{order_submit}} with `action = "replace"`. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order) for details.
 #' @param ticker_id `(character)` The ticker symbol or the order id.
 #' @param qty `(integer)` The amount of shares to replace. Defaults to orders existing quantity.
 #' @param time_in_force `(character)` The type of time order. I.E day, gtc, opg, cls, ioc, fok. Defaults to the replaced order's existing time in force. Please see [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for more info.
@@ -416,7 +414,7 @@ cancel_orders <- order_cancel
 #' @inheritParams account
 #' @inherit orders return
 #' @examples
-#' \dontrun{
+#' if (rlang::is_interactive()) {
 #' # Set a stop_loss and update it. Only works during market hours
 #' # Create an order
 #' o <- order_submit("BYND", 1, "buy", "market")
@@ -484,8 +482,8 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 #----------------------------------------------------------------------------------------------
 #' @family Orders
 #' @title replace_orders (Deprecated)
+#' @description Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}.
 #' @rdname order_replace
-#' @description Use \code{\link[AlpacaforR]{order_submit}} with `action = "replace"`.
 #' @examples replace_orders()
 #' @export
 replace_orders <- order_replace

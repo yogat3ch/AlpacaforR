@@ -4,12 +4,12 @@
 \alias{ws_log}
 \title{ws_log}
 \usage{
-ws_log(..., penv = NULL)
+ws_log(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env())
 }
 \arguments{
-\item{.o}{\code{(list)} The raw message content from the Websocket}
-
 \item{out}{\code{(list)} The ws_create out object}
+
+\item{.o}{\code{(list)} The raw message content from the Websocket}
 
 \item{log_bars}{\code{(logical)} The flag as to whether to log bars on the drive as CSV or not}
 }

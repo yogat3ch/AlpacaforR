@@ -38,11 +38,11 @@
 #' @inheritParams account
 #' @return `Watchlist` `(tibble)` If `action = "create"/NULL` a [Watchlist](https://alpaca.markets/docs/api-documentation/api-v2/watchlist/#watchlist-entity) Object or array of `Watchlist` objects. For all others `action`s, an [Asset](https://alpaca.markets/docs/api-documentation/api-v2/assets/#asset-entity) Object or array of Asset objects with the `Watchlist` stored as an attribute retrieved with `attr(Asset, "info")`. A `Watchlist` object has the following information:
 #' \itemize{
-#'  \item{`name`}{`(character)` The name of the watchlist.}
-#'  \item{`updated_at`}{`(POSIXct)` The timestamp of the last update.}
-#'  \item{`id`}{`(character)` Watchlist ID}
-#'  \item{`account_id`}{`(character)` The account ID associated with the watchlist}
-#'  \item{`created_at`}{`(POSIXct)` The timestamp of the watchlist creation.}
+#'  \item{\code{name}}{`(character)` The name of the watchlist.}
+#'  \item{\code{updated_at}}{`(POSIXct)` The timestamp of the last update.}
+#'  \item{\code{id}}{`(character)` Watchlist ID}
+#'  \item{\code{account_id}}{`(character)` The account ID associated with the watchlist}
+#'  \item{\code{created_at}}{`(POSIXct)` The timestamp of the watchlist creation.}
 #' }
 #' @inherit assets return
 #' @examples 
@@ -427,7 +427,6 @@ update_watchlist <- watchlist_update
 
 #----------------------------------------------------------------------------------------------
 #' @family Watchlist 
-#' @aliases watchlist_update
 #' @title Add to Watchlist function (Deprecated)
 #'
 #' @description `add_to_watchlist` is deprecated. Use \code{\link[AlpacaforR]{watchlist}} with `action = "add"` instead. Append an asset for the symbol to the end of watchlist asset list. You must provide current tickers, and new ticker to add.
@@ -476,7 +475,6 @@ add_to_watchlist <- function(watchlist_id = NULL, tickers = NULL, live = FALSE){
 #' @title Delete from Watchlist (Deprecated)
 #'
 #' @description Deprecated, use \code{\link[AlpacaforR]{watchlist}} with `action = "delete"` instead. Delete one entry for an asset by symbol name.
-#' @seealso watchlist_update
 #' @param watchlist_id Watchlist ID
 #' @param tickers Symbol name to remove from the watchlist content.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.

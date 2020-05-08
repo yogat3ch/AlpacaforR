@@ -1,3 +1,4 @@
+
 # Helper functions for market_data ----
 # Sat Mar 28 09:40:23 2020
 
@@ -53,7 +54,7 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
   `!!!` <- rlang::`!!!`
   try(list2env(e, env = cenv), silent = T)
   # remove the variables already existing
-  .vn <- .vn[!names(.vn) %in% ls(all.names = T, cenv)]
+  .vn <- .vn[!names(.vn) %in% ls(all.names = T, env = cenv)]
   # add the parent environment
   if (!identical(globalenv(), penv)) {
     parent.env(cenv) <- penv
@@ -1665,11 +1666,11 @@ poly_transform <- function(resp, ep) {
 #' @importFrom tibble tibble
 #' @importFrom lubridate now
 #' @importFrom stringr str_remove
-ws_msg <- function(out, .o = NULL, msg, toConsole = T) {
+ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
   assign("lastmessage", msg, out$env)
-  if (toConsole) cat("Message: ", msg, "\n")
+  if (out$env$toConsole) cat("Message: ", msg, "\n")
   if (exists("msgs", out$env)) {
     wsmsg <- get("msgs", out$env)
     wsmsg <- dplyr::bind_rows(wsmsg, tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = stringr::str_remove(msg, "^\\d{4}\\-\\d{2}\\-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\,\\s")))
@@ -1686,12 +1687,12 @@ ws_msg <- function(out, .o = NULL, msg, toConsole = T) {
     if (.o$ev %in% c("T", "Q", "A", "AM")) {
       if (!exists("bars", envir = out$env, inherits = F)) {
         bars <- list()
-        bars[[paste0(.o$ev,".",.o$sym)]] <- tibble::as_tibble(.o)
+        bars[[paste0(.o$ev,".",.o$sym)]] <- .o
         assign("bars", bars, out$env)
       } else {
         .bars <- get0("bars", out$env, inherits = F)
         .nm <- paste0(.o$ev,".",.o$sym)
-        .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], tibble::as_tibble(.o))
+        .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], .o)
         if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
           # half it's size by removing the first half
           .bars <- purrr::map(.bars, ~{
@@ -1712,31 +1713,27 @@ ws_msg <- function(out, .o = NULL, msg, toConsole = T) {
 #' @param log_bars `(logical)` The flag as to whether to log bars on the drive as CSV or not
 #' @return bars `(list)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data as a `tibble` for each polygon subscription channel, each named according to the channel from which it came. Additionally, a CSV named by the Subscription channel if `logbars = T` in the local or specified directory with the same data.
 #' @details The rows of the each of the bars objects are halved if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
-#' @importFrom rlang `!!!` is_named env_get env_bind current_env caller_env
+#' @importFrom rlang caller_env
 #' @importFrom purrr map
-ws_log <- function(..., penv = NULL) {
-  if (!.log) return(NULL) # stop if no logging
+ws_log <- function(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env()) {
   `!!!` <- rlang::`!!!`
   # add the arguments to the environment ----
   # Thu Apr 30 17:29:18 2020
-  .e <- try(list2env(as.list(penv), environment()))
-  .vn <- c(.o = ".o", .log = ".log", .msg = ".msg", out = "out", log_bars = "log_bars", log_msgs = "log_msgs", log_path = "log_path", logfile = "logfile")
+  .e <- try(list2env(list(penv), environment()), silent = T)
+  .vn <- list(.o = "data.frame", .log = "logical", out = "list", log_bars = "logical", log_msgs = "logical", log_path = "logical", logfile = "character", api = "character")
+  if (!exists(msg, inherits = F)) .vn$.msg <- "character"
   if (!all(.vn %in% ls(all.names = T))){
     .e <- list(...)
-    fetch_vars(.vn, e = .e)
+    fetch_vars(.vn, e = .e, penv = penv)
   }
+  if (!.log) return(NULL) # stop if no logging
   # If listening to a subscription chacnnel & logging bars
-  if (.o$ev %in% c("T", "Q", "A", "AM") && log_bars) {
-    # Create the name of the CSV log for Polygon channels
-    .log_ev <- paste0(log_path, paste0(.o$ev,".",.o$sym,".csv"))
-    
-    # if the file doesnt exist, create it
-    if (!file.exists(.log_ev)) {
-      file.create(.log_ev)
-      write(paste0(paste0(names(.o), collapse = ", "),"\n"), file = .log_ev, append = T)
-    } 
-    write(paste0(paste0(.o, collapse = ", "),"\n"), file = .log_ev, append = T)
+  if (api == "p" && !is.null(.o)) {
+    if (.o$ev %in% c("T", "Q", "A", "AM") && out$env$log_bars) {
+      # Create the name of the CSV log for Polygon channels
+      .log_ev <- paste0(log_path, paste0(.o$ev,".",.o$sym,".csv"))
+      write(paste0(.o, collapse = ", "), file = .log_ev, append = T)
+    }
   }
-  
-  if (log_msgs) write(.msg, file = logfile, append = T)
+  if (out$env$log_msgs) write(ifelse(exists(msg, inherits = F), msg, .msg), file = logfile, append = T)
 }

@@ -87,7 +87,7 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 }
 \description{
-The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders}{Orders: GET}for more details.
+The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders}{Orders GET}for more details.
 
 \code{get_orders} is deprecated. Use \code{\link[AlpacaforR]{orders}} instead.
 }

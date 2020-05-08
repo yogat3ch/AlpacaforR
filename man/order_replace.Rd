@@ -75,12 +75,12 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 }
 \description{
-Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order}{Orders: PATCH} for details.
+Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}. Cancels any open order by either ticker or order id. If multiple open orders exist for one ticker, then the default is to cancel the most recent order. Useful for updating unprocessed market orders placed outside market hours, or for updating limit, and stop orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#replace-an-order}{Orders} for details.
 
 Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}.
 }
 \examples{
-\dontrun{
+if (rlang::is_interactive()) {
 # Set a stop_loss and update it. Only works during market hours
 # Create an order
 o <- order_submit("BYND", 1, "buy", "market")

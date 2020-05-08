@@ -9,7 +9,7 @@ ws_listen(ws, channel = NULL, unsub = F)
 \arguments{
 \item{ws}{\code{(list/Websocket)} The websocket list or Websocket object created with \code{\link[AlpacaforR]{ws_create}}.}
 
-\item{channel}{\code{(character)} of the channel to connect to.
+\item{channel}{\code{(character)} vector of the channels to connect to.
 For an Alpaca websocket object provided as \code{ws} these are:
 \itemize{
 \item{\code{"Account"/"a"}}{\href{https://alpaca.markets/docs/api-documentation/api-v2}{Alpaca account stream}}
@@ -29,26 +29,64 @@ where * is the ticker symbol and the argument is case-insensitive. IE \code{"am.
 \item{unsub}{\code{(logical)} flag indicating whether to unsubscribe from the arguments provided to \code{channel} \emph{Polygon only}.}
 }
 \value{
-Returns nothing. All received messages are stored according to the parameters provided to \code{\link[AlpacaforR]{ws_create}}.
+Returns nothing. All received messages are stored according to the parameters provided to \code{\link[AlpacaforR]{ws_create}}. For Polygon, the data returned depends on the subscription:
+
+Trade
+\itemize{
+\item{\code{ev}}{ Event Type}
+\item{\code{sym}}{ Symbol Ticker}
+\item{\code{x}}{ Exchange ID}
+\item{\code{i}}{ Trade ID}
+\item{\code{z}}{ Tape ( 1=A 2=B 3=C)}
+\item{\code{p}}{ Price}
+\item{\code{s}}{ Trade Size}
+\item{\code{c}}{ Trade Conditions}
+\item{\code{t}}{ Trade Timestamp ( Unix MS )}
+}
+Quote
+\itemize{
+\item{\code{ev}}{ Event Type}
+\item{\code{sym}}{ Symbol Ticker}
+\item{\code{bx}}{ Bix Exchange ID}
+\item{\code{bp}}{ Bid Price}
+\item{\code{bs}}{ Bid Size}
+\item{\code{ax}}{ Ask Exchange ID}
+\item{\code{ap}}{ Ask Price}
+\item{\code{as}}{ Ask Size}
+\item{\code{c}}{ Quote Condition}
+\item{\code{t}}{ Quote Timestamp ( Unix MS )}
+}
+Agg
+\itemize{
+\item{\code{ev}}{ Event Type ( A = Second Agg, AM = Minute Agg )}
+\item{\code{sym}}{ Symbol Ticker}
+\item{\code{v}}{ Tick Volume}
+\item{\code{av}}{ Accumulated Volume ( Today )}
+\item{\code{op}}{ Todays official opening price}
+\item{\code{vw}}{ VWAP (Volume Weighted Average Price)}
+\item{\code{o}}{ Tick Open Price}
+\item{\code{c}}{ Tick Close Price}
+\item{\code{h}}{ Tick High Price}
+\item{\code{l}}{ Tick Low Price}
+\item{\code{a}}{ Tick Average / VWAP Price}
+\item{\code{s}}{ Tick Start Timestamp ( Unix MS )}
+\item{\code{e}}{ Tick End Timestamp ( Unix MS )}
+}
 }
 \description{
-Given the \verb{websocket environment} the function will first authenticate using the environment variables \code{APCA-LIVE-API-KEY-ID} and \code{APCA-LIVE-API-SECRET-KEY}. If these are unset, please see the Installation vignette \code{vignette("Installation", "AlpacaforR")} for instruction on setting them. Secondly, it will subscribe to any channels specified to the \code{channel} argument. Must be called on each Websocket object individually.
+Given the \verb{websocket environment} the function will subscribe to any channels specified to the \code{channel} argument. Must be called on each Websocket object individually.
 }
 \examples{
  \dontrun{
  # must be run in an interactive session
  # See ?AlpacaforR::ws_create for tutorial on creating a connection
  if (interactive()) {
-   if (attr(ws$ws, "api") == "a") {
-     # Subscribe to Alpaca trade and account updated by default
-     ws_listen(ws)
-   } 
-   if (attr(wsp$ws, "api") == "p") {
-     #Subscribe to the aggregates (per second) for Beyond Meat
-     ws_listen(wsp, channel = "a.bynd")
-   }
+   # Subscribe to Alpaca trade and account updated by default
+   ws_listen(wsa)
+   #Subscribe to the aggregates (per second) for Beyond Meat
+   ws_listen(wsp, channel = "a.bynd")
    #You can close the connection(s) at any point with the following:
-   ws$ws$close()
+   wsa$ws$close()
    wsp$ws$close()
  }
  }

@@ -2,7 +2,6 @@
 % Please edit documentation in R/Watchlist.R
 \name{add_to_watchlist}
 \alias{add_to_watchlist}
-\alias{watchlist_update}
 \title{Add to Watchlist function (Deprecated)}
 \usage{
 add_to_watchlist(watchlist_id = NULL, tickers = NULL, live = FALSE)

@@ -22,8 +22,6 @@ delete_from_watchlist(watchlist_id = "ea3cc05b-2844-4985-b0c9-8f412718ac9e", tic
 }
 }
 \seealso{
-watchlist_update
-
 Other Watchlist: 
 \code{\link{add_to_watchlist}()},
 \code{\link{delete_watchlist}()},

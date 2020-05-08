@@ -7,13 +7,44 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # A Websockets How-to
-```{r}
-.bo <- order_submit("BYND", qty = 1, side = "buy", type = "market")
-.bo <- orders(s = "all")
-sl_percent <- .05
-.bo[1,]$filled_avg_price * (1 - sl_percent)
-.so <- order_submit(.bo[1,]$id, side = "sell", stop = .bo[1,]$filled_avg_price * (1 - sl_percent))
+The Alpaca and Polygon websocket protocols can be very useful for keeping track of what's happening with your portfolio and the stocks you are watching. If `toConsole` is `TRUE` (the default) when creating a websocket with \code{\link[AlpacaforR]{ws_create}}, all messages will be printed to the console.
+Ideally, we would like an automated trading algorithm respond strategically to incoming account and ticker information and take actions on our behalf, or inform of us of particular events. 
+In this vignette we will look at a common use case: setting a trailing stop loss for a new position. The vignette assumes that the market is open and orders can be placed. Ensure the market is open with the following:
+```{r 'Is the market open'}
+(market_status <- polygon("ms"))
+```
 
+The \code{\link[AlpacaforR]{ws_create}} function has the option to provide an `action` expression and a custom environment `aenv` in which the expression will be evaluated. 
+First, create the environment and store the information about the new position.
+
+```{r 'Create aenv and establish position'}
+if (market_status$market == "open") {
+  e <- new.env()
+  # place an order for BYND
+  e$bo <- order_submit("BYND", qty = 1, side = "buy", type = "market")
+}
+```
+
+Next, we set an initial stop-loss at 5% below the current price.
+```{r 'Set stop-loss'}
+sl <- .05
+```
+
+To do this, the current price can be obtained with \code{\link[AlpacaforR]{polygon}}
+```{r 'Obtain the current price'}
+(e$lq <- polygon("lq", symbol = "BYND"))
+```
+
+The initial stop is set with \code{\link[AlpacaforR]{order_submit}} using the `stop` argument. We also want to link this sell order to buy order to which it corresponds using the `client_order_id` which is a user specified order ID. We'll want to keep each successive trailing sell order linked moving forward, we can do so by adding the suffix `"_1"` to the original buy order ID and setting it as the `client_order_id`. We'll then increment this number with each successive stop order. Note that we can pass the original buy order ID to `ticker_id` (the first argument) to automatically set the sell parameters to logical defaults.
+```{r 'Send the sell order'}
+if (market_status$market == "open") {
+(e$so <- order_submit(e$bo$id, stop = e$lq$askprice * (1 - sl), client = paste0(e$bo$id,"_1")))
+}
+```
+
+Now that we have a stop set, we want it to follow the price upwards, replacing the stop price for the sell order using `order_submit` with `action = "replace"`.
+
+```{r 'Create a trailing stop loss action'}
 action = rlang::expr({
   if (!is.null(.o$sym)) {
     .oo <- orders()
@@ -65,9 +96,37 @@ action = rlang::expr({
     # do nothing
   }
 })
-.ws <- ws_create("Polygon", logfile = T, logbars = T, action = action)
+```
+
+The Alpaca API provides updates on trades and account events. Lets connect to this websocket first:
+```{r 'Connect to Alpaca'}
+ws_a <- ws_create() # Alpaca is the default
+Sys.sleep(3) # give it a couple of seconds to authenticate before subscribing
+ws <- ws_listen(ws_a) # Subscribes to both trade and account by default
+```
+
+```{r 'Connect to Alpaca'}
+ws_p <- ws_create("Polygon", log_msgs = F, log_bars = T)
+ws_listen(ws_p, c("AM.BYND", "AM.AMZN"))
+ws_p$ws$close()
+ws_p$env$toConsole <- F
+ws_p$env$bars$AM.AMZN
+```
+
+
+```{r}
+if (rlang::is_interactive()) {
+  .ws <- ws_create("Polygon", log_msgs = F, log_bars = T, action = action)
 .ws$ws$connect()
 ws_listen(.ws, channel = "AM.BYND")
 .ws$ws$close()
+}
+
+```
+
+
+```{r}
+
+
 ```
 

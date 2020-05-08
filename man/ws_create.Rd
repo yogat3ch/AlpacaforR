@@ -50,32 +50,34 @@ Within \code{env} are the following variables:
 The \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca Streaming API} provides Trade & Account updates, while the \href{https://polygon.io/sockets}{Polygon Websocket API} offers Trade, Quote, Aggregate (per second) and Aggregate (per minute) streaming.
 }
 \details{
-If log_msgs is \code{TRUE} or a file name is provided, the .log file will contain:
+This function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the \verb{[OBJECT]$ws$close()} method, where \verb{[OBJECT]} is the object returned from \code{ws_create}.
+\code{log_msgs} , \code{log_bars}, and \code{toConsole} are all \code{logical} values stored to \code{env}, and can be modified in place to update the behavior of the websocket.  selectively toggling on/off these features. \code{action} & \code{aenv} are also stored to \code{env} and can be modified in place as well.  \code{log_path} and \code{logfile} are stored, but cannot be modified.
+If \code{log_msgs = TRUE} or a file name is provided, the log file will contain:
 \itemize{
 \item{The time the connection is created}
 \item{The time and content of each message}
 \item{The time the connection is closed}
 }
 This log file can be read with \code{\link[base]{readLines}} or \code{\link[utils]{read.csv}}.
-If \code{log_msgs} is FALSE, no log file will be created. This function allows a simple set-up for the majority of use cases. The connection can be closed at any time by using the \verb{[OBJECT]$ws$close()} method, where \verb{[OBJECT]} is the object returned from \code{ws_create}. If you wish to use certain message content as hooks to execute further functions specific to your Alpaca algorithm, you can do one of following:
+If \code{log_msgs} is FALSE, no log file will be created.
+If you wish to perform actions based on specific message content, you can do one of following:
 \enumerate{
 \item{For simple functions, use the \code{action} argument.}
 \item{Use a background process with \code{\link[later]{later::later}} or \code{\link[callr]{callr::r_bg}} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
 \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions in the \code{onMessage} method.}
 }
+The websocket is authenticated using the environment variables \code{APCA-LIVE-API-KEY-ID}. If unset, please see the Installation vignette \code{vignette("Installation", "AlpacaforR")} for instructions on setting this value.
 }
 \examples{
 \dontrun{
 # must be run in an interactive session
 if (interactive()) {
   # Create the Alpaca Websocket and message environment. 
-  ws <- ws_create("a")
-  ws$ws$connect()
+  wsa <- ws_create("a")
   # Create the Polygon websocket and message environment, with ticks being logged.
   wsp <- ws_create("p", log_bars = T)
-  wsp$ws$connect()
   # if you're unable to remember which API the ws object corresponds to:
-  attr(ws$ws, "api")
+  attr(wsa, "api")
 }
 }
 }

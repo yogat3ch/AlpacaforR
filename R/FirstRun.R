@@ -4,7 +4,6 @@
 #' @param live \code{(named chacter)} of length two: `key` and `secret` for the Alpaca live API.
 #' @return Sets environment variables for this session and edits the .Renviron file in R's home directory `path.expand("~")` and adds the specified key/secret combinations for future sessions.
 #' @importFrom purrr iwalk
-#' @importFrom glue glue
 #' @examples 
 #' \dontrun{
 #' firstrun(paper = c(key = "mypaperkey", secret = "mypapersecret"), live = c(key = "mylivekey", secret = "mylivesecret"))
