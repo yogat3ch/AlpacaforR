@@ -83,7 +83,7 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 \item{\code{stop_price}}{\code{(numeric)} Stop price}
 \item{\code{status}}{\code{(character)} Status of the order}
 \item{\code{extended_hours}}{\code{(logical)} If true, eligible for execution outside regular trading hours}.
-\item{\code{legs}}{\code{(character)} When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.
+\item{\code{legs}}{\code{(character)} When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.}
 }
 }
 \description{

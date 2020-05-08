@@ -46,7 +46,7 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   .null <- purrr::map_lgl(.bounds, is.null)
   # Check for null values and warn if NULL
   if (any(.null)){
-    message(paste0(paste0(names(.null)[.null], collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
+    message(paste0(paste0("`",names(.null)[.null],"`", collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
     .bounds <- purrr::map(.bounds, ~{
       if (is.null(.x)) lubridate::today() - lubridate::days(1) else try_date(.x)
     })
@@ -68,7 +68,7 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   .url <- httr::build_url(.url)
   calendar = httr::GET(url = .url, headers)
   calendar =  response_text_clean(calendar)
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars(date), lubridate::ymd, tz = "America/New_York") %>% 
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = "America/New_York") %>% 
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("session")), ~paste0(stringr::str_sub(., start = 1, end = 2),":",stringr::str_sub(.,start = 3, end = 4))) %>% 
     dplyr::mutate(
       day = lubridate::interval(

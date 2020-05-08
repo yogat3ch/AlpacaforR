@@ -47,7 +47,7 @@ assets <- function(ticker_id = NULL, v = 2){
   asts = httr::GET(url = .url, headers)
   asts = response_text_clean(asts)
   if (!is.null(asts$code)) {
-    rlang::warn("Failed to return asset.")
+    rlang::warn(asts$message)
     return(asts)
   }
   out <- tibble::as_tibble(asts)

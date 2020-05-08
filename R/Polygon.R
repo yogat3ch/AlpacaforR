@@ -197,7 +197,7 @@
 )
 
 #Generate help text
-# purrr::imap_chr(.ep[1:24]}, ~{
+# purrr::imap_chr(.ep[1:24], ~{
 #   `%>%` <- magrittr::`%>%`
 #   if (.y == "a") {
 #     return(paste0("#' \\item{`a`}{Aggregates - see ?market-data}"))
@@ -212,8 +212,12 @@
 #     .args <- purrr::imap(.x[["params"]], ~{
 #       .c <- ifelse(is.list(.x), class(.x[[2]]), class(.x))
 #       .r <- get0('.r')
-#       if (.y %in% .r) .y <- paste0('\\strong{',.y,'}')
-#       .args <- paste0("#'   \\item{\\code{",.y,"}}","{",glue::glue(' `({.c})` '), paste0(purrr::map_chr(.x, ~{ifelse(is.null(.x), '*Optional* NULL', as.character(.x))}), collapse = ', '), "}")}) %>%
+#       if (.y %in% .r) {
+#         .y <- paste0('\\strong{\\code{',.y,'}}')
+#       } else {
+#         .y<- paste0('\\code{"',.y,'"}')
+#       }
+#       .args <- paste0("#'   \\item{",.y,"}","{",glue::glue(' `({.c})` '), paste0(purrr::map_chr(.x, ~{ifelse(is.null(.x), '*Optional* NULL', as.character(.x))}), collapse = ', '), "}")}) %>%
 #       do.call(c,.) %>%
 #       paste0(collapse = "\n") %>%
 #       {paste0("#'   \\itemize{\n",.,"\n#'  }")} %>%
@@ -244,14 +248,14 @@
 #' \item{`t`}{ [Tickers](https://polygon.io/docs/#get_v2_reference_tickers_anchor): Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{sort}}{ `(character)` ticker, -ticker, type}
-#'   \item{\code{type}}{ `(character)` *Optional* NULL, etp, cs}
-#'   \item{\code{market}}{ `(character)` *Optional* NULL, stocks, indices}
-#'   \item{\code{locale}}{ `(character)` *Optional* NULL, us, g}
-#'   \item{\code{search}}{ `(character)` *Optional* NULL, microsoft}
-#'   \item{\code{perpage}}{ `(numeric)` 50}
-#'   \item{\code{page}}{ `(numeric)` 1}
-#'   \item{\code{active}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
+#'   \item{\code{"sort"}}{ `(character)` ticker, -ticker, type}
+#'   \item{\code{"type"}}{ `(character)` *Optional* NULL, etp, cs}
+#'   \item{\code{"market"}}{ `(character)` *Optional* NULL, stocks, indices}
+#'   \item{\code{"locale"}}{ `(character)` *Optional* NULL, us, g}
+#'   \item{\code{"search"}}{ `(character)` *Optional* NULL, microsoft}
+#'   \item{\code{"perpage"}}{ `(numeric)` 50}
+#'   \item{\code{"page"}}{ `(numeric)` 1}
+#'   \item{\code{"active"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
 #'  }
 #' }
 #' \item{`tt`}{ [Ticker Types](https://polygon.io/docs/#get_v2_reference_types_anchor): Get the mapping of ticker types to descriptions / long names
@@ -259,15 +263,15 @@
 #' \item{`td`}{ [Ticker Details](https://polygon.io/docs/#get_v1_meta_symbols__symbol__company_anchor): Get the details of the symbol company/entity. These are important details which offer an overview of the entity. Things like name, sector, description, logo and similar companies.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`tn`}{ [Ticker News](https://polygon.io/docs/#get_v1_meta_symbols__symbol__news_anchor): Get news articles for this ticker.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
-#'   \item{\code{perpage}}{ `(numeric)` 50}
-#'   \item{\code{page}}{ `(numeric)` 1}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
+#'   \item{\code{"perpage"}}{ `(numeric)` 50}
+#'   \item{\code{"page"}}{ `(numeric)` 1}
 #'  }
 #' }
 #' \item{`m`}{ [Markets](https://polygon.io/docs/#get_v2_reference_markets_anchor): Get the list of currently supported markets
@@ -277,22 +281,22 @@
 #' \item{`ss`}{ [Stock Splits](https://polygon.io/docs/#get_v2_reference_splits__symbol__anchor): Get the historical splits for this symbol.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`sd`}{ [Stock Dividends](https://polygon.io/docs/#get_v2_reference_dividends__symbol__anchor): Get the historical dividends for this ticker.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`sf`}{ [Stock Financials](https://polygon.io/docs/#get_v2_reference_financials__symbol__anchor): Current status of each market
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
-#'   \item{\code{limit}}{ `(numeric)` 5}
-#'   \item{\code{type}}{ `(character)` *Optional* NULL, Y, YA, Q, QA, T, TA}
-#'   \item{\code{sort}}{ `(character)` *Optional* NULL, reportPeriod, -reportPeriod, calendarDate, -calendarDate}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
+#'   \item{\code{"limit"}}{ `(numeric)` 5}
+#'   \item{\code{"type"}}{ `(character)` *Optional* NULL, Y, YA, Q, QA, T, TA}
+#'   \item{\code{"sort"}}{ `(character)` *Optional* NULL, reportPeriod, -reportPeriod, calendarDate, -calendarDate}
 #'  }
 #' }
 #' \item{`ms`}{ [Market Status](https://polygon.io/docs/#get_v1_marketstatus_now_anchor): Current status of each market
@@ -304,48 +308,48 @@
 #' \item{`ht`}{ [Historic Trades](https://polygon.io/docs/#get_v2_ticks_stocks_trades__ticker___date__anchor): Get historic NBBO quotes for a ticker.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{ticker}}}{ `(character)` AAPL}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2018-02-02}
-#'   \item{\code{timestamp}}{ `(numeric)` *Optional* NULL, 1}
-#'   \item{\code{timestampLimit}}{ `(numeric)` *Optional* NULL, 1}
-#'   \item{\code{reverse}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
-#'   \item{\code{limit}}{ `(numeric)` 10, 50000}
+#'   \item{\strong{\code{ticker}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{date}}}{ `(Date)` 2018-02-02}
+#'   \item{\code{"timestamp"}}{ `(numeric)` *Optional* NULL, 1}
+#'   \item{\code{"timestampLimit"}}{ `(numeric)` *Optional* NULL, 1}
+#'   \item{\code{"reverse"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
+#'   \item{\code{"limit"}}{ `(numeric)` 10, 50000}
 #'  }
 #' }
 #' \item{`hq`}{ [Historic Quotes (NBBO)](https://polygon.io/docs/#get_v2_ticks_stocks_nbbo__ticker___date__anchor): Get historic NBBO quotes for a ticker.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{ticker}}}{ `(character)` AAPL}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2018-02-02}
-#'   \item{\code{timestamp}}{ `(numeric)` *Optional* NULL, 1}
-#'   \item{\code{timestampLimit}}{ `(numeric)` *Optional* NULL, 1}
-#'   \item{\code{reverse}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
-#'   \item{\code{limit}}{ `(numeric)` 10, 50000}
+#'   \item{\strong{\code{ticker}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{date}}}{ `(Date)` 2018-02-02}
+#'   \item{\code{"timestamp"}}{ `(numeric)` *Optional* NULL, 1}
+#'   \item{\code{"timestampLimit"}}{ `(numeric)` *Optional* NULL, 1}
+#'   \item{\code{"reverse"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
+#'   \item{\code{"limit"}}{ `(numeric)` 10, 50000}
 #'  }
 #' }
 #' \item{`lt`}{ [Last Trade for a Symbol](https://polygon.io/docs/#get_v1_last_stocks__symbol__anchor): Get the last trade for a given stock.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`lq`}{ [Last Quote for a Symbol](https://polygon.io/docs/#get_v1_last_quote_stocks__symbol__anchor): Get the last quote tick for a given stock.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`do`}{ [Daily Open/Close](https://polygon.io/docs/#get_v1_open-close__symbol___date__anchor): Get the open, close and afterhours prices of a symbol on a certain date.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{symbol}}}{ `(character)` AAPL}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2020-05-04}
+#'   \item{\strong{\code{symbol}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{date}}}{ `(Date)` 2020-05-04}
 #'  }
 #' }
 #' \item{`cm`}{ [Condition Mappings](https://polygon.io/docs/#get_v1_meta_conditions__ticktype__anchor): The mappings for conditions on trades and quotes.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{ticktype}}}{ `(character)` trades, quotes}
+#'   \item{\strong{\code{ticktype}}}{ `(character)` trades, quotes}
 #'  }
 #' }
 #' \item{`sa`}{ [Snapshot - All tickers](https://polygon.io/docs/#get_v2_snapshot_locale_us_markets_stocks_tickers_anchor): Snapshot allows you to see all tickers current minute aggregate, daily aggregate and last trade. As well as previous days aggregate and calculated change for today.
@@ -353,82 +357,30 @@
 #' \item{`st`}{ [Snapshot - Single Ticker](https://polygon.io/docs/#get_v2_snapshot_locale_us_markets_stocks_tickers__ticker__anchor): See the current snapshot of a single ticker
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{ticker}}}{ `(character)` AAPL}
+#'   \item{\strong{\code{ticker}}}{ `(character)` AAPL}
 #'  }
 #' }
 #' \item{`sg`}{ [Snapshot - Gainers/Losers](https://polygon.io/docs/#get_v2_snapshot_locale_us_markets_stocks__direction__anchor): See the current snapshot of the top 20 gainers or losers of the day at the moment.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{direction}}}{ `(character)` gainers, losers}
+#'   \item{\strong{\code{direction}}}{ `(character)` gainers, losers}
 #'  }
 #' }
 #' \item{`pc`}{ [Previous Close](https://polygon.io/docs/#get_v2_aggs_ticker__ticker__prev_anchor): Get the previous day close for the specified ticker
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{ticker}}}{ `(character)` AAPL}
-#'   \item{\code{unadjusted}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
+#'   \item{\strong{\code{ticker}}}{ `(character)` AAPL}
+#'   \item{\code{"unadjusted"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
 #'  }
 #' }
 #' \item{`a`}{Aggregates - see ?market-data}
 #' \item{`gd`}{ [Grouped Daily (Bars)](https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor): Get the daily OHLC for entire markets.
 #' Arguments:
 #'   \itemize{
-#'   \item{\code{\strong{locale}}}{ `(character)` US, See Locales Endpoint}
-#'   \item{\code{\strong{market}}}{ `(character)` STOCKS, See Markets Endpoint}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2019-02-01}
-#'   \item{\code{unadjusted}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
-#'  }
-#' }
-#' \item{`fht`}{ [Historic Forex Ticks](https://polygon.io/docs/#get_v1_historic_forex__from___to___date__anchor): Get historic ticks for a currency pair. Example for USD/JPY the from would be USD and to would be JPY. The date formatted like 2017-6-22
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{\strong{from}}}{ `(character)` USD}
-#'   \item{\code{\strong{to}}}{ `(character)` JPY}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2019-02-01}
-#'   \item{\code{offset}}{ `(numeric)` *Optional* NULL, 1}
-#'   \item{\code{limit}}{ `(numeric)` 100, 10000}
-#'  }
-#' }
-#' \item{`cc`}{ [Real-time Currency Conversion](https://polygon.io/docs/#get_v1_conversion__from___to__anchor): Convert currencies using the latest market conversion rates. Note than you can convert in both directions. For example USD->CAD or CAD->USD.
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{\strong{from}}}{ `(character)` USD}
-#'   \item{\code{\strong{to}}}{ `(character)` CAD}
-#'   \item{\code{amount}}{ `(numeric)` 100}
-#'   \item{\code{precision}}{ `(numeric)` 2}
-#'  }
-#' }
-#' \item{`lq`}{ [Last Quote for a Currency Pair](https://polygon.io/docs/#get_v1_last_quote_currencies__from___to__anchor): Get Last Quote Tick for a Currency Pair.
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{\strong{from}}}{ `(character)` USD}
-#'   \item{\code{\strong{to}}}{ `(character)` CAD}
-#'  }
-#' }
-#' \item{`fsa`}{ [Forex: Snapshot - All Tickers](https://polygon.io/docs/#get_v2_snapshot_locale_global_markets_forex_tickers_anchor): Snapshot allows you to see all tickers current minute aggregate, daily aggregate and last trade. As well as previous days aggregate and calculated change for today.
-#' }
-#' \item{`fsg`}{ [Forex: Snapshot - Gainers/Losers](https://polygon.io/docs/#get_v2_snapshot_locale_global_markets_forex__direction__anchor): See the current snapshot of the top 20 gainers or losers of the day at the moment.
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{1}}{ `(character)` gainers}
-#'   \item{\code{2}}{ `(character)` losers}
-#'  }
-#' }
-#' \item{`ce`}{ [Crypto Exchanges](https://polygon.io/docs/#get_v1_meta_crypto-exchanges_anchor): List of crypto currency exchanges which are supported by Polygon.io
-#' }
-#' \item{`clt`}{ [Crypto: Last Trade for a Crypto Pair](https://polygon.io/docs/#get_v1_last_crypto__from___to__anchor): Get Last Trade Tick for a Currency Pair.
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{\strong{from}}}{ `(character)` BTC}
-#'   \item{\code{\strong{to}}}{ `(character)` USD}
-#'  }
-#' }
-#' \item{`cdo`}{ [Crypto: Daily Open/Close](https://polygon.io/docs/#get_v1_open-close_crypto__from___to___date__anchor): Get the open, close prices of a symbol on a certain day.
-#' Arguments:
-#'   \itemize{
-#'   \item{\code{\strong{from}}}{ `(character)` BTC}
-#'   \item{\code{\strong{to}}}{ `(character)` USD}
-#'   \item{\code{\strong{date}}}{ `(Date)` 2020-05-04}
+#'   \item{\strong{\code{locale}}}{ `(character)` US, See Locales Endpoint}
+#'   \item{\strong{\code{market}}}{ `(character)` STOCKS, See Markets Endpoint}
+#'   \item{\strong{\code{date}}}{ `(Date)` 2019-02-01}
+#'   \item{\code{"unadjusted"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
 #'  }
 #' }
 #' }
@@ -736,6 +688,7 @@ get_poly_stock_splits <- function(ticker=NULL){
 #' @param date `(character/Date/POSIXct)` Specify the date for which you are requesting in YYYY-MM-DD format.
 #' @param .ts `(Datetime)` Timestamp offset, used for pagination. This is the offset at which to start the results. Using the timestamp of the last result as the offset will give you the next page of results.
 #' @param limit `(integer)` Limit the size of response, Max 50000. Default 10. 
+#' @inheritParams account
 #' @return `(data.frame)` Object containing all information specified in the Properties section of the Endpoint links above with the following attributes:
 #' @return `(list)` Accessed via `attr(result, "query")` with query metadata as follows:
 #' \itemize{

@@ -6,7 +6,7 @@
 \usage{
 fetch_vars(
   .vn,
-  e = list(...),
+  e = NULL,
   cenv = rlang::caller_env(),
   penv = parent.env(rlang::caller_env()),
   sf = rev(sys.frames())

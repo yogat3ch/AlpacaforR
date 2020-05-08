@@ -44,7 +44,7 @@
 #'  \item{\code{stop_price}}{`(numeric)` Stop price}
 #'  \item{\code{status}}{`(character)` Status of the order}
 #'  \item{\code{extended_hours}}{`(logical)` If true, eligible for execution outside regular trading hours}.
-#'  \item{\code{legs}}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.
+#'  \item{\code{legs}}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.}
 #' }
 #' @examples 
 #' orders(live = FALSE)
@@ -393,7 +393,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   return(.out)
 }
 #' @family Orders
-#' @rdname order_cancel
+#' @rdname order_submit
 #' @title cancel_orders
 #' @description `cancel_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`.
 #' @examples cancel_orders()

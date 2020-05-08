@@ -50,28 +50,22 @@ is_inf <- function(.x) {
 #' @importFrom stringr str_extract
 #' @importFrom purrr keep map2_lgl walk
 
-fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
+fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
   `!!!` <- rlang::`!!!`
-  try(list2env(e, env = cenv), silent = T)
+  try(list2env(e, envir = cenv), silent = T)
   # remove the variables already existing
-  .vn <- .vn[!names(.vn) %in% ls(all.names = T, env = cenv)]
+  .vn <- .vn[!names(.vn) %in% ls(all.names = T, envir = cenv)]
   # add the parent environment
-  if (!identical(globalenv(), penv)) {
-    parent.env(cenv) <- penv
-    .inherit <- T
-  } else {
-    .inherit <- F
-  }
+  
   if (!all(names(.vn) %in% ls(all.names = T, envir = cenv))) {
-    .vars <- purrr::keep(rlang::env_get_list(env = cenv, names(.vn), default = Inf, inherit = .inherit), is_inf)
+    .vars <- purrr::keep(rlang::env_get_list(env = cenv, names(.vn), default = Inf, inherit = F), is_inf)
     .vars <- .vars[purrr::map2_lgl(.vars, .vn[names(.vars)], ~inherits(.x, .y))]
     rlang::env_bind(cenv, !!!.vars)
-    .missed <- .vn[!names(.vn) %in% ls(all.names = T, env = cenv)]
+    .missed <- .vn[!names(.vn) %in% ls(all.names = T, envir = cenv)]
     if (length(.missed) > 0) {
-      .vars <- purrr::walk(sf, ~{
+      .vars <- purrr::walk(append(sf, penv, after = 0), ~{
         if (identical(globalenv(), .x)) return(NULL)
-        .inherit <- ifelse(identical(globalenv(), parent.env(.x)), F, T)
-        .v <- purrr::keep(rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = .inherit), is_inf)
+        .v <- purrr::keep(rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = F), is_inf)
         .v <- .v[purrr::map2_lgl(.v, .vn[names(.v)], ~inherits(.x, .y))]
         rlang::env_bind(cenv, !!!.v)
       })
@@ -95,6 +89,7 @@ fetch_vars <- function(.vn, e = list(...), cenv = rlang::caller_env(), penv = pa
 #' @keywords internal
 #' @importFrom purrr map_chr
 #' @importFrom rlang abort warn caller_env env_bind
+#' @importFrom utils tail
 
 tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   
@@ -104,11 +99,11 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
   .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
   # Create ordered factor or timeframe options
-  .tf_order <- purrr::map_chr(.tf_opts, tail, 1) %>% {factor(., levels = .)}
+  .tf_order <- purrr::map_chr(.tf_opts, utils::tail, 1) %>% {factor(., levels = .)}
   
   if (v == 1) {
     # Get the timeframe
-    timeframe <- tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
+    timeframe <- utils::tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
     
     # Check args
     if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
@@ -119,7 +114,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
     }
     
   } else if (v == 2){
-    timeframe <- tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = F)[1]]], 1)
+    timeframe <- utils::tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = F)[1]]], 1)
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
@@ -141,6 +136,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
 #' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz wday make_date year interval `%within%` floor_date int_start duration ceiling_date int_end days hour as_datetime as_date year today
 #' @importFrom dplyr lead
 #' @importFrom magrittr `%>%`
+#' @importFrom stats setNames
 bars_bounds <- function(...) {
   `%>%` <- magrittr::`%>%`
   `%||%` <- rlang::`%||%`
@@ -269,7 +265,7 @@ bars_bounds <- function(...) {
   } else if (v == 2) {
     .bounds <- purrr::map(.bounds, ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York"))
     if (all(names(.bounds) %in% c("from", "to"))) {
-      .bounds <- setNames(.bounds, c("from", "to"))
+      .bounds <- stats::setNames(.bounds, c("from", "to"))
     }
   }
   #browser(expr = any(purrr::map_lgl(.bounds, ~ get0("dbg", .GlobalEnv, ifnotfound = F) && (length(.x) == 0 || lubridate::year(.x) > {lubridate::year(lubridate::today()) + 1} || is.na(.x)))))
@@ -295,6 +291,7 @@ bars_bounds <- function(...) {
 #' @importFrom lubridate as_date
 #' @importFrom stringr str_extract str_sub
 #' @importFrom httr parse_url build_url
+#' @importFrom utils URLdecode
 bars_url <- function(..., limit = NULL) {
   `%||%` <- rlang::`%||%`
   `!!!` <- rlang::`!!!`
@@ -337,9 +334,10 @@ bars_url <- function(..., limit = NULL) {
                       until = .bounds$until
     )
     # Build the url
-    url <- URLdecode(httr::build_url(url))
+    
+    url <- utils::URLdecode(httr::build_url(url))
   } else if (v == 2) {
-    url <- purrr::map_chr(setNames(.ticker, .ticker), ~{
+    url <- purrr::map_chr(stats::setNames(.ticker, .ticker), ~{
       url = httr::parse_url(get_url_poly())
       url$path <- list(
         v = "v2",
@@ -490,11 +488,9 @@ bars_expected <- function(bars, ...) {
   
   
   # Set the parameters for seq and lubridate durations
-  
-  .by <- paste0(multiplier," ", timeframe, "s")
   .multiplier <- multiplier
   .timeframe <- timeframe
-  
+  .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
   .expected <- purrr::imap(bars, ~{
     if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL)
     .cutoff <- attr(.x, "query")$ts %||% tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||% lubridate::now()
@@ -507,10 +503,8 @@ bars_expected <- function(bars, ...) {
     } else {
       .bgn <- .bounds[[1]]
     }
-    
+    browser(expr = .tf_num == 5 && .timeframe == "minute")
     if (.tf_num < 3) {
-      # interval length .by
-      .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
       # units for floor/ceiling
       .units <- paste0(
         ifelse(.timeframe == "minute", 30, 1), # 30 min baseline if tf = mins
@@ -530,18 +524,18 @@ bars_expected <- function(bars, ...) {
       # 1. computed at close, thus we exclude today
       # 2. start at floor_date Monday 
       .from <- lubridate::force_tz(lubridate::as_date(lubridate::floor_date(.bgn, unit = paste0(.multiplier, " ", .timeframe, "s"), week_start = 1)), "America/New_York")
-      
-      .expected <- try({seq(.from, .bounds[[2]], by = paste0(.multiplier, " ", .timeframe, "s"))})
+      .expected <- try({seq(.from, .bounds[[2]], by = .by)})
       # dates that are trading days (match the .cal) and less than today
-      .expected <- .expected[.expected %in% .cal$date & .expected < lubridate::today()]
+      .expected <- .expected[(.expected %in% .cal$date) & (.expected < lubridate::force_tz(Sys.Date(), tzone = Sys.timezone()) )]
+      
     } else if (.tf_num == 4) {
       
-      .expected <- seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe))
+      .expected <- seq(from = .bgn, to = .bounds[[2]], by = .by)
       
     } else if (.tf_num == 5) {
       # Change the day of the month of each expected value to match that of the starting actual value.
       .day <- lubridate::day(.x$time[1])
-      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe)), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), "America/New_York")) %>% purrr::reduce(c)
+      .expected <- purrr::map(seq(from = .bgn, to = .bounds[[2]], by = .by), ~lubridate::force_tz(lubridate::make_date(lubridate::year(.x), month = lubridate::month(.x), day = .day), "America/New_York")) %>% purrr::reduce(c)
       .exp <- data.frame(expected = .expected) %>% 
         dplyr::mutate(y = lubridate::year(expected),
                       m = lubridate::month(expected))
@@ -556,11 +550,11 @@ bars_expected <- function(bars, ...) {
       
     } else if (.tf_num == 6) {
       
-      .expected <- try({seq(.bgn, .bounds[[2]], by = as.character(.timeframe))})
+      .expected <- try({seq(.bgn, .bounds[[2]], by = .by)})
       
     } else if (.tf_num == 7) {
       
-      .expected <- seq(from = .bgn, to = .bounds[[2]], by = paste(.multiplier, .timeframe))
+      .expected <- seq(from = .bgn, to = .bounds[[2]], by = .by)
     }
     
     if (.tf_num > 2) {
@@ -1220,8 +1214,8 @@ aa_transform <- function(resp) {
     # coerce to numeric in positions objects
     suppressMessages({
       out <- .resp %>%
-        dplyr::mutate_at(dplyr::vars(transaction_time), ~lubridate::as_datetime(., tz = Sys.timezone())) %>% 
-        dplyr::mutate_at(dplyr::vars(price, qty, leaves_qty, cum_qty), as.numeric)
+        dplyr::mutate_at(dplyr::vars("transaction_time"), ~lubridate::as_datetime(., tz = Sys.timezone())) %>% 
+        dplyr::mutate_at(dplyr::vars("price", "qty", "leaves_qty", "cum_qty"), as.numeric)
     })
     
   }
@@ -1666,6 +1660,7 @@ poly_transform <- function(resp, ep) {
 #' @importFrom tibble tibble
 #' @importFrom lubridate now
 #' @importFrom stringr str_remove
+#' @importFrom utils object.size memory.size
 ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
@@ -1675,10 +1670,10 @@ ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
     wsmsg <- get("msgs", out$env)
     wsmsg <- dplyr::bind_rows(wsmsg, tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = stringr::str_remove(msg, "^\\d{4}\\-\\d{2}\\-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\,\\s")))
     # if the object has reached 1/3rd of the allowable memory allocation
-    if (object.size(wsmsg) / (memory.size(NA) * 1048567) > .33) {
+    if (utils::object.size(wsmsg) / (utils::memory.size(NA) * 1048567) > .33) {
       # half it's size by removing the first half
       wsmsg <- wsmsg[- c(1:(nrow(wsmsg) %/% 2)),]
-    }
+    } 
     assign("msgs", wsmsg, out$env)
   } else {
     assign("msgs", tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = msg), out$env)
@@ -1693,7 +1688,7 @@ ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
         .bars <- get0("bars", out$env, inherits = F)
         .nm <- paste0(.o$ev,".",.o$sym)
         .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], .o)
-        if (object.size(.bars) / (memory.size(NA) * 1048567) > .33) {
+        if (utils::object.size(.bars) / (utils::memory.size(NA) * 1048567) > .33) {
           # half it's size by removing the first half
           .bars <- purrr::map(.bars, ~{
             .x[- c(1:(nrow(.x) %/% 2)),]

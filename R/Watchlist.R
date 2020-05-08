@@ -476,7 +476,7 @@ add_to_watchlist <- function(watchlist_id = NULL, tickers = NULL, live = FALSE){
 #'
 #' @description Deprecated, use \code{\link[AlpacaforR]{watchlist}} with `action = "delete"` instead. Delete one entry for an asset by symbol name.
 #' @param watchlist_id Watchlist ID
-#' @param tickers Symbol name to remove from the watchlist content.
+#' @param ticker Symbol name to remove from the watchlist content.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @examples 
 #' \dontrun{

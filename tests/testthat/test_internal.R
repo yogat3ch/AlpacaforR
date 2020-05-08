@@ -30,7 +30,7 @@ list2env(
     full = T,
     unadjusted = F
   ),
-  envir = rlang::current_env()
+  envir = environment()
 )
 
 # Create a data.frame with multiple variations of typical calls for testing
@@ -206,6 +206,7 @@ test_that("bars_expected returns the appropriate time-series", {
       .bars <- .vars[[.sym]]
       .bounds <- .vars[[.b]]
       .tf_num <- which(.tf_order %in% ..2)
+      message(paste0("tf_num: ", .tf_num))
       .exp <- bars_expected(.bars, .bounds = .bounds)
     })
   })
