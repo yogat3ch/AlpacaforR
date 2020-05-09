@@ -47,6 +47,6 @@ test_that("account_activities retrieves date ranges correctly", {
 })
 
 test_that("account_activities throws an error if invalid date is entered", {
-  expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument")
+  expect_warning(expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument"))
 })
 

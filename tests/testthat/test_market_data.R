@@ -10,16 +10,18 @@ library(dplyr)
 bars_test <- readRDS(.p)
 
 context("Tests the AlpacaforR exported functions")
+
 test_that("market_data works when v = 2 and full = T", {
-  bars <- market_data(ticker = c("BYND"), v = 2, from = "2020-01-05", until = "2020-04-05", multiplier = 1, timeframe = "h", full = T)
+  expect_warning({bars <- market_data(ticker = c("BYND"), v = 2, from = "2020-01-05", until = "2020-04-05", multiplier = 1, timeframe = "h", full = T)}, "(?:`from` is a Sunday)|(?:`until` is a Sunday)", all = T)
   expect_equal(bars %>% purrr::map(~{attr(.x, "query") <- NULL}),
                    bars_test %>% purrr::map(~{attr(.x, "query") <- NULL}))
 })
 
 test_that("market_data errors are informative when incompatible arguments are requested", {
-  expect_error(market_data(ticker = "BYND", v = 1, multiplier = 30, timeframe = "m"), regexp = "1,5,15")
+  expect_error(expect_warning(market_data(ticker = "BYND", v = 1, multiplier = 30, timeframe = "m"), regexp = "(?:All formats)|(?:`to` was parsed to NA)", all = T), regexp = "1,5,15")
   expect_error(market_data(ticker = "BYND", v = 2, multiplier = 1, timeframe = "d", to = "2015/13/1"), regexp = "`to`")
 })
-test_that("market_data warning are informative when incompatible arguments are requested", {
-  expect_warning(market_data(ticker = "BYND", v = 1, multiplier = 7, timeframe = "d"))
+
+test_that("market_data warning and messages are informative when incompatible arguments are requested and arguments are omitted.", {
+  expect_warning(expect_message(market_data(ticker = "BYND", v = 1, multiplier = 7, timeframe = "d"), regexp = "(?:`to` argument omitted)|(?:`from` argument omitted)"), regexp = "The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.")
 })

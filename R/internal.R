@@ -41,7 +41,7 @@ is_inf <- function(.x) {
 #' @title fetch variables 
 #' @description Fetches variables from environment of containing function for use in internal function
 #' @keywords internal
-#' @param .vn named vector of variable names ie for a variable `d` `.vn = c(d = "d")`
+#' @param .vn named vector of variable names with their corresponding classes - to be tested with \link[base]{inherits}
 #' @param e The list made from ellipsis if parameters are input as ellipsis argument
 #' @param cenv The caller environment, stored automatically
 #' @param penv The parent of the caller environment, also stored automatically
@@ -94,7 +94,7 @@ fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.
 tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   
   .e <- list(...)
-  .vn <- list(multiplier = c("integer", "numeric"), v = c("integer", "numeric"))
+  .vn <- list(multiplier = c("integer", "numeric"), v = c("integer", "numeric"), timeframe = "character")
   fetch_vars(.vn, e = .e)
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
   .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
@@ -118,7 +118,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
-  rlang::env_bind(cenv, .tf_num = .tf_num, timeframe = timeframe)
+  rlang::env_bind(cenv, .tf_num = .tf_num, timeframe = timeframe, multiplier = multiplier)
 }
 #' @title Create API amenable boundaries based on user input for market_data
 
@@ -150,16 +150,17 @@ bars_bounds <- function(...) {
    if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
       .date_vars <- list(from = from, to = to, after = after, until = until)
    }
-  if (length(purrr::compact(.date_vars)) < 1) {
-    stop(paste0(stringr::str_extract(as.character(match.call()), "^\\w+")[1], " is missing necessary variables"))
-  }
+  
   # Remove NULL arguments
   .bounds <- purrr::compact(.date_vars)
   # Set defaults if non specified
   if (!any(c("from", "after") %in% names(.bounds))) {
     .bounds$from <- Sys.Date() - 7
-  } else if (!any(c("to", "until") %in% names(.bounds))) {
+    message(paste0("`from` argument omitted, setting to ", .bounds$from))
+  }
+  if (!any(c("to", "until") %in% names(.bounds))) {
     .bounds$to <- Sys.Date()
+    message(paste0("`to` argument omitted, setting to ", .bounds$to))
   }
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   .bounds <- purrr::imap(.bounds, ~{
@@ -172,7 +173,7 @@ bars_bounds <- function(...) {
       .unit <- ifelse(v == 2, paste(1, "day"), paste(multiplier, timeframe))
       .wd <- lubridate::wday(.out, label = T, abbr = F)
       if (.wd %in% c("Sunday", "Saturday")) {
-        rlang::warn(message = paste0(.y, " is a ", .wd, ". Timeframes less than one week will return no data for weekend days."))
+        rlang::warn(message = paste0("`",.y, "` is a ", .wd, ". Timeframes less than one week will return no data for weekend days."))
       }
     } else if (.tf_num == 4 && multiplier > 1) {
       # lubridate does not support multi-weeks to floor_date
@@ -314,19 +315,22 @@ bars_url <- function(..., limit = NULL) {
       limit <- 1000
     }  
   }
+  
   if (v == 1) {
-    url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
+    .url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
+    # multiplier & timeframe ----
+    # Fri May 08 21:26:15 2020
     timeframe <- ifelse(timeframe == "minute", "Min", "day")
     timeframe <- ifelse(timeframe == "Min", paste0(multiplier, timeframe), timeframe)
     #full = F Make API requests:  Tue Mar 17 21:37:35 2020 ----
-    url$path <- list("v1", "bars", as.character(timeframe))
+    .url$path <- list("v1", "bars", as.character(timeframe))
     # Coerce to appropriately formatted character strings
     .bounds <- purrr::map(.bounds, ~{
       .x <- format(.x, "%Y-%m-%dT%H:%M:%S%z")
       paste0(stringr::str_sub(.x, 1, -3),":", stringr::str_sub(.x, -2, nchar(.x)))
     })
     # NULL Values are automatically dropped, so only the set boundaries will remain
-    url$query <- list(symbols = .ticker,
+    .url$query <- list(symbols = .ticker,
                       limit = limit,
                       start = .bounds$from,
                       end = .bounds$to,
@@ -335,11 +339,11 @@ bars_url <- function(..., limit = NULL) {
     )
     # Build the url
     
-    url <- utils::URLdecode(httr::build_url(url))
+    .url <- utils::URLdecode(httr::build_url(.url))
   } else if (v == 2) {
-    url <- purrr::map_chr(stats::setNames(.ticker, .ticker), ~{
-      url = httr::parse_url(get_url_poly())
-      url$path <- list(
+    .url <- purrr::map_chr(stats::setNames(.ticker, .ticker), ~{
+      .url = httr::parse_url(get_url_poly())
+      .url$path <- list(
         v = "v2",
         ep = "aggs",
         "ticker",
@@ -350,12 +354,12 @@ bars_url <- function(..., limit = NULL) {
         from = as.character(lubridate::as_date(.bounds[[1]])),
         to = as.character(lubridate::as_date(.bounds[[2]]))
       )
-      url$query <- list(unadjusted = unadjusted,
+      .url$query <- list(unadjusted = unadjusted,
                         apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID"))
-      url <- httr::build_url(url)
+      .url <- httr::build_url(.url)
     })
   }
-  return(url)
+  return(.url)
 }
 
 

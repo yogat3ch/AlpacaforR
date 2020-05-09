@@ -12,9 +12,4 @@ test_that("calendar returns the appropriate response", {
   expect_s3_class(.c, "data.frame")
   expect_length(.c, 8)
 })
-test_that("get_calendar returns correct data", {
-  .cal <- get_calendar("2020-04-13", "2020-04-18")
-  .cal <- get_calendar("2020-04-13", "2020-04-18")
-  expect_equal(nrow(.cal), 5)
-  expect_equal(.cal$date, seq.POSIXt(as.POSIXct("2020-04-13"), as.POSIXct("2020-04-17"), by = "day"))
-})
+

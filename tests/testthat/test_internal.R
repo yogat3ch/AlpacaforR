@@ -21,10 +21,6 @@ list2env(
   list(
     ticker = "AMZN",
     v = 2,
-    multiplier = 5,
-    timeframe = "minute",
-    from = lubridate::ymd("2020-02-24"),
-    to = lubridate::ymd_hm("2020-04-10 13:05"),
     after = NULL,
     until = NULL,
     full = T,

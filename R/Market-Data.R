@@ -99,7 +99,7 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
     multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
     timeframe <- tolower(stringr::str_extract(timeframe, "\\w+"))
   }
-  .tf_num <- tf_num(timeframe)
+  tf_num(timeframe)
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   .bounds <- bars_bounds(from = from, to = to, after = after, until = until)
   message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", .bounds[[1]], "\n'to' coerced to ", .bounds[[2]]))
