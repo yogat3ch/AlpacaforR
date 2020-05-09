@@ -121,7 +121,7 @@ get_orders <- orders
 #'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order ID (*Required* when`action = "cancel"/"replace"`). 
+#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object/ Order ID (*Required* when`action = "cancel"/"replace"`). 
 #' To expedite the setting of stops and limits for open positions, if an Order ID from a `'buy'` order is provided when `action = "submit"`, then a `'sell'` order will be populated with the following parameters such that they do not need to be set:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
@@ -172,14 +172,13 @@ get_orders <- orders
 #' @inherit orders return
 #' @examples 
 #' # most orders (except limit) must be placed during market hours
-#' # For market order (`type` is assumed to be `"market"` when `stop` and `limit` are not specified):
-#' (bo <- order_submit("AAPL", qty = 1, side = "buy"))
+#' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
 #' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 #' (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
-#' # cancel an order with `action = "cancel"`
-#' order_submit(so$id, a = "c")
+#' # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
+#' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-#' (so <- order_submit(bo$id, stop = 120, cli = T))
+#' (so <- order_submit(bo$id, stop = 120, cli = T)) # here the id is used
 #' so$client_order_id == bo$id
 #' # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
 #' order_submit(so$id, a = "r", stop = 123)
@@ -205,19 +204,24 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
+  # NOTE: ticker_id is not referenced when action = "cancel_all"
   if (action != "cancel_all") {
     action <- substr(tolower(action), 0, 1)
+    # if the order tbl is supplied directly, extract the id
+    if (!inherits(ticker_id, c("character", "list"))) ticker_id <- ticker_id$id
+    # if vector length 2 and duplicated (complex orders), remove the dupes
+    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
   }
   # smart detect: type, order_class, extended_hours
   # fix names for take_profit, stop_loss if partialed
   # or throw errors/warnings for specific criteria
-  if (any(action %in% c("s", "r"))) {
+  if (any(action %in% c("s", "r", "c"))) {
     ot <- order_check(environment()) 
     list2env(ot, envir = environment())
   }
+  
   # detect the argument provided to ticker_id
   .is_id <- is_id(ticker_id)
-  
   if (action == "s") {
     #Create body with order details if action is submit or replace
     bodyl <-

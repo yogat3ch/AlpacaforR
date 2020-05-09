@@ -1183,7 +1183,6 @@ pos_transform <- function(pos) {
     message("No positions are open at this time.")
     out <- .pos
   } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
-    browser()
     # coerce to numeric in .positions objects
     .pos[,c(5:6,8:ncol(.pos))] <- purrr::map_dfc(.pos[,c(5:6,8:ncol(.pos))], as.numeric)
     out <- tibble::as_tibble(.pos)
@@ -1327,15 +1326,19 @@ order_check <- function(penv = NULL, ...) {
   # Fri May 01 11:15:39 2020
   # Check if ticker is id
   .is_id <- is_id(ticker_id)
-  if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
-    #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
-    .oo <- orders(ticker_id)
-    if (.oo$side == "buy") {
-      side <- "sell";message("`side` set to 'sell'")
-      if (is.null(qty)) qty <- .oo$qty;message(paste0("`qty` set to ",qty))
-      ticker_id <- .oo$symbol;message(paste0("`ticker_id` set to ",.oo$symbol))
-      if (isTRUE(client_order_id)) client_order_id <- .oo$id;message(paste0("`client_order_id` set to ", .oo$id))
-    }
+  if (isTRUE(.is_id)) {
+    # if vector length 2 and duplicated (complex orders), remove the dupes
+    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
+    if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
+      #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
+      .oo <- orders(ticker_id)
+      if (.oo$side == "buy") {
+        side <- "sell";message("`side` set to 'sell'")
+        if (is.null(qty)) qty <- .oo$qty;message(paste0("`qty` set to ",qty))
+        ticker_id <- .oo$symbol;message(paste0("`ticker_id` set to ",.oo$symbol))
+        if (isTRUE(client_order_id)) client_order_id <- .oo$id;message(paste0("`client_order_id` set to ", .oo$id))
+      }
+    } 
   } else if (!isTRUE(.is_id)) {
     #Convert ticker argument to upper if action is submit
     ticker_id <- toupper(ticker_id)
@@ -1443,6 +1446,8 @@ order_check <- function(penv = NULL, ...) {
       } 
     }
     if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day" || order_class %in% c("oco","oto", "bracket"))) rlang::abort(paste0("Extended hours only supports simple 'limit' orders and `time_in_force = 'day'`"))
+  } else if (action == "c") {
+    if (is.null(ticker_id)) rlang::abort("`ticker_id` is NULL, the order may not have been placed successfully?")
   } 
   out <- list(ticker_id = ticker_id, action = action, type = type, qty = qty, side = side, time_in_force = time_in_force, limit = limit, stop = stop, extended_hours = extended_hours, client_order_id = client_order_id, order_class = order_class, take_profit = take_profit, stop_loss = stop_loss)
 }

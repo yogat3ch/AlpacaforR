@@ -19,7 +19,7 @@ test_that("market_data works when v = 2 and full = T", {
 
 test_that("market_data errors are informative when incompatible arguments are requested", {
   expect_error(expect_warning(market_data(ticker = "BYND", v = 1, multiplier = 30, timeframe = "m"), regexp = "(?:All formats)|(?:`to` was parsed to NA)", all = T), regexp = "1,5,15")
-  expect_error(market_data(ticker = "BYND", v = 2, multiplier = 1, timeframe = "d", to = "2015/13/1"), regexp = "`to`")
+  expect_error(expect_warning(expect_message(market_data(ticker = "BYND", v = 2, multiplier = 1, timeframe = "d", to = "2015/13/1"), regexp = "(?:`from` argument omitted)|(?:Floor/Ceiling)|(?:'from' coerced to)|(?:'to' coerced to NA)"), regexp = "(?:All formats failed to parse.)|(?:`to` was parse to NA)", all = T), regexp = "Check the following argument\\(s\\) format: `to`")
 })
 
 test_that("market_data warning and messages are informative when incompatible arguments are requested and arguments are omitted.", {
