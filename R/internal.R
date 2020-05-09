@@ -9,23 +9,38 @@
 #' 
 #' @description Attempts to coerce string to a valid date object in stock exchange time zone, or checks to see if it is already. If it fails to coerce to date, returns NA.
 #' @importFrom stringr str_detect
-#' @importFrom lubridate ymd_hm parse_date_time is.Date is.POSIXct is.POSIXlt force_tz
-try_date <- function(.x) {
+#' @importFrom dplyr between
+#' @importFrom lubridate ymd_hm parse_date_time is.Date is.POSIXct is.POSIXlt force_tz origin as_datetime
+try_date <- function(.x, tz = "America/New_York") {
   suppressMessages({
-  if (is.character(.x) && stringr::str_detect(.x, ":")) {
-    # if a character and date/time
-    .out <- tryCatch({.out <- lubridate::ymd_hm(.x, tz = "America/New_York")}, warning = function(cond) {.out <- lubridate::as_datetime(.x, tz = "America/New_York")})
-  } else if (is.character(.x)) {
-    .out <- lubridate::parse_date_time(.x, orders = c("ymd", "mdy", "dmy"), tz = "America/New_York")
-  } else if (any(lubridate::is.Date(.x) ||
-                 lubridate::is.POSIXct(.x) ||
-                 lubridate::is.POSIXlt(.x))) {
-    .out <- lubridate::force_tz(.x, "America/New_York")
-  } else {
-    # If the format is incorrect return NA
-    .out <- NA
-  }
+    if (inherits(.x, "character")) {
+      if (stringr::str_detect(.x, ":")) {
+        # if a character and datetime
+        .out <- tryCatch({.out <- lubridate::ymd_hm(.x, tz = tz)}, warning = function(cond) {.out <- lubridate::as_datetime(.x, tz = tz)})
+      } else {
+        # if a date
+        .out <- lubridate::parse_date_time(.x, orders = c("ymd", "mdy", "dmy"), tz = tz)
+      }
+    } else if (inherits(.x, c("Date", "Datetime", "POSIXct", "POSIXlt")) && !isFALSE(tz)) {
+      .out <- lubridate::force_tz(.x, tzone = tz)
+    } else if (inherits(.x, c("integer", "numeric"))) {
+      .out <- list()
+      .out[[1]] <- lubridate::as_date(.x, origin = lubridate::origin, tz = tz)
+      .out[[2]] <- lubridate::as_datetime(.x, origin = lubridate::origin, tz = tz)
+      .out[[3]] <- lubridate::as_datetime(.x / 1e3, origin = lubridate::origin, tz = tz)
+      .out[[4]] <- lubridate::as_datetime(.x / 1e9, origin = lubridate::origin, tz = tz)
+      .out <- purrr::keep(.out, ~dplyr::between(ifelse(is.na(lubridate::year(.x)), 0, lubridate::year(.x)), 1792,2050))
+      if (!length(.out) != 1) 
+        .out <- NA 
+      else 
+        .out <- .out[[1]]
+      
+    } else {
+      # If the format is incorrect return NA
+      .out <- NA
+    }
   })
+  
   return(.out)
 }
 
@@ -143,25 +158,25 @@ bars_bounds <- function(...) {
   `!!!` <- rlang::`!!!`
   
   #trickery to get the variables from the calling environment
-  .vn = list(.tf_num = c("integer", "numeric"), from = c("character","POSIXct", "Datetime", "Date"), to = c("character","POSIXct", "Datetime", "Date"), after = c("character","POSIXct", "Datetime", "Date"), until = c("character","POSIXct", "Datetime", "Date"), v = c("integer", "numeric"), timeframe = c("factor", "character"), multiplier = c("integer", "numeric"), .tf_order = "factor")
+  .vn = list(.tf_num = c("integer", "numeric"), from = c("character","POSIXct", "Datetime", "Date", "NULL"), to = c("character","POSIXct", "Datetime", "Date", "NULL"), after = c("character","POSIXct", "Datetime", "Date", "NULL"), until = c("character","POSIXct", "Datetime", "Date", "NULL"), v = c("integer", "numeric"), timeframe = c("factor", "character"), multiplier = c("integer", "numeric"), .tf_order = "factor")
   .e <- list(...)
   fetch_vars(.vn, e = .e)
   if (!".tf_num" %in% ls(all.names = T)) tf_num(timeframe)
-   if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
-      .date_vars <- list(from = from, to = to, after = after, until = until)
-   }
   
+  # Set defaults if non specified
+  if (is.null(from) && is.null(after)) {
+    from <- Sys.Date() - 7
+    message(paste0("`from` argument omitted, setting to ", from))
+  }
+  if (is.null(to) && is.null(until)) {
+    to <- Sys.Date()
+    message(paste0("`to` argument omitted, setting to ", to))
+  }
+  if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
+    .date_vars <- list(from = from, to = to, after = after, until = until)
+  }
   # Remove NULL arguments
   .bounds <- purrr::compact(.date_vars)
-  # Set defaults if non specified
-  if (!any(c("from", "after") %in% names(.bounds))) {
-    .bounds$from <- Sys.Date() - 7
-    message(paste0("`from` argument omitted, setting to ", .bounds$from))
-  }
-  if (!any(c("to", "until") %in% names(.bounds))) {
-    .bounds$to <- Sys.Date()
-    message(paste0("`to` argument omitted, setting to ", .bounds$to))
-  }
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   .bounds <- purrr::imap(.bounds, ~{
     .out <- try_date(.x)

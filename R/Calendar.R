@@ -68,16 +68,17 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   .url <- httr::build_url(.url)
   calendar = httr::GET(url = .url, headers)
   calendar =  response_text_clean(calendar)
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = "America/New_York") %>% 
+  .tz <- "America/New_York"
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = .tz) %>% 
     dplyr::mutate_at(dplyr::vars(dplyr::starts_with("session")), ~paste0(stringr::str_sub(., start = 1, end = 2),":",stringr::str_sub(.,start = 3, end = 4))) %>% 
     dplyr::mutate(
       day = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, open), tz = "America/New_York"),
-        end = lubridate::ymd_hm(paste(date, close), tz = "America/New_York")
+        start = lubridate::ymd_hm(paste(date, open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, close), tz = .tz)
       ),
       session = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, session_open), tz = "America/New_York"),
-        end = lubridate::ymd_hm(paste(date, session_close), tz = "America/New_York")
+        start = lubridate::ymd_hm(paste(date, session_open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = .tz)
       ),
       dow = lubridate::wday(lubridate::as_date(date), label = T)
     ) %>%

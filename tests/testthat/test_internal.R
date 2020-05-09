@@ -26,7 +26,7 @@ list2env(
     full = T,
     unadjusted = F
   ),
-  envir = environment()
+  envir = .GlobalEnv
 )
 
 # Create a data.frame with multiple variations of typical calls for testing
@@ -162,6 +162,7 @@ test_that("bars_url returns URLs as anticipated", {
     .bound <- purrr::pmap(test_results, ~{
       # FINALLY figured out how to call arguments by name in pmap
       .bounds <- list(...)[[.sym]]
+      timeframe <- list(...)[["timeframe"]]
       .tf_num <- which(.tf_order %in% ..2)
       .url <- bars_url(ticker = "AMZN", .bounds = .bounds, timeframe = ..2, multiplier = ..1, unadjusted = F)
       
@@ -178,6 +179,7 @@ test_that("bars_get returns the appropriate data", {
     .sym <- .x
     .bound <- purrr::pmap(test_results, ~{
       # FINALLY figured out how to call arguments by name in pmap
+      list2env(list(...), envir = environment())
       .url <- list(...)[[.sym]]
       .tf_num <- which(.tf_order %in% ..2)
       .dat <- bars_get(url = .url)
@@ -272,3 +274,5 @@ test_that("bars_complete returns all expected data consistently", {
   .complete <- tibble::as_tibble(.complete)
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_complete"))) %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})), .complete %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})))
 })
+
+
