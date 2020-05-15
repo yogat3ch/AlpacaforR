@@ -76,7 +76,7 @@ account_config()
 # For access to live accounts, you must submit as live = TRUE
 account_config(live = TRUE)
 account_config(dtbp_check = "both", no_shorting = TRUE)
-accont_config("default")
+account_config("default")
 get_config()
 }
 \seealso{
