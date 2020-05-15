@@ -14,10 +14,28 @@ test_that("Positions returns the appropriate data", {
   }
 })
 if (.op) {
+  
   test_that("Positions cancels a single order", {
     expect_message(positions(.p$symbol[1], action = "c"), regexp = paste0(.p$symbol[1], " closed successfully"))
   })
+  
   if (nrow(.p) > 1) {
-    expect_message(.cp <- positions(a = "close_all"), regexp = "All positions closed successfully")
+    
+    test_that("Positions cancels all orders", {
+      expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully") 
+    })
+    
   }
 } 
+
+.c <- clock()
+if (.c$is_open) {
+  .lq <- polygon("lq", symbol = "AMZN")
+  order_submit("AMZN", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))
+  .lq <- polygon("lq", symbol = "BYND")
+  order_submit("BYND", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))
+  
+  test_that("Positions cancels complex orders correctly", {
+    expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "Canceled order")
+  })
+}

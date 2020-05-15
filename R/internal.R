@@ -1153,10 +1153,11 @@ is_id <- function(ticker_id) {
 #' @description Cleans arrays of position objects, and position objects
 #' @keywords internal
 #' @importFrom stringr str_extract
-#' @importFrom rlang warn
-#' @importFrom purrr map_dfc
+#' @importFrom rlang warn `%||%`
+#' @importFrom purrr pwalk
 #' @importFrom tibble as_tibble
 pos_transform <- function(pos) {
+  `%||%` <- rlang::`%||%`
   if (class(pos) != "response") {
     .code <- pos$code
     .message <- pos$message
@@ -1169,13 +1170,35 @@ pos_transform <- function(pos) {
     .message <- .pos$message
   }
   
+  # if related orders
+  if (!is.null(.pos$body$held_for_orders)) {
+    # close all orders. As of 2020-05-15, all open related orders must be canceled to close positions
+    # This should properly return orders
+    message("Related orders prevent positions from being closed. Canceling related orders...")
+    .co <- purrr::pwalk(.pos$body, ~{
+      .vars <- list(...)
+      .e <- new.env()
+      withCallingHandlers(message = function(e) {
+        if (e$message == "Order canceled successfully\n") 
+          rlang::warn(message = paste0("Canceled order ", .vars$related_orders," for ", .vars$symbol)) 
+        else
+          rlang::warn(message = paste0("Could not cancel order ", .vars$related_orders," for ", .vars$symbol, ". Position for ", .vars$symbol, " remains open."))
+      }, {
+        .out <- order_submit(.vars$related_orders, action = "cancel")
+      })
+    })
+    # orders_transform should properly transform orders
+    out <- positions(a = "close_all")
+    return(out)
+  }
+  
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::warn(paste("Position was not modified.\n Message:", .message))
     return(.pos)
   } else if (.sym != "positions" && .sym %in% .pos$symbol && .method == "DELETE") {
     message(paste0(.sym, " closed successfully."))
-  } else if (.method == "DELETE" && any(grepl("^2", .pos$body$code))) {
-    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$symbol[grepl("^2", .pos$body$code)], collapse = ", ")))
+  } else if (.method == "DELETE" && any(grepl("^2", .pos$body$code %||% .pos$status))) {
+    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$sym[grepl("^2", .pos$body$code %||% .pos$status)], collapse = ", ")))
   }
   
   #Check if any pos exist before attempting to return
@@ -1183,9 +1206,7 @@ pos_transform <- function(pos) {
     message("No positions are open at this time.")
     out <- .pos
   } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
-    # coerce to numeric in .positions objects
-    .pos[,c(5:6,8:ncol(.pos))] <- purrr::map_dfc(.pos[,c(5:6,8:ncol(.pos))], as.numeric)
-    out <- tibble::as_tibble(.pos)
+    out <- orders_transform(pos)
   } else {
     # if close_all
     out <- orders_transform(.pos$body)
@@ -1274,6 +1295,7 @@ orders_transform <- function(o) {
     .o <- response_text_clean(o)
     .message <- .o$message
   } else if (class(o) != "response") {
+    .method <- "DELETE"
     .code <- 200
     .o <- o
   }
@@ -1283,7 +1305,7 @@ orders_transform <- function(o) {
     return(.o)
   }
   if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && .method == "DELETE")) {
-    if (.method == "DELETE") {.o <- .o$body;.q <- .o[1:2]}
+    if (.method == "DELETE" && "body" %in% names(.o)) {.o <- .o$body;.q <- .o[1:2]}
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
@@ -1343,7 +1365,16 @@ order_check <- function(penv = NULL, ...) {
     #Convert ticker argument to upper if action is submit
     ticker_id <- toupper(ticker_id)
   }
-  
+  #  smart detect order_class ----
+  # Fri May 15 13:48:32 2020
+  if (!is.null(order_class)) {
+    .oc <- tolower(substr(order_class, 0, 1))
+    if (.oc == "b") {
+      order_class <- "bracket"
+    } else if (!order_class %in% c("oto", "oco")) {
+      rlang::abort(paste0(order_class, "is invalid `order_class`. See ?order_submit for help."))
+    }
+  }
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {

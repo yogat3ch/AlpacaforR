@@ -40,12 +40,14 @@
 #' @importFrom tibble as_tibble
 #' @export
 positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
-  action <- c(g = "get", c = "close")[substr(action,1,1)]
   if (is.character(tickers)) tickers <- toupper(tickers)
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
   .all <- ifelse(action == "close_all", T, F)
+  if (!.all) {
+    action <- c(g = "get", c = "close")[substr(action,1,1)]
+  }
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
