@@ -20,6 +20,4 @@ if (.op) {
   if (nrow(.p) > 1) {
     expect_message(.cp <- positions(a = "close_all"), regexp = "All positions closed successfully")
   }
-} else {
-  expect_warning(positions(.p$symbol[1], action = "c"), regexp = "position does not exist")
-}
+} 
