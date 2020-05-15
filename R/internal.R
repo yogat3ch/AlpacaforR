@@ -1121,12 +1121,15 @@ get_url_poly <- function(){
 #' @return The response in a readable format as a list.
 #' @importFrom httr content
 #' @importFrom jsonlite fromJSON
+#' @importFrom stringr str_detect
 response_text_clean <- function(dat){
   # If empty, return empty list
   if (length(dat$content) == 0) {
     out <- list()
   } else {
     dat = httr::content(dat, as = "text", encoding = "UTF-8")
+    # if it's just text, return as is, otherwise fromJSON will throw an error.
+    if (!stringr::str_detect(dat, "\\{|\\[")) return(dat)
     out <- jsonlite::fromJSON(dat)
   }
   
@@ -1272,13 +1275,23 @@ toNum <- function(x){
 }
 
 #' @title Transform order objects
+#' @description Replaces character quantities with numeric and character dates with POSIXct
+#' @param .o An order object
+#' @keywords internal
+#' @importFrom dplyr mutate_at mutate_if vars ends_with 
+#' @importFrom lubridate ymd_hms
+o_transform <- function(.o) {
+  .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
+  out <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))
+  return(out)
+}
+
+#' @title Transform order responses
 #' 
-#' @description Replaces plain text quantities and dates with respective R objects
+#' @description Parses order type responses and replaces plain text quantities and dates with respective R objects
 #' @param orders A dataframe returned from any orders_* endpoint
 #' @return \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
 #' @keywords internal
-#' @importFrom dplyr mutate_at mutate_if vars ends_with
-#' @importFrom lubridate ymd_hms
 #' @importFrom tibble as_tibble
 #' @importFrom rlang `%||%` warn
 #' @importFrom purrr map
@@ -1293,7 +1306,11 @@ orders_transform <- function(o) {
     .method <- o$request$method
     .code <- o$status_code
     .o <- response_text_clean(o)
-    .message <- .o$message
+    if (!inherits(.o, "character")) {
+      .message <- .o$message
+    } else {
+      .message <- .o
+    }
   } else if (class(o) != "response") {
     .method <- "DELETE"
     .code <- 200
@@ -1304,13 +1321,27 @@ orders_transform <- function(o) {
     rlang::warn(paste0("Code: ",.code,",\nMessage:", .message))
     return(.o)
   }
+  
   if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && .method == "DELETE")) {
     if (.method == "DELETE" && "body" %in% names(.o)) {.o <- .o$body;.q <- .o[1:2]}
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
-        .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-        out <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))  
+          out <- o_transform(.o)
+        if (!is.null(.o$legs) && !is.na(.o$legs)) {
+          if (inherits(.o$legs, "list")) {
+            .o$legs <- purrr::map(.o$legs, ~{
+              if (!is.null(.x)) {
+                .out <- o_transform(.o)
+              } else {
+                .out <- .x
+              }
+              return(.out)
+            })
+          } else {
+            .o$legs <- o_transform(.o$legs)
+          }
+        }
       })})
   } else if (length(.o) == 0 && .method == "GET") {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))

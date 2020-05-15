@@ -38,4 +38,7 @@ if (.c$is_open) {
   test_that("Positions cancels complex orders correctly", {
     expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "Canceled order")
   })
+  
 }
+
+# need to determine if canceling single positions from complex orders is possible with changes
