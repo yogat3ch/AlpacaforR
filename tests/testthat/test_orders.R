@@ -42,23 +42,26 @@ test_that("order_submit properly places a simple buy order", {
 })
 
 test_that("orders properly detects the order", {
-  .oo <- orders()
-  expect_identical(.oo$id, .o$id)
-  expect_equal(dim(.oo), c(1,28))
+  .oo <- orders(s = "all")
+  expect_identical(.oo$id[1], .o$id)
+  expect_equal(dim(.oo[1,]), c(1,28))
 })
+
 .lq <<- polygon("lq", symbol = "AMZN")
 test_that("An expedited stop can be placed on the order with appropriate messages", {
   
-  expect_message(.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T), regexp = "side|qty|ticker_id|client_order_id|type", all = T)
+  expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T)
   expect_identical(.so$client_order_id, .o$id)
 })
+
 .ms_closed <- polygon("ms")$market == "closed"
 test_that("order_submit properly modifies the simple sell order", {
-  .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)"
-  expect_warning({.r <<- order_submit(.so$id, action = "r", qty = 1, stop = .lq$askprice * .95)}, regexp = .m)
   if (.ms_closed) {
+    .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)"
+    expect_warning({.r <<- order_submit(.so$id, action = "r", qty = 1, stop = .lq$askprice * .95)}, regexp = .m)
     expect_true(stringr::str_detect(.r$message, .m))
   } else {
+    .r <<- order_submit(.so$id, action = "r", qty = 1, stop = .lq$askprice * .95)
     # when the market is open
     expect_identical(.r$replaces, .so$id)
     expect_identical(.r$qty, 1)
@@ -106,7 +109,9 @@ test_that("order_submit properly places an oto order_class", {
 
 test_that("order_submit properly cancels all open orders",{
   .ca <- order_submit(a = "cancel_all")  
-expect_true(all(.ca$status %in% "pending_cancel"))
+expect_true(any(.ca$status %in% c("pending_cancel")))
 expect_true(nrow(.ca) > 1)
 expect_s3_class(do.call(c, dplyr::select(.ca, dplyr::ends_with("at"))), "POSIXct")
+expect_message(orders(), regexp = "(?:No orders for the selected query\\/filter criteria. 
+Check `ticker_id` or set status \\= \\'all\\' to see all orders.)")
   })

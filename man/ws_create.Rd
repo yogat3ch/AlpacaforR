@@ -23,7 +23,7 @@ ws_create(
 
 \item{log_path}{\code{(character)} The path where the .log (for log_msgs) or .csv (for log_bars) files are to be stored. Tilde path expansion is supported, see \code{\link[base]{path.expand}}.}
 
-\item{action}{\code{(expression)} An R expression, see \code{\link[rlang]{rlang::expr}}. This expression will be executed upon receipt of each message. Useful for setting trailing stop algorithms, or executing an order based on specific criteria. \strong{Note} that all values and objects necessary to the function of the \code{action} should be defined within the expression. Calls to objects stored in the global environment are likely to cause errors. \emph{Tidy evaluation is supported.} The relevant objects that may be referred to when writing this expression are:
+\item{action}{\code{(expression)} An R expression, see \code{\link[rlang]{expr}}. This expression will be executed upon receipt of each message. Useful for setting trailing stop algorithms, or executing an order based on specific criteria. \strong{Note} that all values and objects necessary to the function of the \code{action} should be defined within the expression. Calls to objects stored in the global environment are likely to cause errors. \emph{Tidy evaluation is supported.} The relevant objects that may be referred to when writing this expression are:
 \itemize{
 \item{\code{.o}}{ Data returned in message. For Polygon subscriptions, \code{.o} is a \code{data.frame}. See \href{https://polygon.io/sockets}{Polygon - Sockets: Stock Schemas} for the properties specific to each channel.}
 \item{\code{out$env}}{ The environment in the \code{list} returned by this function.}
@@ -63,7 +63,7 @@ If \code{log_msgs} is FALSE, no log file will be created.
 If you wish to perform actions based on specific message content, you can do one of following:
 \enumerate{
 \item{For simple functions, use the \code{action} argument.}
-\item{Use a background process with \code{\link[later]{later::later}} or \code{\link[callr]{callr::r_bg}} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
+\item{Use a background process with \code{\href{https://www.rdocumentation.org/packages/later/versions/1.0.0/topics/later}{later::later}} or \code{\href{https://www.rdocumentation.org/packages/callr/versions/3.4.3/topics/r_bg}{callr::r_bg}} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
 \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions in the \code{onMessage} method.}
 }
 The websocket is authenticated using the environment variables \code{APCA-LIVE-API-KEY-ID}. If unset, please see the Installation vignette \code{vignette("Installation", "AlpacaforR")} for instructions on setting this value.

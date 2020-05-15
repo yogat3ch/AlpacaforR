@@ -13,7 +13,7 @@ fetch_vars(
 )
 }
 \arguments{
-\item{.vn}{named vector of variable names ie for a variable \code{d} \code{.vn = c(d = "d")}}
+\item{.vn}{named vector of variable names with their corresponding classes - to be tested with \link[base]{inherits}}
 
 \item{e}{The list made from ellipsis if parameters are input as ellipsis argument}
 

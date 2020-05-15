@@ -1597,7 +1597,7 @@ poly_transform <- function(resp, ep) {
     attr(.resp$results ,"query") <- .resp[1]
     return(.resp$results)
   } else if (ep == "td") {
-    .o <- list(.tbl = .resp, .vars = c("updated", "listdate"), .f = lubridate::as_date)
+    .o <- list(.tbl = .resp, .vars = c("updated", "listdate"), .f = try_date)
   } else if (ep == "tn") {
     .o <- list(.tbl = .resp, .vars = c("timestamp"), .f = lubridate::as_datetime)
   } else if (ep %in% c("m", "l")) {

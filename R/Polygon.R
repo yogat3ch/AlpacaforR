@@ -391,7 +391,7 @@
 #' @importFrom rlang env_bind current_env `!!!` abort
 #' @importFrom purrr compact map
 #' @importFrom httr GET parse_url build_url
-#' @importFrom stringr str_match str_extract regex
+#' @importFrom stringr str_match str_extract regex str_split
 #' @export
 
 polygon <- function(ep = NULL, ..., params = NULL){
@@ -399,7 +399,11 @@ polygon <- function(ep = NULL, ..., params = NULL){
   # get endpoint object
   ep <- tolower(ep)
   # quick-view
-  .qv <- substr(ep, 0 ,3)
+  if (length(stringr::str_split(ep, "\\s")[[1]]) == 1) {
+    .qv <- substr(ep, 0 ,3)
+  } else {
+    .qv <- ""
+  }
   .ref <- grepl("\\+", ep)
   ep <- gsub("\\+","",ep)
   if (.qv %in% c("all", "ref", "sto")) {

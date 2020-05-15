@@ -2,12 +2,9 @@
 % Please edit documentation in R/Orders.R
 \name{order_cancel}
 \alias{order_cancel}
-\alias{cancel_orders}
 \title{Cancel Order function (Deprecated)}
 \usage{
 order_cancel(ticker_id = NULL, live = FALSE, v = 2)
-
-cancel_orders(ticker_id = NULL, live = FALSE, v = 2)
 }
 \arguments{
 \item{ticker_id}{\code{(character)} The ticker symbol(s) or order ID(s). Use \code{"cancel_all"} to cancel all open orders.}
@@ -27,8 +24,6 @@ Query \code{(list)} attribute accessed via \code{attr(df, "query")} on the retur
 }
 \description{
 order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders}{Orders: DELETE} in the Alpaca API V2 documentation for details.
-
-\code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}.
 }
 \examples{
 # Cancel by the order id
@@ -45,16 +40,9 @@ order_submit("AMZN", 1, "buy", "market", live = F)
 order_submit("FB", 1, "buy", "market", live = F)
 canceled_orders <- order_cancel("cancel_all")
 str(canceled_orders)
-cancel_orders()
 }
 \seealso{
 positions
-
-Other Orders: 
-\code{\link{order_replace}()},
-\code{\link{order_submit}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
 
 Other Orders: 
 \code{\link{order_replace}()},

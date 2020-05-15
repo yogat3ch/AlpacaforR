@@ -4,15 +4,18 @@
 library(websocket)
 
 context("Websocket tests")
-
-test_that("ws_create returns the appropriate websocket object", {
-  .ws <- ws_create("Alpaca", logfile = F)
-  expect_identical(class(.ws$ws), c("WebSocket", "R6"))
-  expect_identical(attr(.ws$ws, "api"), "a")
-  expect_equal(.ws$ws$readyState()[1], 1)
-  .ws <- ws_create("Polygon", logfile = F)
-  expect_identical(class(.ws$ws), c("WebSocket", "R6"))
-  expect_identical(attr(.ws$ws, "api"), "p")
-  expect_equal(.ws$ws$readyState()[1], 1)
-})
-
+if (rlang::is_interactive()) {
+  test_that("ws_create returns the appropriate websocket object", {
+    .ws <- ws_create("Alpaca", log_msgs = F)
+    expect_identical(class(.ws$ws), c("WebSocket", "R6"))
+    expect_identical(attr(.ws, "api"), "a")
+    .rs <- .ws$ws$readyState()[1]
+    expect_equal(.rs, 0)
+    .ws$ws$close()
+    .ws <- ws_create("Polygon", log_msgs = F)
+    expect_identical(class(.ws$ws), c("WebSocket", "R6"))
+    expect_identical(attr(.ws, "api"), "p")
+    expect_equal(.ws$ws$readyState()[1], 0)
+    .ws$ws$close()
+  })
+}

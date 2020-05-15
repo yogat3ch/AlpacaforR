@@ -2,7 +2,7 @@
 #' @include Polygon.R
 
 `-` <- lubridate::`.__T__-:base`
-
+`%>%` <- magrittr::`%>%`
 context("Test all endpoints accessible from the polygon function")
 
 test_that("Tickers is accessible and returns the appropriate data", {
@@ -21,7 +21,7 @@ test_that("Ticker Types is accessible and returns appropriate data", {
 
 test_that("Ticker Details is accessible and returns appropriate data", {
   .resp <- polygon("Ticker Details", symbol = "AMZN")
-  expect_s3_class(.resp$listdate, "Date")
+  expect_s3_class(do.call(c, .resp[, c("listdate","updated")]), "POSIXct")
   expect_identical(.resp$sic, 5961L)
   expect_identical(.resp$exchangeSymbol, "NGS")
   expect_identical(.resp$symbol, "AMZN")
@@ -52,6 +52,7 @@ test_that("Stock Splits is accessible and returns appropriate data", {
   expect_length(.resp, 4)
   expect_identical(attr(.resp, "query"), list(status = "OK", count = 1L))
 })
+
 
 test_that("Stock Dividends is accessible and returns appropriate data", {
   .resp <- polygon("Stock Dividends", symbol = "MSFT")
@@ -95,7 +96,7 @@ test_that("Historic Trades is accessible and returns appropriate data", {
   expect_s3_class(.resp$time, "POSIXct")
   expect_true("time" %in% names(.resp))
   expect_length(.resp, 9)
-  expect_identical(attr(.resp, "map"), list(
+  .exp <- list(
     c = list(name = "conditions", type = "[]int"),
     I = list(name = "orig_id", type = "string"),
     e = list(name = "correction",
@@ -112,13 +113,14 @@ test_that("Historic Trades is accessible and returns appropriate data", {
     z = list(name = "tape", type = "int"),
     y = list(name = "participant_timestamp", type = "int64"),
     q = list(name = "sequence_number", type = "int")
-  ))
+  ) %>% {.[sort(names(.))]}
+  expect_identical(attr(.resp, "map") %>% {.[sort(names(.))]}, .exp)
 })
 
 test_that("Historic Quotes is accessible and returns appropriate data", {
   .resp <- polygon("Historic Quotes", ticker = "MSFT", date = "2008-04-15", limit = 5)
   expect_identical(.resp$time, structure(c(1208246852.8, 1208246875.777, 1208246877.527, 1208247302.04, 1208247302.04), class = c("POSIXct", "POSIXt"), tzone = "America/New_York"))
-  expect_identical(attr(.resp,"map"),list(
+  expect_identical(attr(.resp,"map") %>% {.[sort(names(.))]},list(
     s = list(name = "bid_size", type = "int"),
     x = list(name = "bid_exchange",
              type = "int"),
@@ -136,7 +138,7 @@ test_that("Historic Quotes is accessible and returns appropriate data", {
              type = "int64"),
     f = list(name = "trf_timestamp", type = "int64"),
     i = list(name = "indicators", type = "[]int")
-  ))
+  )%>% {.[sort(names(.))]})
   expect_length(.resp, 10)
 })
 
@@ -145,7 +147,7 @@ test_that("Last Trade is accessible and returns appropriate data", {
   expect_lt(lubridate::as.difftime(lubridate::now() - .resp$timestamp), 
                    lubridate::as.difftime(10, units = "days"))
   expect_identical(attr(.resp,"query"), list(status = "success", symbol = "BYND"))
-  expect_equal(dim(.resp), c(1,4))
+  expect_true(length(.resp) %in% c(4,5))
 })
 
 test_that("Last Quote is accessible and returns appropriate data", {

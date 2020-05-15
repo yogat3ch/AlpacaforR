@@ -9,9 +9,9 @@ delete_from_watchlist(watchlist_id = NULL, ticker = NULL, live = FALSE)
 \arguments{
 \item{watchlist_id}{Watchlist ID}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
+\item{ticker}{Symbol name to remove from the watchlist content.}
 
-\item{tickers}{Symbol name to remove from the watchlist content.}
+\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \description{
 Deprecated, use \code{\link[AlpacaforR]{watchlist}} with \code{action = "delete"} instead. Delete one entry for an asset by symbol name.

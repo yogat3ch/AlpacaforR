@@ -2,6 +2,7 @@
 % Please edit documentation in R/Orders.R
 \name{order_submit}
 \alias{order_submit}
+\alias{cancel_orders}
 \title{Submit, Cancel & Replace Orders,}
 \usage{
 order_submit(
@@ -21,9 +22,11 @@ order_submit(
   live = FALSE,
   v = 2
 )
+
+cancel_orders(ticker_id = NULL, live = FALSE, v = 2)
 }
 \arguments{
-\item{ticker_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order ID (\emph{Required} when\code{action = "cancel"/"replace"}).
+\item{ticker_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order object/ Order ID (\emph{Required} when\code{action = "cancel"/"replace"}).
 To expedite the setting of stops and limits for open positions, if an Order ID from a \code{'buy'} order is provided when \code{action = "submit"}, then a \code{'sell'} order will be populated with the following parameters such that they do not need to be set:
 \itemize{
 \item{\code{side = 'sell'}}
@@ -129,17 +132,18 @@ Places/Replaces/Cancels an order, or cancels all orders depending on argument to
 \item{\code{action = 'cancel'}}{ Only \code{ticker_id} is \emph{required}.}
 \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 }
+
+\code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}.
 }
 \examples{
 # most orders (except limit) must be placed during market hours
-# For market order (`type` is assumed to be `"market"` when `stop` and `limit` are not specified):
-(bo <- order_submit("AAPL", qty = 1, side = "buy"))
+(bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
 # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
-# cancel an order with `action = "cancel"`
-order_submit(so$id, a = "c")
+# cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
+order_submit(so, a = "c")
 # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-(so <- order_submit(bo$id, stop = 120, cli = T))
+(so <- order_submit(bo$id, stop = 120, cli = T)) # here the id is used
 so$client_order_id == bo$id
 # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
 order_submit(so$id, a = "r", stop = 123)
@@ -156,8 +160,15 @@ sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
 # side is assumed to be buy, and type is assumed to be market
 # all open orders can be canceled with `action = "cancel_all"`
 order_submit(a = "cancel_all")
+cancel_orders()
 }
 \seealso{
+Other Orders: 
+\code{\link{order_cancel}()},
+\code{\link{order_replace}()},
+\code{\link{orders}()},
+\code{\link{submit_orders}()}
+
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},

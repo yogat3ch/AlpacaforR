@@ -22,6 +22,8 @@ get_poly_historic_info(
 
 \item{.ts}{\code{(Datetime)} Timestamp offset, used for pagination. This is the offset at which to start the results. Using the timestamp of the last result as the offset will give you the next page of results.}
 
+\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
+
 \item{limit}{\code{(integer)} Limit the size of response, Max 50000. Default 10.}
 }
 \value{
