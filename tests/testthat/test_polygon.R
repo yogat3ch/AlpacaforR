@@ -147,7 +147,6 @@ test_that("Last Trade is accessible and returns appropriate data", {
   expect_lt(lubridate::as.difftime(lubridate::now() - .resp$timestamp), 
                    lubridate::as.difftime(10, units = "days"))
   expect_identical(attr(.resp,"query"), list(status = "success", symbol = "BYND"))
-  expect_true(length(.resp) %in% c(4,5))
 })
 
 test_that("Last Quote is accessible and returns appropriate data", {

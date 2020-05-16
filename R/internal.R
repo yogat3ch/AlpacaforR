@@ -1174,12 +1174,14 @@ pos_transform <- function(pos) {
   }
   
   # if related orders
-  if (!is.null(.pos$body$held_for_orders)) {
+  .held <- !is.null(.pos$body$held_for_orders)
+  if (.held) {
     # close all orders. As of 2020-05-15, all open related orders must be canceled to close positions
     # This should properly return orders
     message("Related orders prevent positions from being closed. Canceling related orders...")
-    .co <- purrr::pwalk(.pos$body, ~{
+    .pos <- purrr::pmap(.pos$body, ~{
       .vars <- list(...)
+      if (is.null(.vars$related_orders)) return(NULL)
       .e <- new.env()
       withCallingHandlers(message = function(e) {
         if (e$message == "Order canceled successfully\n") 
@@ -1188,11 +1190,12 @@ pos_transform <- function(pos) {
           rlang::warn(message = paste0("Could not cancel order ", .vars$related_orders," for ", .vars$symbol, ". Position for ", .vars$symbol, " remains open."))
       }, {
         .out <- order_submit(.vars$related_orders, action = "cancel")
+        .out <- positions(.vars$symbol, a = "c")
       })
+      return(.out)
     })
     # orders_transform should properly transform orders
-    out <- positions(a = "close_all")
-    return(out)
+    
   }
   
   if(any(grepl(pattern = "^4", x = .code))) {
@@ -1212,8 +1215,13 @@ pos_transform <- function(pos) {
     out <- orders_transform(pos)
   } else {
     # if close_all
-    out <- orders_transform(.pos$body)
-    attr(out, "info") <- .pos[1:2]
+    if (.held) {
+      out <- bind_rows(.pos)
+    } else {
+      out <- orders_transform(.pos$body)
+      attr(out, "info") <- .pos[1:2]
+    }
+    
   }
   return(out)
 }
@@ -1541,7 +1549,12 @@ wl_transform <- function(wl, action, wl_info = NULL) {
     .method <- wl$request$method
     .code <- wl$status_code
     .wl <- response_text_clean(wl)
-    .message <- .wl$message
+    if ("message" %in% names(.wl))
+      .message <- .wl$message
+    else {
+      .message <- .wl
+    }
+    
   } else if (class(wl) != "response") {
     .code <- 200
     if (length(wl_info) == 0) {
@@ -1610,7 +1623,10 @@ wl_nm2id <- function(nm, ...) {
   # get the id
   id <- watchlist$id[watchlist$name %in% nm]
   if (length(id) == 0) {
-    rlang::warn(paste0("No watchlist by that name, did you mean ", agrep(nm, watchlist$name, ignore.case = T, value = T),"?"))
+    .m <- paste0("No watchlist by that name.")
+    .alt <- agrep(nm, watchlist$name, ignore.case = T, value = T)
+    .m <- ifelse(length(.alt) > 0, paste0(.m, " Did you mean ", ,"?"), .m)
+    rlang::warn(.m)
     id <- watchlist
   }
   return(id)

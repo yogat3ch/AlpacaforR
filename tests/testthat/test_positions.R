@@ -13,7 +13,8 @@ test_that("Positions returns the appropriate data", {
     expect_message(positions(), regexp = "No positions")
   }
 })
-if (.op) {
+.open <- clock()$is_open
+if (.op && .open) {
   
   test_that("Positions cancels a single order", {
     expect_message(positions(.p$symbol[1], action = "c"), regexp = paste0(.p$symbol[1], " closed successfully"))
@@ -21,12 +22,23 @@ if (.op) {
   
   if (nrow(.p) > 1) {
     
-    test_that("Positions cancels all orders", {
-      expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully") 
+    test_that("Positions cancels all orders when closing position", {
+      expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "(?:Canceled order)(?:Position was not modified)")
     })
     
   }
-} 
+} else {
+  
+  test_that("Positions cancels a single order", {
+    expect_warning(positions(.p$symbol[1], action = "c"))
+  })
+  
+  if (nrow(.p) > 1) {
+    test_that("Positions cancels all orders when closing position", {
+      expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "Related orders prevent positions"))
+    })
+  }
+}
 
 .c <- clock()
 if (.c$is_open) {
