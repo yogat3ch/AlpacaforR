@@ -2,6 +2,7 @@
 #' @import Orders.R
 
 context("Test that family: orders throws errors/messages as expected.")
+.ms_open <<- clock()$is_open
 order_submit(a = "cancel_all")
 
 if (.ms_open) {
@@ -54,7 +55,7 @@ test_that("orders properly detects the order", {
 })
 
 .lq <<- polygon("lq", symbol = "AMZN")
-.ms_open <<- clock()$is_open
+
 if (.ms_open) {
   test_that("An expedited stop can be placed on the order with appropriate messages", {
       expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T)

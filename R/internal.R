@@ -1662,7 +1662,12 @@ poly_transform <- function(resp, ep) {
   `!!` <- rlang::`!!`
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
-  .message <- .resp$error
+  if ("error" %in% names(.resp)) {
+    .message <- .resp$error
+  } else {
+    .message <- .resp
+  }
+  
   # check for errors
   if(any(grepl(pattern = "^4", x = .code))) {
     rlang::warn(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .message))
@@ -1703,11 +1708,24 @@ poly_transform <- function(resp, ep) {
   } else if (ep == "cm") {
     return(tibble::tibble(CM = as.character(.resp)))
   } else if (ep == "sa") {
-    .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
+    if (length(.resp$tickers) < 1) {
+      # when market is closed
+      rlang::warn("Snapshot: All Tickers returns no data when market is closed.")
+      .o <- list(.tbl = .resp$tickers, .q = .resp[1:2])
+    } else {
+      .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
+    }
   } else if (ep == "st") {
     .o <- list(.tbl = .resp$ticker[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
   } else if (ep == "sg") {
-    .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+    if (length(.resp$tickers) < 1) {
+      # when market is closed
+      rlang::warn("Snapshot: Gainers/Losers returns no data when market is closed.")
+      .o <- list(.tbl = .resp$tickers, .q = .resp[1])
+    } else {
+      .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+    }
+    
   } else if (ep %in% c("pc", "gd")) {
     .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
   } else {
