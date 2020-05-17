@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^Polygon-testing.R
-*.log
-*reprex.R
-*.code-workspace
+^.*\.log$
+^.*reprex.R$
+^.*.code-workspace$

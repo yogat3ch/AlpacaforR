@@ -4,7 +4,7 @@
 \alias{ws_listen}
 \title{ws_listen: A function to set listening streams with the Alpaca websocket API}
 \usage{
-ws_listen(ws, channel = NULL, unsub = F)
+ws_listen(ws, channel = NULL, unsub = FALSE)
 }
 \arguments{
 \item{ws}{\code{(list/Websocket)} The websocket list or Websocket object created with \code{\link[AlpacaforR]{ws_create}}.}

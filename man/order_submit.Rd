@@ -2,10 +2,29 @@
 % Please edit documentation in R/Orders.R
 \name{order_submit}
 \alias{order_submit}
+\alias{submit_orders}
 \alias{cancel_orders}
 \title{Submit, Cancel & Replace Orders,}
 \usage{
 order_submit(
+  ticker_id,
+  action = "submit",
+  qty = NULL,
+  side = NULL,
+  type = NULL,
+  time_in_force = "day",
+  limit = NULL,
+  stop = NULL,
+  extended_hours = NULL,
+  client_order_id = NULL,
+  order_class = NULL,
+  take_profit = NULL,
+  stop_loss = NULL,
+  live = FALSE,
+  v = 2
+)
+
+submit_orders(
   ticker_id,
   action = "submit",
   qty = NULL,
@@ -133,6 +152,8 @@ Places/Replaces/Cancels an order, or cancels all orders depending on argument to
 \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 }
 
+\code{submit_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} instead.
+
 \code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}.
 }
 \examples{
@@ -143,7 +164,7 @@ Places/Replaces/Cancels an order, or cancels all orders depending on argument to
 # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
 order_submit(so, a = "c")
 # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-(so <- order_submit(bo$id, stop = 120, cli = T)) # here the id is used
+(so <- order_submit(bo$id, stop = 120, cli = TRUE)) # here the id is used
 so$client_order_id == bo$id
 # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
 order_submit(so$id, a = "r", stop = 123)
@@ -166,13 +187,16 @@ cancel_orders()
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
+\code{\link{orders}()}
 
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
+\code{\link{orders}()}
+
+Other Orders: 
+\code{\link{order_cancel}()},
+\code{\link{order_replace}()},
+\code{\link{orders}()}
 }
 \concept{Orders}

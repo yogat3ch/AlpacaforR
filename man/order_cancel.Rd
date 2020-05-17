@@ -27,17 +27,17 @@ order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \cod
 }
 \examples{
 # Cancel by the order id
-order <- order_submit("AAPL", 1, "buy", "market", live = F)
-order_cancel(order_id = order$id, live = F)
+order <- order_submit("AAPL", q = 1, s = "buy", t = "market", live = FALSE)
+order_cancel(order_id = order$id, live = FALSE)
 # Or cancel all orders for a ticker symbol See also: positions:
-order_submit("AAPL", 1, "buy", "market", live = F)
-order_submit("AMZN", 1, "buy", "market", live = F)
+order_submit("AAPL", q = 1, s = "buy", t = "market", live = FALSE)
+order_submit("AMZN", q = 1, s ="buy", t = "market", live = FALSE)
 canceled_orders <- order_cancel(c("AAPL", "AMZN"))
 str(canceled_orders)
 # Or cancel all orders:
-order_submit("AAPL", 1, "buy", "market", live = F)
-order_submit("AMZN", 1, "buy", "market", live = F)
-order_submit("FB", 1, "buy", "market", live = F)
+order_submit("AAPL", q = 1, s = "buy", t = "market", live = FALSE)
+order_submit("AMZN", q = 1, s = "buy", t = "market", live = FALSE)
+order_submit("FB", q = 1, s = "buy", t = "market", live = FALSE)
 canceled_orders <- order_cancel("cancel_all")
 str(canceled_orders)
 }
@@ -47,7 +47,6 @@ positions
 Other Orders: 
 \code{\link{order_replace}()},
 \code{\link{order_submit}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
+\code{\link{orders}()}
 }
 \concept{Orders}

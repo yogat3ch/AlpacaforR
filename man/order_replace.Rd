@@ -100,13 +100,11 @@ replace_orders()
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_submit}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
+\code{\link{orders}()}
 
 Other Orders: 
 \code{\link{order_cancel}()},
 \code{\link{order_submit}()},
-\code{\link{orders}()},
-\code{\link{submit_orders}()}
+\code{\link{orders}()}
 }
 \concept{Orders}

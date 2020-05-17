@@ -4,7 +4,7 @@
 \alias{bars_missing}
 \title{Determine missing values in bars objects}
 \usage{
-bars_missing(bars, ..., .tf_reduce = F)
+bars_missing(bars, ..., .tf_reduce = FALSE)
 }
 \arguments{
 \item{bars}{Output from \code{\link[AlpacaforR]{bars_get}}}

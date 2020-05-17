@@ -15,8 +15,8 @@ market_data(
   after = NULL,
   until = NULL,
   limit = NULL,
-  full = F,
-  unadjusted = F
+  full = FALSE,
+  unadjusted = FALSE
 )
 
 get_bars(
@@ -29,8 +29,8 @@ get_bars(
   after = NULL,
   until = NULL,
   limit = NULL,
-  full = F,
-  unadjusted = F
+  full = FALSE,
+  unadjusted = FALSE
 )
 }
 \arguments{
@@ -119,7 +119,7 @@ axis(1, bars$BYND$time, format(bars$BYND$time, "\%b \%d"), cex.axis = .7)
 attr(bars$BYND, "query") # everything checks out, so how do we get all the data we requested?
 # Set full = T
 bars <- market_data(ticker = c("BYND"), v = 2, from = lubridate::floor_date(lubridate::now(), "year"), multiplier = 1, timeframe = "h", full = TRUE)
-purrr::map(bars, ~nrow) # A big difference in the number of rows
+purrr::map(bars, nrow) # A big difference in the number of rows
 purrr::map(bars, ~range(.x$time)) # The range appears the same
 # A closer look:
 plot(open ~ time, bars$BYND, xaxt = "n", type = "l")

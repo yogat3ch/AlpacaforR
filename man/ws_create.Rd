@@ -6,8 +6,8 @@
 \usage{
 ws_create(
   api = c("a", "p")[1],
-  log_msgs = T,
-  log_bars = F,
+  log_msgs = TRUE,
+  log_bars = FALSE,
   log_path = "",
   action = NULL,
   aenv = NULL,
@@ -63,7 +63,7 @@ If \code{log_msgs} is FALSE, no log file will be created.
 If you wish to perform actions based on specific message content, you can do one of following:
 \enumerate{
 \item{For simple functions, use the \code{action} argument.}
-\item{Use a background process with \code{\href{https://www.rdocumentation.org/packages/later/versions/1.0.0/topics/later}{later::later}} or \code{\href{https://www.rdocumentation.org/packages/callr/versions/3.4.3/topics/r_bg}{callr::r_bg}} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
+\item{Use a background process with \href{https://www.rdocumentation.org/packages/later/versions/1.0.0/topics/later}{later::later} or \href{https://www.rdocumentation.org/packages/callr/versions/3.4.3/topics/r_bg}{callr::r_bg} to monitor the \code{[OBJECT]$env$lastmessage} object or the \code{[OBJECT]$env$msgs} or \code{[OBJECT]$env$bars} (Polygon) object and perform an action when a specific message appears.}
 \item{Build a websocket from scratch using the \href{https://rstudio.github.io/websocket/}{websocket documentation} and include the appropriate hooks and functions in the \code{onMessage} method.}
 }
 The websocket is authenticated using the environment variables \code{APCA-LIVE-API-KEY-ID}. If unset, please see the Installation vignette \code{vignette("Installation", "AlpacaforR")} for instructions on setting this value.
