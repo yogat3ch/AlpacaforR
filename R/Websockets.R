@@ -66,12 +66,12 @@
 #' }
 #' @export
 
-ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path = "", action = NULL, aenv = NULL, toConsole = T) {
+ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, log_path = "", action = NULL, aenv = NULL, toConsole = T) {
   `%>%` <- magrittr::`%>%`
   api <- tolower(substr(api, 0, 1))
   if (api == "a" && isTRUE(log_bars)) {
     message(paste0("Bars are only logged for Polygon websocket endpoints. `log_bars` will be ignored."))
-    log_bars <- F
+    log_bars <- FALSE
   }
   if (!interactive()) stop("ws_create only runs properly in an interactive session")
   # Determine if a logs should be created
@@ -101,14 +101,14 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
       write("Timestamp, Message", file = logfile)
     }
     # change log_msgs to boolean now that logfile exists
-    log_msgs <- ifelse(inherits(log_msgs, "character") || isTRUE(log_msgs), T, F)
+    log_msgs <- ifelse(inherits(log_msgs, "character") || isTRUE(log_msgs), TRUE, FALSE)
   }
   
   # Create the Websocket
   if (api == "a") {
-    ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url(T)),"/stream"), autoConnect = F)
+    ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url(TRUE)),"/stream"), autoConnect = FALSE)
   } else {
-    ws <- websocket::WebSocket$new(url = "wss://socket.polygon.io/stocks", autoConnect = F)
+    ws <- websocket::WebSocket$new(url = "wss://socket.polygon.io/stocks", autoConnect = FALSE)
   }
   out <- list(ws = ws, env = new.env())
   e <- environment()
@@ -123,13 +123,13 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
     if (api == "a") {
       .auth <- jsonlite::toJSON(list(action = c("authenticate"),
                                      data = list(key_id = Sys.getenv("APCA-LIVE-API-KEY-ID"),
-                                                 secret_key = Sys.getenv("APCA-LIVE-API-SECRET-KEY"))), complex = "string", auto_unbox = T)
+                                                 secret_key = Sys.getenv("APCA-LIVE-API-SECRET-KEY"))), complex = "string", auto_unbox = TRUE)
       out$ws$send(.auth)
     } 
   })
   ws$onMessage(function(event) {
     if (api == "a") {
-      .msg <- httr:::parse_text(event$data, type = "text", encoding = "UTF-8")
+      .msg <- paste0(readBin(event$data, character(), n=1000), collapse="")
       .o <- NULL
     } else {
       
@@ -146,7 +146,7 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
       if (!is.null(.o$status)) {
         if (.o$status == "connected") {
           .auth <- jsonlite::toJSON(list(action = c("auth"),
-                                         params = Sys.getenv("APCA-LIVE-API-KEY-ID")), complex = "string", auto_unbox = T)
+                                         params = Sys.getenv("APCA-LIVE-API-KEY-ID")), complex = "string", auto_unbox = TRUE)
           out$ws$send(.auth)
         }
       }
@@ -171,7 +171,6 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
     return(.msg)
   })
   ws$onClose(function(event) {
-    print(event$code)
     .r <- c(`1000` = "closed by user", `1005` = "no status received", `1006` = "end of broadcast")[as.character(event$code)]
     
     .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket client disconnected with code: ", event$code,
@@ -180,7 +179,8 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
     ws_log(out, .log = .log, msg = .msg)
   })
   ws$onError(function(event) {
-    .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket Error: '", httr:::parse_text(event$message, encoding = "UTF-8"), "'")
+    .msg <- paste0(readBin(event$message, character(), n=1000), collapse="")
+    .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket Error: '", .msg, "'")
     ws_msg(out, msg = .msg)
     ws_log(out, .log = .log, msg = .msg)
   })
@@ -336,7 +336,7 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = T, log_bars = F, log_path
 #'  }
 #' @export
 
-ws_listen <- function(ws, channel = NULL, unsub = F) {
+ws_listen <- function(ws, channel = NULL, unsub = FALSE) {
   if (is.list(ws)) ws_o <- ws$ws
   api <- attr(ws, "api")
   if (api == "a") {
@@ -348,14 +348,14 @@ ws_listen <- function(ws, channel = NULL, unsub = F) {
       if (length(.s) == 1) .s <- list(.s)
     }
     .listen <- jsonlite::toJSON(list(action = "listen",
-                                     data = list(streams = .s)), auto_unbox = T)
+                                     data = list(streams = .s)), auto_unbox = TRUE)
     ws_o$send(.listen)
   } else {
     .c <- toupper(channel)
     .sub <- ifelse(unsub, "unsubscribe", "subscribe")
     purrr::walk(.c, ~{
       .listen <- jsonlite::toJSON(list(action = .sub,
-                                       params = .x), auto_unbox = T)
+                                       params = .x), auto_unbox = TRUE)
       
       
       if (ws$env$log_bars) {
@@ -364,7 +364,7 @@ ws_listen <- function(ws, channel = NULL, unsub = F) {
         # if the file doesnt exist, create it
         if (!file.exists(.log_ev)) {
           file.create(.log_ev)
-          write(paste0(c("ev", "sym", "v", "av", "op", "vw", "o", "c", "h", "l", "a", "z", "n", "s", "e"), collapse = ", "), file = .log_ev, append = T)
+          write(paste0(c("ev", "sym", "v", "av", "op", "vw", "o", "c", "h", "l", "a", "z", "n", "s", "e"), collapse = ", "), file = .log_ev, append = TRUE)
         } 
       }
       ws_o$send(.listen)

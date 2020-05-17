@@ -87,7 +87,7 @@ test_that("order_submit properly places a bracket order_class", {
   expect_equal(dim(.bo), c(2, 28))
   expect_equal(dim(.bo$legs), c(2, 28))
   .dts <- unlist(purrr::map_depth(.bo, -1, .ragged = T, lubridate::is.POSIXct))
-  expect_equal(sum(.dts), 16)
+  expect_equal(sum(.dts), 24)
 })
 
 

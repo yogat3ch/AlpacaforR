@@ -45,12 +45,12 @@ try_date <- function(.x, tz = "America/New_York") {
 }
 
 is_inf <- function(.x) {
-  if (is.null(.x)) return(F)
+  if (is.null(.x)) return(FALSE)
   # check for infinite
-  out <- tryCatch(is.infinite(.x), error = function(e) F)
+  out <- tryCatch(is.infinite(.x), error = function(e) FALSE)
   # if more than on object returned, then it's obviously not a single infinite
-  out <- ifelse(length(out) > 1, F, out)
-  !out
+  out <- ifelse(length(out) > 1, FALSE, out)
+  out
 }
 
 #' @title fetch variables 
@@ -63,24 +63,25 @@ is_inf <- function(.x) {
 #' @param sf The system frames for searching if not found in previous two environments.
 #' @importFrom rlang `!!!` env_bind env_get_list caller_env
 #' @importFrom stringr str_extract
-#' @importFrom purrr keep map2_lgl walk
+#' @importFrom purrr discard map2_lgl walk
 
 fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
   `!!!` <- rlang::`!!!`
-  try(list2env(e, envir = cenv), silent = T)
+  try(list2env(e, envir = cenv), silent = TRUE)
   # remove the variables already existing
-  .vn <- .vn[!names(.vn) %in% ls(all.names = T, envir = cenv)]
+  .vn <- .vn[!names(.vn) %in% ls(all.names = TRUE, envir = cenv)]
   # add the parent environment
   
   if (!all(names(.vn) %in% ls(all.names = T, envir = cenv))) {
-    .vars <- purrr::keep(rlang::env_get_list(env = cenv, names(.vn), default = Inf, inherit = F), is_inf)
+    .vars <- purrr::discard(rlang::env_get_list(env = cenv, names(.vn), default = Inf, inherit = FALSE), is_inf)
     .vars <- .vars[purrr::map2_lgl(.vars, .vn[names(.vars)], ~inherits(.x, .y))]
     rlang::env_bind(cenv, !!!.vars)
     .missed <- .vn[!names(.vn) %in% ls(all.names = T, envir = cenv)]
     if (length(.missed) > 0) {
       .vars <- purrr::walk(append(sf, penv, after = 0), ~{
         if (identical(globalenv(), .x)) return(NULL)
-        .v <- purrr::keep(rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = F), is_inf)
+        .v <- rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = FALSE)
+        .v <- try({purrr::discard(.v, is_inf)})
         .v <- .v[purrr::map2_lgl(.v, .vn[names(.v)], ~inherits(.x, .y))]
         rlang::env_bind(cenv, !!!.v)
       })
@@ -129,7 +130,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
     }
     
   } else if (v == 2){
-    timeframe <- utils::tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = F)[1]]], 1)
+    timeframe <- utils::tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = FALSE)[1]]], 1)
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
@@ -186,14 +187,14 @@ bars_bounds <- function(...) {
     if (.tf_num < 3) {
       # Case less than day, to include the day requested, the boundary must be the previous day
       .unit <- ifelse(v == 2, paste(1, "day"), paste(multiplier, timeframe))
-      .wd <- lubridate::wday(.out, label = T, abbr = F)
+      .wd <- lubridate::wday(.out, label = TRUE, abbr = FALSE)
       if (.wd %in% c("Sunday", "Saturday")) {
         rlang::warn(message = paste0("`",.y, "` is a ", .wd, ". Timeframes less than one week will return no data for weekend days."))
       }
     } else if (.tf_num == 4 && multiplier > 1) {
       # lubridate does not support multi-weeks to floor_date
       # case where timeframe is week and multiplier is more than 1, just use 1 week and we will subract multiplier - 1, weeks
-      .w <- T
+      .w <- TRUE
       .unit <- paste(1, timeframe)
     } else if (.tf_num == 6) {
       # case where timeframe is quarter
@@ -238,14 +239,14 @@ bars_bounds <- function(...) {
           .out <- lubridate::int_start(.qs[[.q]])
         }
         
-      } else if (exists(".w", inherits = F)) {
+      } else if (exists(".w", inherits = FALSE)) {
         # lubridate does not support multi-weeks to floor_date, so we just subtract multiplier - 1 weeks
         .out <- .out - lubridate::duration(multiplier - 1, "weeks")
       }
     } else {
       # To include the ending boundary, we need to add a full cycle of multiplier * timeframe
-      .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = F) + lubridate::duration(multiplier, timeframe)
-      if (exists(".q", inherits = F)) {
+      .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = FALSE) + lubridate::duration(multiplier, timeframe)
+      if (exists(".q", inherits = FALSE)) {
         # Convert to the appropriate quarter boundary
         .out <- lubridate::int_end(.qs[[.q]])
       }
@@ -416,7 +417,7 @@ bars_get <- function(url, ...) {
     
     .e <- rlang::current_env()
     purrr::iwalk(agg_quote, ~{
-      .warn <- tryCatch({is.null(nrow(.x)) || nrow(.x) == 0},  error = function(cond) {assign("err", cond, .e);T})
+      .warn <- tryCatch({is.null(nrow(.x)) || nrow(.x) == 0},  error = function(cond) {assign("err", cond, .e);TRUE})
       if (.warn) {
         rlang::warn(paste0(.y, " returned no data. Returning metadata only"))
       }  
@@ -616,20 +617,20 @@ bars_expected <- function(bars, ...) {
 #' @importFrom lubridate now duration hm as_datetime origin with_tz force_tz isoweek interval `%within%` is.Date as_date
 #' @importFrom stringr str_extract
 
-bars_missing <- function(bars, ..., .tf_reduce = F) {
+bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
   `%||%` <- rlang::`%||%`
   `!!!` <- rlang::`!!!`
   `%>%` <- magrittr::`%>%`
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", .tf_num = c("integer", "numeric"), .tf_order = c("factor"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
-  if (!".tf_num" %in% ls(all.names = T)) tf_num(timeframe)
+  if (!".tf_num" %in% ls(all.names = TRUE)) tf_num(timeframe)
   # If data.frame is input, output just the tibble (not a list)
   if(is.data.frame(bars)) {
     bars <- list(bars)
-    bars_df <- T
+    bars_df <- TRUE
   } else {
-    bars_df <- F
+    bars_df <- FALSE
   } 
   
   .expected <- bars_expected(bars, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier)
@@ -1007,12 +1008,12 @@ bars_complete <- function(bars, .missing, ...) {
           .md <- .still_md
         } else if (identical(.still_md, .md)) {
           # otherwise, if we turned up nothing, reduce the timeframe for the next call
-          ext$.tf_reduce <- T
+          ext$.tf_reduce <- TRUE
           # re-populate the .m_tib object with the remaining missing data
           .m_tib <- bars_missing(ext$.out, .bounds = .bounds, .tf_reduce = ext$.tf_reduce, ticker = ticker)
           # and here
           # add 1 to the count, or if it doesn't exist yes, make it 1
-          .count <- 1 + (get0(".count", inherits = F) %||% 0)
+          .count <- 1 + (get0(".count", inherits = FALSE) %||% 0)
           if (.count == 2) break # for IPO where there might consistently be missing bars but no new bars will ever return because they don't exist
         }
         #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
@@ -1147,7 +1148,7 @@ is_id <- function(ticker_id) {
   out <- tryCatch({
     .out <- all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36)
     length(.out) > 0 && .out
-  }, error = function(e) F)
+  }, error = function(e) FALSE)
   return(out)
 }
 
@@ -1194,7 +1195,7 @@ pos_transform <- function(pos) {
       })
       return(.out)
     })
-    # orders_transform should properly transform orders
+    # order_transform should properly transform orders
     
   }
   
@@ -1212,13 +1213,13 @@ pos_transform <- function(pos) {
     message("No positions are open at this time.")
     out <- .pos
   } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
-    out <- orders_transform(pos)
+    out <- order_transform(pos)
   } else {
     # if close_all
     if (.held) {
       out <- bind_rows(.pos)
     } else {
-      out <- orders_transform(.pos$body)
+      out <- order_transform(.pos$body)
       attr(out, "info") <- .pos[1:2]
     }
     
@@ -1304,7 +1305,7 @@ o_transform <- function(.o) {
 #' @importFrom rlang `%||%` warn
 #' @importFrom purrr map
 
-orders_transform <- function(o) {
+order_transform <- function(o) {
   if (class(o) == "response") {
     if (length(o$content) == 0 && grepl("^2", o$status_code)) {
       message(paste0("Order canceled successfully"))
@@ -1335,7 +1336,6 @@ orders_transform <- function(o) {
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
-          out <- o_transform(.o)
         if (!is.null(.o$legs) && !is.na(.o$legs)) {
           if (inherits(.o$legs, "list")) {
             .o$legs <- purrr::map(.o$legs, ~{
@@ -1350,7 +1350,9 @@ orders_transform <- function(o) {
             .o$legs <- o_transform(.o$legs)
           }
         }
+        out <- o_transform(.o) 
       })})
+    
   } else if (length(.o) == 0 && .method == "GET") {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
     out <- .o
@@ -1358,7 +1360,7 @@ orders_transform <- function(o) {
     # case when deleting single order
     out <- .o
   }
-  if (exists(".q", inherits = F)) attr(out, "query") <- .q
+  if (exists(".q", inherits = FALSE)) attr(out, "query") <- .q
   return(out)
 }
 
@@ -1737,7 +1739,7 @@ poly_transform <- function(resp, ep) {
     .o$.vars <- NULL
   } else {
     if (is.data.frame(.o$.tbl$day) || is.list(.o$.tbl$day)) {
-      .t <- unlist(.o$.tbl[1:5], recursive = F)
+      .t <- unlist(.o$.tbl[1:5], recursive = FALSE)
       if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
       .o$.tbl <- dplyr::bind_cols(.t, .o$.tbl[6:9]) 
     }
@@ -1800,12 +1802,12 @@ ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
   }
   if (!is.null(.o)) {
     if (.o$ev %in% c("T", "Q", "A", "AM")) {
-      if (!exists("bars", envir = out$env, inherits = F)) {
+      if (!exists("bars", envir = out$env, inherits = FALSE)) {
         bars <- list()
         bars[[paste0(.o$ev,".",.o$sym)]] <- .o
         assign("bars", bars, out$env)
       } else {
-        .bars <- get0("bars", out$env, inherits = F)
+        .bars <- get0("bars", out$env, inherits = FALSE)
         .nm <- paste0(.o$ev,".",.o$sym)
         .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], .o)
         if (utils::object.size(.bars) / (utils::memory.size(NA) * 1048567) > .33) {
@@ -1834,21 +1836,22 @@ ws_log <- function(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env()) 
   `!!!` <- rlang::`!!!`
   # add the arguments to the environment ----
   # Thu Apr 30 17:29:18 2020
-  .e <- try(list2env(list(penv), environment()), silent = T)
+  .e <- try(list2env(list(penv), environment()), silent = TRUE)
   .vn <- list(.o = "data.frame", .log = "logical", out = "list", log_bars = "logical", log_msgs = "logical", log_path = "logical", logfile = "character", api = "character")
-  if (!exists(msg, inherits = F)) .vn$.msg <- "character"
-  if (!all(.vn %in% ls(all.names = T))){
+  if (!exists(msg, inherits = FALSE)) .vn$.msg <- "character"
+  if (!all(.vn %in% ls(all.names = TRUE))){
     .e <- list(...)
     fetch_vars(.vn, e = .e, penv = penv)
+    if (!exists("api", inherits = FALSE)) api <- attr(out, "api")
   }
   if (!.log) return(NULL) # stop if no logging
-  # If listening to a subscription chacnnel & logging bars
+  # If listening to a subscription channel & logging bars
   if (api == "p" && !is.null(.o)) {
     if (.o$ev %in% c("T", "Q", "A", "AM") && out$env$log_bars) {
       # Create the name of the CSV log for Polygon channels
       .log_ev <- paste0(log_path, paste0(.o$ev,".",.o$sym,".csv"))
-      write(paste0(.o, collapse = ", "), file = .log_ev, append = T)
+      write(paste0(.o, collapse = ", "), file = .log_ev, append = TRUE)
     }
   }
-  if (out$env$log_msgs) write(ifelse(exists(msg, inherits = F), msg, .msg), file = logfile, append = T)
+  if (out$env$log_msgs) write(ifelse(exists(msg, inherits = FALSE), msg, .msg), file = out$env$logfile, append = TRUE)
 }

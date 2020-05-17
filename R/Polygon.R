@@ -25,7 +25,7 @@
            desc = "Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities.",
            href = "https://polygon.io/docs/#get_v2_reference_tickers_anchor",
            url = "/v2/reference/tickers",
-           params = list(sort = c("ticker", "-ticker", "type"), type = list(NULL, "etp", "cs"), market = list(NULL, "stocks", "indices"), locale = list(NULL, "us", "g"), search = list(NULL, "microsoft"), perpage = 50, page = 1, active = list(NULL, T, F))),
+           params = list(sort = c("ticker", "-ticker", "type"), type = list(NULL, "etp", "cs"), market = list(NULL, "stocks", "indices"), locale = list(NULL, "us", "g"), search = list(NULL, "microsoft"), perpage = 50, page = 1, active = list(NULL, TRUE, FALSE))),
   tt = list(nm = "Ticker Types",
             desc = "Get the mapping of ticker types to descriptions / long names",
             href = "https://polygon.io/docs/#get_v2_reference_types_anchor",
@@ -79,12 +79,12 @@
             desc = "Get historic NBBO quotes for a ticker.",
             href = "https://polygon.io/docs/#get_v2_ticks_stocks_trades__ticker___date__anchor",
             url = "/v2/ticks/stocks/trades/{ticker}/{date}",
-            params = list(ticker = "AAPL", date = lubridate::as_date("2018-02-02"), timestamp = list(NULL, 1), timestampLimit = list(NULL,1), reverse = list(NULL, T, F), limit = c(10, 50000))),
+            params = list(ticker = "AAPL", date = lubridate::as_date("2018-02-02"), timestamp = list(NULL, 1), timestampLimit = list(NULL,1), reverse = list(NULL, TRUE, FALSE), limit = c(10, 50000))),
   hq = list(nm = "Historic Quotes (NBBO)",
             desc = "Get historic NBBO quotes for a ticker.",
             href = "https://polygon.io/docs/#get_v2_ticks_stocks_nbbo__ticker___date__anchor",
             url = "/v2/ticks/stocks/nbbo/{ticker}/{date}",
-            params = list(ticker = "AAPL", date = lubridate::as_date("2018-02-02"), timestamp = list(NULL, 1), timestampLimit = list(NULL,1), reverse = list(NULL, T, F), limit = c(10, 50000))),
+            params = list(ticker = "AAPL", date = lubridate::as_date("2018-02-02"), timestamp = list(NULL, 1), timestampLimit = list(NULL,1), reverse = list(NULL, TRUE, FALSE), limit = c(10, 50000))),
   lt = list(nm = "Last Trade for a Symbol",
             desc = "Get the last trade for a given stock.",
             href = "https://polygon.io/docs/#get_v1_last_stocks__symbol__anchor",
@@ -123,14 +123,14 @@
             desc = "Get the previous day close for the specified ticker",
             href = "https://polygon.io/docs/#get_v2_aggs_ticker__ticker__prev_anchor",
             url = "/v2/aggs/ticker/{ticker}/prev",
-            params = list(ticker = "AAPL", unadjusted = list(NULL, T, F))),
+            params = list(ticker = "AAPL", unadjusted = list(NULL, TRUE, FALSE))),
   a = list(nm = "Aggregates (Bars)",
            desc = "See ?market_data"),
   gd = list(nm = "Grouped Daily (Bars)",
             desc = "Get the daily OHLC for entire markets.",
             href = "https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor",
             url = "/v2/aggs/grouped/locale/{locale}/market/{market}/{date}",
-            params = list(locale = c("US", "See Locales Endpoint"), market = c("STOCKS", "See Markets Endpoint"), date = lubridate::as_date("2019-02-01"), unadjusted = list(NULL, T, F))),
+            params = list(locale = c("US", "See Locales Endpoint"), market = c("STOCKS", "See Markets Endpoint"), date = lubridate::as_date("2019-02-01"), unadjusted = list(NULL, TRUE, FALSE))),
   fht = list(nm = "Historic Forex Ticks",
              desc = "Get historic ticks for a currency pair. Example for USD/JPY the from would be USD and to would be JPY. The date formatted like 2017-6-22",
              href = "https://polygon.io/docs/#get_v1_historic_forex__from___to___date__anchor",
@@ -392,6 +392,7 @@
 #' @importFrom purrr compact map
 #' @importFrom httr GET parse_url build_url
 #' @importFrom stringr str_match str_extract regex str_split
+#' @importFrom glue glue_data
 #' @export
 
 polygon <- function(ep = NULL, ..., params = NULL){
@@ -482,9 +483,11 @@ polygon <- function(ep = NULL, ..., params = NULL){
 #' # Getting news information on AMZN: 
 #' get_meta(ticker = "AMZN", endpoint = "news", perpage = 100)
 #' @importFrom httr GET
+#' @importFrom rlang warn
 #' @export
 get_meta <- function(ticker = NULL, endpoint = NULL, perpage = NULL, v = 1){
-  message(paste0("This function is deprecated, see ?AlpacaforR::polygon"))
+  rlang::warn(paste0("This function is deprecated (and no longer functions properly with the polygon API), see ?AlpacaforR::polygon instead."))
+  return(NULL)
   #Set URL 
   path_url = get_url_poly()
   

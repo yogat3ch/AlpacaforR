@@ -70,7 +70,7 @@
 #' attr(bars$BYND, "query") # everything checks out, so how do we get all the data we requested?
 #' # Set full = T
 #' bars <- market_data(ticker = c("BYND"), v = 2, from = lubridate::floor_date(lubridate::now(), "year"), multiplier = 1, timeframe = "h", full = TRUE)
-#' purrr::map(bars, ~nrow) # A big difference in the number of rows
+#' purrr::map(bars, nrow) # A big difference in the number of rows
 #' purrr::map(bars, ~range(.x$time)) # The range appears the same
 #' # A closer look:
 #' plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
@@ -87,7 +87,7 @@
 # For DEBUG
 
 
-market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = F, unadjusted =  F){
+market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE){
   `%>%` <- magrittr::`%>%`
   #param check:  Thu Mar 26 08:34:13 2020 ----
   if((is.null(from) || is.null(to)) && (is.null(start) || is.null(end))){

@@ -86,7 +86,7 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
   # Query
   out <- httr::GET(.url, headers)
   # Clean
-  out <- orders_transform(out)
+  out <- order_transform(out)
   
   
   if (!is.null(ticker_id) && !.is_id && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
@@ -178,7 +178,7 @@ get_orders <- orders
 #' # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
 #' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-#' (so <- order_submit(bo$id, stop = 120, cli = T)) # here the id is used
+#' (so <- order_submit(bo$id, stop = 120, cli = TRUE)) # here the id is used
 #' so$client_order_id == bo$id
 #' # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
 #' order_submit(so$id, a = "r", stop = 123)
@@ -241,7 +241,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
         purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
         stop_loss = stop_loss)), -1, .f = as.character))
     bodyl$extended_hours <- extended_hours
-    bodyl <- jsonlite::toJSON(bodyl, auto_unbox = T)
+    bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
   } else if (action == "r") {
     bodyl <-
       jsonlite::toJSON(
@@ -254,7 +254,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
             stop_price = stop,
             client_order_id = client_order_id)
         ),-2, .f = as.character),
-        auto_unbox = T)
+        auto_unbox = TRUE)
   }
   # create the base url
   .url$path <- list(paste0("v",v), "orders")
@@ -271,14 +271,14 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   } else if (action %in% c("c","cancel_all")) {
     out <- httr::DELETE(url = .url, headers)
   }
-  out <- orders_transform(out)
+  out <- order_transform(out)
   return(out)
 }
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
 #' @family Orders
 #' @title submit_orders
-#' @rdname orders_submit
+#' @rdname order_submit
 #' @description `submit_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} instead.
 #' @export
 submit_orders <- order_submit
@@ -306,17 +306,17 @@ submit_orders <- order_submit
 #' @inherit orders return
 #' @examples 
 #' # Cancel by the order id
-#' order <- order_submit("AAPL", 1, "buy", "market", live = F)
-#' order_cancel(order_id = order$id, live = F)
+#' order <- order_submit("AAPL", q = 1, s = "buy", type =  "market", live = FALSE)
+#' order_cancel(order_id = order$id, live = FALSE)
 #' # Or cancel all orders for a ticker symbol See also: positions:
-#' order_submit("AAPL", 1, "buy", "market", live = F)
-#' order_submit("AMZN", 1, "buy", "market", live = F)
+#' order_submit("AAPL", q = 1, s = "buy", type =  "market", live = FALSE)
+#' order_submit("AMZN", q = 1, s ="buy", type =  "market", live = FALSE)
 #' canceled_orders <- order_cancel(c("AAPL", "AMZN"))
 #' str(canceled_orders)
 #' # Or cancel all orders:
-#' order_submit("AAPL", 1, "buy", "market", live = F)
-#' order_submit("AMZN", 1, "buy", "market", live = F)
-#' order_submit("FB", 1, "buy", "market", live = F)
+#' order_submit("AAPL", q = 1, s = "buy", type =  "market", live = FALSE)
+#' order_submit("AMZN", q = 1, s = "buy", type =  "market", live = FALSE)
+#' order_submit("FB", q = 1, s = "buy", type =  "market", live = FALSE)
 #' canceled_orders <- order_cancel("cancel_all")
 #' str(canceled_orders)
 #' @importFrom httr DELETE parse_url build_url
@@ -379,7 +379,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
     cancel <- tryCatch({response_text_clean(cancel)}, error = function(e) NULL)
     if (!is.null(cancel)) {
       # if the order was pending, this endpoint returns data. If the order was new, it doesn't. This generates informative results regardless
-      .out <- orders_transform(cancel$body)
+      .out <- order_transform(cancel$body)
       .q$.query <- append(cancel[1:2], get0(".query", envir = .q, ifnotfound = NULL))
     } else {
       .out <- orders(ticker_id = .y)
@@ -436,7 +436,7 @@ cancel_orders <- order_cancel
 #' @importFrom rlang warn `%||%`
 #' @importFrom purrr map_if
 #' @export
-order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price=NULL, live = FALSE, v = 2){
+order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE, v = 2){
   #Set URL & Headers
   if (grepl(deparse(sys.calls()[[sys.nframe()-1]]), "replace_order|order_replace")) {
     message("`replace_order` & `order_replace` are deprecated. Please use `order_submit` with `action = 'replace'`")
@@ -453,7 +453,7 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
   } else if (.oo > 0) { #If ticker supplied then do this
     #Gather the open order ID for the symbol specified
     ticker <- ticker_id 
-    open_orders_sym <- grep(ticker, open_orders$symbol, ignore.case = T)
+    open_orders_sym <- grep(ticker, open_orders$symbol, ignore.case = TRUE)
     #If more than one order is open print message to notify which order is being cancelled
     #if(length(open_orders_sym) > 1) message(paste0("More than one order open for ",ticker,", the order placed at ", lubridate::with_tz(as.POSIXlt(open_orders$submitted_at[open_orders_sym[1]], tz = "UTC", tryFormats = c("%Y-%m-%dT%H:%M:%OS")), Sys.timezone())," will be canceled"))
     order_id <- open_orders[[open_orders_sym[1], "id"]]
@@ -479,7 +479,7 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
     rlang::warn(paste("Order ID", order_id,"for",ticker, "was not replaced.\n Message:", replace$message))
   } else {
     message(paste("Order", replace$id,"for", replace$symbol, "successfully replaced", replace$replaces,"\n"))
-    replace <- orders_transform(replace)
+    replace <- order_transform(replace)
   }
   return(replace)
 }

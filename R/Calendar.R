@@ -54,7 +54,7 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   # Check for weekend values and warn if weekend
   purrr::imap(.bounds, ~{
     if (lubridate::wday(.x) %in% c(1,7)) {
-      message(paste0(.y, " is a ",lubridate::wday(.x, label = T, abbr = F),", Calendar API will return data for the previous Friday or following Monday"))
+      message(paste0(.y, " is a ",lubridate::wday(.x, label = TRUE, abbr = FALSE),", Calendar API will return data for the previous Friday or following Monday"))
     }
   })
   .url$path <- list(

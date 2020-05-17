@@ -44,7 +44,7 @@ positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .all <- ifelse(action == "close_all", T, F)
+  .all <- ifelse(action == "close_all", TRUE, FALSE)
   if (!.all) {
     action <- c(g = "get", c = "close")[substr(action,1,1)]
   }
@@ -145,7 +145,7 @@ close_position <- function(ticker = NULL, live = FALSE, v = 2){
 #' @rdname positions
 #' @title close_all_positions (Deprecated)
 #'
-#' @description Deprecated. Please use \link[AlpacaforR]{`positions`} with `tickers = 'close_all'". The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
+#' @description Deprecated. Please use \code{\link[AlpacaforR]{positions}} with `tickers = 'close_all'". The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
 #' @inherit positions return
 #' @examples 

@@ -137,7 +137,7 @@ watchlist <- function(watchlist_id = NULL, name = NULL, tickers = NULL, action =
     bodyl <- jsonlite::toJSON(purrr::compact(list(
       name = name,
       symbols = tickers
-    )), auto_unbox = T)
+    )), auto_unbox = TRUE)
     out = httr::POST(url = .url, body = bodyl, headers)
   } else if ((action == "a" && !is.null(name)) || action == "r" || (action == "d" && !is.null(name))) {
   
@@ -160,7 +160,7 @@ watchlist <- function(watchlist_id = NULL, name = NULL, tickers = NULL, action =
     bodyl <- jsonlite::toJSON(purrr::compact(list(
       name = name,
       symbols = .symbols
-    )), auto_unbox = T)
+    )), auto_unbox = TRUE)
     out = httr::PUT(url = .url, body = bodyl, headers)
   } else if (action == "a") {
     .wl_info <- list()
@@ -194,7 +194,7 @@ watchlist <- function(watchlist_id = NULL, name = NULL, tickers = NULL, action =
     out = httr::DELETE(url = .url, headers)
   }
   
-  out <- wl_transform(out, action = action, wl_info = get0(".wl_info", inherits = F))
+  out <- wl_transform(out, action = action, wl_info = get0(".wl_info", inherits = FALSE))
   return(out)
 }
 #' @family Watchlist
