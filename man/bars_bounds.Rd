@@ -23,14 +23,4 @@ bars_bounds(...)
 \description{
 Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the \emph{Details} section for \code{\link[AlpacaforR]{bars_complete}}.
 }
-\seealso{
-Other bars: 
-\code{\link{bars_complete}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_get}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_transform}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

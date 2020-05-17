@@ -15,18 +15,6 @@ poly_transform(resp, ep)
 \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
 }
 \description{
-transform polygon.io reference endpoints
+coerce data objects returned from the various polygon.io endpoints to R compliant objects
 }
-\keyword{R}
-\keyword{coerce}
-\keyword{compliant}
-\keyword{data}
-\keyword{endpoints}
-\keyword{from}
 \keyword{internal}
-\keyword{objects}
-\keyword{polygon.io}
-\keyword{returned}
-\keyword{the}
-\keyword{to}
-\keyword{various}

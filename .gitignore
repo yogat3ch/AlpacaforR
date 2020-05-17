@@ -35,6 +35,8 @@ vignettes/*.pdf
 /cache/
 check/
 *.log
+*.csv
+*reprex.R
 
 # Temporary files created by R markdown
 *.utf8.md

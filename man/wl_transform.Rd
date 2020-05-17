@@ -2,9 +2,7 @@
 % Please edit documentation in R/internal.R
 \name{wl_transform}
 \alias{wl_transform}
-\title{Transform watchlist objects
-
-Replaces timestamps with POSIXct in watchlist info}
+\title{Transform watchlist objects}
 \usage{
 wl_transform(wl, action, wl_info = NULL)
 }
@@ -15,8 +13,6 @@ wl_transform(wl, action, wl_info = NULL)
 \code{(tibble)} with respective R compliant objects (POSIXct)
 }
 \description{
-Transform watchlist objects
-
 Replaces timestamps with POSIXct in watchlist info
 }
 \keyword{internal}

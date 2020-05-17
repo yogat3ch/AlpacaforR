@@ -15,14 +15,4 @@ bars_get(url, ...)
 \description{
 Internal function for retrieving data from Alpaca API and outputting data.frame with query attribute. See notes on specifying arguments in the \emph{Details} section for \code{\link[AlpacaforR]{bars_complete}}.
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_complete}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_transform}()},
-\code{\link{bars_url}()}
-}
-\concept{bars}
 \keyword{internal}

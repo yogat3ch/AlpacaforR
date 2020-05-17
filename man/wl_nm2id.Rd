@@ -2,11 +2,9 @@
 % Please edit documentation in R/internal.R
 \name{wl_nm2id}
 \alias{wl_nm2id}
-\title{Look up watchlist id from name
-
-fetch the watchlist id corresponding to a watchlist name}
+\title{Look up watchlist id from name}
 \usage{
-wl_nm2id(nm, ..., e = environment())
+wl_nm2id(nm, ...)
 }
 \arguments{
 \item{nm}{\code{(character)} \emph{required} the name of the watchlist}
@@ -15,8 +13,6 @@ wl_nm2id(nm, ..., e = environment())
 id \code{(character)} the id of the watchlist OR, if no id, the array of watchlists
 }
 \description{
-Look up watchlist id from name
-
 fetch the watchlist id corresponding to a watchlist name
 }
 \keyword{internal}

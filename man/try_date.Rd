@@ -4,7 +4,7 @@
 \alias{try_date}
 \title{String to Date/Datetime conversion for market_data}
 \usage{
-try_date(.x)
+try_date(.x, tz = "America/New_York")
 }
 \description{
 Attempts to coerce string to a valid date object in stock exchange time zone, or checks to see if it is already. If it fails to coerce to date, returns NA.

@@ -25,14 +25,4 @@ bars_url(..., limit = NULL)
 \description{
 Internal function for generating query urls. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the \emph{Details} section for \code{\link[AlpacaforR]{bars_complete}}.
 }
-\seealso{
-Other bars: 
-\code{\link{bars_bounds}()},
-\code{\link{bars_complete}()},
-\code{\link{bars_expected}()},
-\code{\link{bars_get}()},
-\code{\link{bars_missing}()},
-\code{\link{bars_transform}()}
-}
-\concept{bars}
 \keyword{internal}
