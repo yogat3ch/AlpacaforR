@@ -7,6 +7,7 @@
 #' @param tickers `(character)` Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector. 
 #' @param action `(character)` `"get"/"g"` to get all positions or those specified by `tickers`. `"close","c"` to close positions specified by `tickers`. Use `"close_all"` to close all positions. 
 #' @inheritParams account
+#' @details `position` is vectorized and thus multiple arguments may be provided to `tickers` and the function will perform the `action` specified for each. `action` is not vectorized, and only one action may be performed for a set of tickers at a given time.
 #' @return Position `(tibble)` [Position object](https://alpaca.markets/docs/api-documentation/api-v2/positions/#position-entity) or array of Position objects of length 0 if no positions, otherwise with length of the number of positions, each with the following attributes: 
 #'\itemize{
 #' \item{`asset_id`}{`(character)` Asset ID.}
@@ -60,8 +61,13 @@ positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
     #Send Request
     pos = httr::DELETE(url = .url, headers)
     out <- pos_transform(pos)
-  } else if (length(tickers) > 0 && action == "close") {
-    # if a list of tickers is specified, close each.
+  } else if (length(tickers) > 0 && action %in% c("close", "get")) {
+    if (action == "get") {
+      .expr <- rlang::expr({pos = httr::GET(url = .url, headers)})
+    } else if (action == "close") {
+      .expr <- rlang::expr({pos = httr::DELETE(url = .url, headers)})
+    }
+    # if a list of tickers is specified, close or fetch each.
     out <- purrr::map_dfr(tickers, ~{
       .url$path <- list(
         v = paste0("v",v),
@@ -69,18 +75,15 @@ positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
         ticker = .x)
       .url <- httr::build_url(.url)
       #Send Request
-      pos = httr::DELETE(url = .url, headers)
+      eval(.expr)
       pos_transform(pos)
     })
   } else {
-    # if action = "get
+    # if action = "get" and no ticker is specified
     .url <- httr::build_url(.url)
     #Send Request
     pos = httr::GET(url = .url, headers)
     out <- pos_transform(pos)
-    if (length(tickers) > 0) {
-      out <- out[out$symbol %in% tickers,]
-    }
   }
   return(out)
 }

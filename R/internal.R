@@ -1200,7 +1200,7 @@ pos_transform <- function(pos) {
   }
   
   if(any(grepl(pattern = "^4", x = .code))) {
-    rlang::warn(paste("Position was not modified.\n Message:", .message))
+    rlang::warn(paste("Position was not",ifelse(.method == "GET", "found.", "modified."),"\n Message:", .message))
     return(.pos)
   } else if (.sym != "positions" && .sym %in% .pos$symbol && .method == "DELETE") {
     message(paste0(.sym, " closed successfully."))
@@ -1214,7 +1214,7 @@ pos_transform <- function(pos) {
     out <- .pos
   } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
     out <- order_transform(pos)
-  } else {
+  } else if (.sym == "positions") {
     # if close_all
     if (.held) {
       out <- bind_rows(.pos)

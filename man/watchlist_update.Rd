@@ -44,26 +44,10 @@ watchlist_update(
 }
 }
 \description{
-Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add.
+Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add. Moved to internal. Use \code{\link[AlpacaforR]{watchlist}} for all watchlist endpoint actions.
 }
 \details{
 The default \code{action} is \code{"add"} which will add any \code{tickers} specified to the watchlist indicated with \code{watchlist_id}. When a new watchlist \code{name} is specified in addition to \code{action = "add"} (Default), existing symbols in the watchlist will be preserved if no \code{tickers} are specified. If \code{tickers} are provided they will be added after the watchlist is renamed. If \code{action = "replace"}, symbols in the specified watchlist will be replaced by those provided to the \code{tickers} argument. If \code{action = "delete"}, the symbols specified by \code{tickers} will be removed from the watchlist. If a new \code{name} is provided concurrently, the \code{name} will first be changed, then the \code{tickers} will be removed.
-}
-\examples{
-watchlist("test", tickers = c("AAPL", "WMT"))
-# Update the watchlist name to test2 and replace the symbols with "FB", "AAPL", "AMZN", "NFLX", "GOOG"
-(wl <- watchlist_update("test", name = "test2", tickers = c("FB", "AAPL", "AMZN", "NFLX", "GOOG"), action = "r"))
-# Walmart needn't be in there, remove it and rename the watchlist appropriately
-(wl <- watchlist_update("test2", name = "FAANG", ticker = "WMT", action = "d"))
-# The next iteration of "FAANG", "FABANGG"
-(wl <- watchlist_update("FAANG", "FABANGG", ticker = c("BYND", "GOOGL"), action = "a"))
-# Back to the original FAANG
-(wl <- watchlist_update("FABANGG", tickers = c("BYND", "GOOGL"), action = "d"))
-# rename it appropriately
-(wl <- watchlist_update("FABANGG", "FAANG"))
-attr(wl, "info")
-# remove it
-watchlist("FAANG", a = "d")
 }
 \seealso{
 Other Watchlist: 

@@ -171,10 +171,12 @@ get_orders <- orders
 #' @inheritParams account
 #' @inherit orders return
 #' @examples 
-#' # most orders (except limit) must be placed during market hours
+#' # most orders (except limit) must be placed during market hours or they will not be filled until the next trading day. 
+#' .c <- clock()
 #' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
 #' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 #' (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
+#' if (.c$is_open) {
 #' # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
 #' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
@@ -193,6 +195,7 @@ get_orders <- orders
 #' # note that the names of these list items can be partial
 #' (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
 #' # side is assumed to be buy, and type is assumed to be market
+#' }
 #' # all open orders can be canceled with `action = "cancel_all"`
 #' order_submit(a = "cancel_all")
 #' @importFrom httr POST PATCH DELETE parse_url build_url
@@ -208,7 +211,7 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   if (action != "cancel_all") {
     action <- substr(tolower(action), 0, 1)
     # if the order tbl is supplied directly, extract the id
-    if (!inherits(ticker_id, c("character", "list"))) ticker_id <- ticker_id$id
+    if (!inherits(ticker_id, c("character"))) ticker_id <- ticker_id$id
     # if vector length 2 and duplicated (complex orders), remove the dupes
     if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
   }
@@ -307,7 +310,7 @@ submit_orders <- order_submit
 #' @examples 
 #' # Cancel by the order id
 #' order <- order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
-#' order_cancel(order_id = order$id, live = FALSE)
+#' order_cancel(ticker_id = order$id, live = FALSE)
 #' # Or cancel all orders for a ticker symbol See also: positions:
 #' order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
 #' order_submit("AMZN", q = 1, side ="buy", type =  "market", live = FALSE)
@@ -323,15 +326,15 @@ submit_orders <- order_submit
 #' @importFrom purrr compact pmap map 
 #' @importFrom dplyr bind_rows
 #' @seealso positions
+#' @export
 
 order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
+  message("`cancel_order` & `order_cancel` are deprecated. Please use `order_submit` with `action = 'cancel'/'cancel_all' instead.`")
+  return(NULL)
   if (is.null(ticker_id)) stop("order_id is required.")
-  if (grepl(deparse(sys.calls()[[sys.nframe()-1]]), "cancel_order|order_cancel")) {
-    message("`cancel_order` & `order_cancel` are deprecated. Please use `order_submit` with `action = 'cancel'/'cancel_all' instead.`")
-  }
   #Gather the open order ID for the symbol specified
   open_orders = orders(status = "open", live = live)
   .nrow <- tryCatch({nrow(open_orders)}, error = function(e) 0)
@@ -438,9 +441,8 @@ cancel_orders <- order_cancel
 #' @export
 order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE, v = 2){
   #Set URL & Headers
-  if (grepl(deparse(sys.calls()[[sys.nframe()-1]]), "replace_order|order_replace")) {
-    message("`replace_order` & `order_replace` are deprecated. Please use `order_submit` with `action = 'replace'`")
-  }
+  message("`replace_order` & `order_replace` are deprecated. Please use `order_submit` with `action = 'replace'`")
+  return(NULL)
   url = get_url(live)
   headers = get_headers(live)
   

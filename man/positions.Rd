@@ -49,6 +49,9 @@ The positions API provides information about an account’s current open positio
 
 Deprecated. Please use \code{\link[AlpacaforR]{positions}} with `tickers = 'close_all'". The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
 }
+\details{
+\code{position} is vectorized and thus multiple arguments may be provided to \code{tickers} and the function will perform the \code{action} specified for each. \code{action} is not vectorized, and only one action may be performed for a set of tickers at a given time.
+}
 \examples{
 positions(ticker = "AAPL", live = FALSE)
 positions("AAPL", live = TRUE)

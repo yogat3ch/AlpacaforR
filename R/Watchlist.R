@@ -263,7 +263,7 @@ get_watchlist <- watchlist
 #' @family Watchlist
 #' @title Update Watchlist function
 #'
-#' @description Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add.
+#' @description Update the name and/or content of watchlist. For symbols, You must provide current tickers, and new ticker to add. Moved to internal. Use \code{\link[AlpacaforR]{watchlist}} for all watchlist endpoint actions.
 #' @inheritParams watchlist
 #' @param name `(character)` arbitrary replacement name, up to 64 characters.
 #' @param tickers `(character)` Set of symbols to add, replace or delete those in the watchlist according to the `action` argument. See Details for specifics
@@ -273,21 +273,6 @@ get_watchlist <- watchlist
 #' @inherit watchlist return
 #' @inherit assets return
 #' @inherit watchlist details
-#' @examples
-#' watchlist("test", tickers = c("AAPL", "WMT"))
-#' # Update the watchlist name to test2 and replace the symbols with "FB", "AAPL", "AMZN", "NFLX", "GOOG"
-#' (wl <- watchlist_update("test", name = "test2", tickers = c("FB", "AAPL", "AMZN", "NFLX", "GOOG"), action = "r"))
-#' # Walmart needn't be in there, remove it and rename the watchlist appropriately
-#' (wl <- watchlist_update("test2", name = "FAANG", ticker = "WMT", action = "d"))
-#' # The next iteration of "FAANG", "FABANGG"
-#' (wl <- watchlist_update("FAANG", "FABANGG", ticker = c("BYND", "GOOGL"), action = "a"))
-#' # Back to the original FAANG
-#' (wl <- watchlist_update("FABANGG", tickers = c("BYND", "GOOGL"), action = "d"))
-#' # rename it appropriately
-#' (wl <- watchlist_update("FABANGG", "FAANG"))
-#' attr(wl, "info")
-#' # remove it
-#' watchlist("FAANG", a = "d")
 #' @importFrom httr GET PUT POST parse_url build_url
 #' @importFrom purrr compact map_dfr
 #' @importFrom stringr str_count

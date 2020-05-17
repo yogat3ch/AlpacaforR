@@ -28,7 +28,7 @@ order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \cod
 \examples{
 # Cancel by the order id
 order <- order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
-order_cancel(order_id = order$id, live = FALSE)
+order_cancel(ticker_id = order$id, live = FALSE)
 # Or cancel all orders for a ticker symbol See also: positions:
 order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
 order_submit("AMZN", q = 1, side ="buy", type =  "market", live = FALSE)

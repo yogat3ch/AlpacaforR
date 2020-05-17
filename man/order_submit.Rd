@@ -157,10 +157,12 @@ Places/Replaces/Cancels an order, or cancels all orders depending on argument to
 \code{cancel_orders} is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}.
 }
 \examples{
-# most orders (except limit) must be placed during market hours
+# most orders (except limit) must be placed during market hours or they will not be filled until the next trading day. 
+.c <- clock()
 (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
 # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
+if (.c$is_open) {
 # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
 order_submit(so, a = "c")
 # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
@@ -179,6 +181,7 @@ sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
 # note that the names of these list items can be partial
 (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
 # side is assumed to be buy, and type is assumed to be market
+}
 # all open orders can be canceled with `action = "cancel_all"`
 order_submit(a = "cancel_all")
 cancel_orders()
