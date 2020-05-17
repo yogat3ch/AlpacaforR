@@ -230,6 +230,7 @@ bars_bounds <- function(...) {
     }
     
     if (.y == "from" || .y == "after") {
+      .oout <- .out
       .out <- lubridate::floor_date(.out, .unit)
       if (exists(".q")) {
         # to include the initial day of the quarter, the end of the previous quarter must be the lower boundary
@@ -243,12 +244,20 @@ bars_bounds <- function(...) {
         # lubridate does not support multi-weeks to floor_date, so we just subtract multiplier - 1 weeks
         .out <- .out - lubridate::duration(multiplier - 1, "weeks")
       }
+      if (!identical(.out,.oout)) {
+        message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from'/'after' coerced to ", .out))
+      }
+      
     } else {
+      .oout <- .out
       # To include the ending boundary, we need to add a full cycle of multiplier * timeframe
       .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = FALSE) + lubridate::duration(multiplier, timeframe)
       if (exists(".q", inherits = FALSE)) {
         # Convert to the appropriate quarter boundary
         .out <- lubridate::int_end(.qs[[.q]])
+      }
+      if (!identical(.out,.oout)) {
+        message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'to'/'until' coerced to ", .out))
       }
     }
     # For requests to the v2 API where aggregates are yearly, the floor date needs to be 12/31

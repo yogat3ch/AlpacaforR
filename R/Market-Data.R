@@ -102,7 +102,6 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
   tf_num(timeframe)
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   .bounds <- bars_bounds(from = from, to = to, after = after, until = until)
-  message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from' coerced to ", .bounds[[1]], "\n'to' coerced to ", .bounds[[2]]))
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(.bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   

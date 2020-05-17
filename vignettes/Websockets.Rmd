@@ -1,11 +1,24 @@
 ---
 title: "Websockets"
-output: github_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Websockets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE
+)
 ```
+
+```{r setup}
+library(AlpacaforR)
+```
+
 # A Websockets How-to
 The Alpaca and Polygon websocket protocols can be very useful for keeping track of what's happening with your portfolio and the stocks you are watching. If `toConsole` is `TRUE` (the default) when creating a websocket with \code{\link[AlpacaforR]{ws_create}}, all messages will be printed to the console.
 Ideally, we would like an automated trading algorithm respond strategically to incoming account and ticker information and take actions on our behalf, or inform of us of particular events. 
@@ -32,12 +45,15 @@ sl <- .05
 
 To do this, the current price can be obtained with \code{\link[AlpacaforR]{polygon}}
 ```{r 'Obtain the current price'}
-(e$lq <- polygon("lq", symbol = "BYND"))
+if (exists("e", inherits = FALSE, mode = "environment")) {
+  (e$lq <- polygon("lq", symbol = "BYND"))
+}
+
 ```
 
 The initial stop is set with \code{\link[AlpacaforR]{order_submit}} using the `stop` argument. We also want to link this sell order to buy order to which it corresponds using the `client_order_id` which is a user specified order ID. We'll want to keep each successive trailing sell order linked moving forward, we can do so by adding the suffix `"_1"` to the original buy order ID and setting it as the `client_order_id`. We'll then increment this number with each successive stop order. Note that we can pass the original buy order ID to `ticker_id` (the first argument) to automatically set the sell parameters to logical defaults.
 ```{r 'Send the sell order'}
-if (market_status$market == "open") {
+if (exists("e", inherits = FALSE, mode = "environment") && market_status$market == "open") {
 (e$so <- order_submit(e$bo$id, stop = e$lq$askprice * (1 - sl), client = paste0(e$bo$id,"_1")))
 }
 ```
@@ -100,33 +116,21 @@ action = rlang::expr({
 
 The Alpaca API provides updates on trades and account events. Lets connect to this websocket first:
 ```{r 'Connect to Alpaca'}
-ws_a <- ws_create() # Alpaca is the default
-Sys.sleep(3) # give it a couple of seconds to authenticate before subscribing
-ws <- ws_listen(ws_a) # Subscribes to both trade and account by default
-```
-
-```{r 'Connect to Alpaca'}
-ws_p <- ws_create("Polygon", log_msgs = F, log_bars = T)
-ws_listen(ws_p, c("AM.BYND", "AM.AMZN"))
-ws_p$ws$close()
-ws_p$env$toConsole <- F
-ws_p$env$bars$AM.AMZN
-```
-
-
-```{r}
+#Websockets must only be opened in interactive sessions
 if (rlang::is_interactive()) {
-  .ws <- ws_create("Polygon", log_msgs = F, log_bars = T, action = action)
-.ws$ws$connect()
-ws_listen(.ws, channel = "AM.BYND")
-.ws$ws$close()
+  ws_a <- ws_create() # Alpaca is the default
+  Sys.sleep(3) # give it a couple of seconds to authenticate before subscribing
+  ws <- ws_listen(ws_a) # Subscribes to both trade and account by default
 }
 
 ```
 
-
-```{r}
-
-
+```{r 'Connect to Polygon'}
+if (rlang::is_interactive()) {
+  ws_p <- ws_create("Polygon", log_msgs = F, log_bars = T)
+  ws_listen(ws_p, c("AM.BYND", "AM.AMZN"))
+  ws_p$ws$close()
+  ws_p$env$toConsole <- F
+  ws_p$env$bars$AM.AMZN
+}
 ```
-

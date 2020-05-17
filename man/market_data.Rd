@@ -107,18 +107,18 @@ All \code{(Date/POSIXlt)} will parse correctly if in \code{YYYY-MM-DD} \href{htt
 market_data(ticker = c("INTC","MSFT"))
 # Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each ticker.
 market_data(ticker = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175)
-# Get Year-to-Date hourly data for Beyond Meat from the v2 Polygon API when full = F:
-bars <- market_data(ticker = c("BYND"), v = 2, from = lubridate::floor_date(lubridate::now(), "year"), multiplier = 1, timeframe = "h")
+# Get three months of hourly data for Beyond Meat from the v2 Polygon API when full = F:
+bars <- market_data(ticker = c("BYND"), v = 2, from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h")
 # Returns successfully
 purrr::map(bars, nrow) # Note the number of rows
-purrr::map(bars, ~range(.x$time)) # Note that it appears all the data is present
+purrr::map(bars, ~range(.x$time)) # Note that Some data is missing
 # Let's take a closer look:
 plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
 axis(1, bars$BYND$time, format(bars$BYND$time, "\%b \%d"), cex.axis = .7)
 # Only about 10\% of the requested data is present. Does the query status metadata indicate anything is wrong?
 attr(bars$BYND, "query") # everything checks out, so how do we get all the data we requested?
 # Set full = T
-bars <- market_data(ticker = c("BYND"), v = 2, from = lubridate::floor_date(lubridate::now(), "year"), multiplier = 1, timeframe = "h", full = TRUE)
+bars <- market_data(ticker = c("BYND"), v = 2, from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h", full = TRUE)
 purrr::map(bars, nrow) # A big difference in the number of rows
 purrr::map(bars, ~range(.x$time)) # The range appears the same
 # A closer look:

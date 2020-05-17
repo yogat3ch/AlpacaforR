@@ -25,22 +25,6 @@ Query \code{(list)} attribute accessed via \code{attr(df, "query")} on the retur
 \description{
 order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "c"} or \code{action = "cancel_all"}. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders}{Orders: DELETE} in the Alpaca API V2 documentation for details.
 }
-\examples{
-# Cancel by the order id
-order <- order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
-order_cancel(ticker_id = order$id, live = FALSE)
-# Or cancel all orders for a ticker symbol See also: positions:
-order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
-order_submit("AMZN", q = 1, side ="buy", type =  "market", live = FALSE)
-canceled_orders <- order_cancel(c("AAPL", "AMZN"))
-str(canceled_orders)
-# Or cancel all orders:
-order_submit("AAPL", q = 1, side = "buy", type =  "market", live = FALSE)
-order_submit("AMZN", q = 1, side = "buy", type =  "market", live = FALSE)
-order_submit("FB", q = 1, side = "buy", type =  "market", live = FALSE)
-canceled_orders <- order_cancel("cancel_all")
-str(canceled_orders)
-}
 \seealso{
 positions
 

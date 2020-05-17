@@ -10,7 +10,7 @@ Description: Interact with the Alpaca API and the subset of endpoints on the Pol
     see market open / closing information, and much more. Build and test strategies with a paper account, then implement them live with
     an Alpaca Brokerage account.
 Depends: R (>= 3.5.0)
-License: GNU AGPLv3
+License: GPL-3
 Imports: dplyr, httr, jsonlite, lubridate, magrittr, purrr, stringr, rlang, tibble, websocket, glue
 Encoding: UTF-8
 LazyData: true
