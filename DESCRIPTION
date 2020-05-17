@@ -20,5 +20,6 @@ Suggests:
     testthat,
     withr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    qpdf
 VignetteBuilder: knitr
