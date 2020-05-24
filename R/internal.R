@@ -130,7 +130,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
     }
     
   } else if (v == 2){
-    timeframe <- utils::tail(.tf_opts[[grep(timeframe, .tf_opts, ignore.case = FALSE)[1]]], 1)
+    timeframe <- utils::tail(.tf_opts[[grep(substr(timeframe, 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
@@ -231,11 +231,12 @@ bars_bounds <- function(...) {
     
     if (.y == "from" || .y == "after") {
       .oout <- .out
-      .out <- lubridate::floor_date(.out, .unit)
-      if (exists(".q")) {
+      if (isTRUE(.y == "from")) .out <- lubridate::floor_date(.out, .unit)
+      if (exists(".q", inherits = F)) {
         # to include the initial day of the quarter, the end of the previous quarter must be the lower boundary
         if (.q == 1) {
           .out <- lubridate::make_date(lubridate::year(.out), month = 12, day = 30)
+          if (.out > .bounds[[2]]) .out <- lubridate::make_date(lubridate::year(.out) - 1, month = 12, day = 30)
         } else {
           .out <- lubridate::int_start(.qs[[.q]])
         }
@@ -251,7 +252,7 @@ bars_bounds <- function(...) {
     } else {
       .oout <- .out
       # To include the ending boundary, we need to add a full cycle of multiplier * timeframe
-      .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = FALSE) + lubridate::duration(multiplier, timeframe)
+      if (isTRUE(.y == "to")) .out <- lubridate::ceiling_date(.out, .unit, change_on_boundary = FALSE) + lubridate::duration(multiplier, timeframe)
       if (exists(".q", inherits = FALSE)) {
         # Convert to the appropriate quarter boundary
         .out <- lubridate::int_end(.qs[[.q]])
@@ -332,6 +333,7 @@ bars_url <- function(..., limit = NULL) {
   } else if (v == 2) {
     .ticker = ticker
   }
+  .ticker <- toupper(.ticker)
   #Limit :  Thu Mar 26 08:50:30 2020 ----
   # If limit is null or full = T OR if limit > 1000 then set at 1000 for v1
   if (v == 1) {
@@ -412,7 +414,7 @@ bars_get <- function(url, ...) {
   if (!".tf_num" %in% ls(all.names = T)) tf_num(timeframe)
   if (v == 1) {
     headers = get_headers()
-    message(paste0("Retrieving\n", url))
+    if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving\n", url))
     agg_quote = httr::GET(url = url, headers)
     .query <- list()
     .query$status_code <- agg_quote$status_code
@@ -428,7 +430,7 @@ bars_get <- function(url, ...) {
     purrr::iwalk(agg_quote, ~{
       .warn <- tryCatch({is.null(nrow(.x)) || nrow(.x) == 0},  error = function(cond) {assign("err", cond, .e);TRUE})
       if (.warn) {
-        rlang::warn(paste0(.y, " returned no data. Returning metadata only"))
+        rlang::warn(paste0(.y, " returned no data."))
       }  
     })
     
@@ -436,7 +438,7 @@ bars_get <- function(url, ...) {
     # add query metadata to match v2 api
     bars <- purrr::imap(bars, ~{
       .query$ticker <- .y
-      attr(.x, "query") <- .query  
+     if (!is.null(.x)) attr(.x, "query") <- .query  
       .x
     })
     
@@ -450,7 +452,7 @@ bars_get <- function(url, ...) {
     bars <- purrr::imap(url, ~{
       .url <- .x
       .murl <- stringr::str_replace(.x, "(?<=\\=)[:alnum:]+$", "[REDACTED]")
-      message(paste0("Retrieving ", .y, ":\n", .murl))
+      if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving ", .y, ":\n", .murl))
       #Send Request
       agg_quote = httr::GET(url = .url)
       # Save the query meta-date for appending to the output df
@@ -472,7 +474,7 @@ bars_get <- function(url, ...) {
       agg_quote$results$t = agg_quote$results$t/1000
       
       agg_quote <- bars_transform(agg_quote["results"])$results
-      attr(agg_quote, "query") <- query
+      if(!is.null(agg_quote)) attr(agg_quote, "query") <- query
       return(agg_quote)
     })
   }
@@ -571,7 +573,7 @@ bars_expected <- function(bars, ...) {
       .act <- data.frame(actual = .x$time) %>% 
         dplyr::mutate(y = lubridate::year(actual),
                       m = lubridate::month(actual))
-      .expected <- left_join(.exp, .act, by = c("y", "m")) %>% 
+      .expected <- dplyr::left_join(.exp, .act, by = c("y", "m")) %>% 
         dplyr::mutate(d = lubridate::day(actual)) %>% 
         dplyr::mutate_if(anyNA, ~ {. %|% .[length(.) - 1] %|% .[1]}) %>% 
         dplyr::mutate_at(dplyr::vars(expected), ~lubridate::make_date(y, m, d)) %>% 
@@ -1282,6 +1284,61 @@ aa_transform <- function(resp) {
   return(out)
 }
 
+#' @title transform portfolio history
+#' @description Transforms a [PortfolioHistory](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#portfoliohistory-entity) response object returned from `account_portfolio`.
+#' @param resp `(response)` The response object
+#' @inherit account_portfolio return
+#' @keywords internal
+#' @importFrom tibble as_tibble
+#' @importFrom magrittr `%>%`
+#' @importFrom stringr str_extract
+#' @importFrom rlang warn
+#' @importFrom dplyr mutate_at vars
+#' @importFrom lubridate as_datetime origin
+
+port_transform <- function(resp) {
+  `%>%` <- magrittr::`%>%`
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .sym <- stringr::str_extract(resp$request$url, "\\w+$")
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("History not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No History available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .out <- tibble::as_tibble(.resp[1:4])
+    # coerce to numeric in positions objects
+    if (nrow(.out) > 0) {
+      suppressMessages({
+        out <- .out %>%
+          dplyr::mutate_at(dplyr::vars("timestamp"), ~lubridate::as_datetime(., origin = lubridate::origin, tz = Sys.timezone())) %>% 
+          dplyr::mutate_at(dplyr::vars("equity", "profit_loss", "profit_loss_pct"), as.numeric)
+      })
+    } else {
+      out <- .out
+    }
+    
+    attr(out, "info") <- .resp[5:6]
+  }
+  return(out)
+}
+
+
+
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
 #' 
@@ -1349,7 +1406,7 @@ order_transform <- function(o) {
           if (inherits(.o$legs, "list")) {
             .o$legs <- purrr::map(.o$legs, ~{
               if (!is.null(.x)) {
-                .out <- o_transform(.o)
+                .out <- o_transform(.x)
               } else {
                 .out <- .x
               }
@@ -1401,7 +1458,7 @@ order_check <- function(penv = NULL, ...) {
   if (isTRUE(.is_id)) {
     # if vector length 2 and duplicated (complex orders), remove the dupes
     if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
-    if (action == "s" && isTRUE(.is_id) && is.null(order_class)) {
+    if (action == "s") {
       #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
       .oo <- orders(ticker_id)
       if (.oo$side == "buy") {
@@ -1578,13 +1635,16 @@ wl_transform <- function(wl, action, wl_info = NULL) {
     return(.wl)
   }
   # Transform the watchlist info object if it exists
-  if (class(wl) == "response") {
+  if (class(wl) == "response" && length(.wl) > 0) {
     wl_info <- suppressMessages({
       suppressWarnings({
         dplyr::mutate_at(tibble::as_tibble(purrr::map(.wl[1:5], rlang::`%||%`, NA)), dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone()))) %>% 
           dplyr::select(name, updated_at, dplyr::everything())
       })
     })
+  } else if (class(wl) == "response") {
+    message(paste0("No watchlists exist."))
+    out <- .wl
   }
   
   if ("assets" %in% names(.wl)) {
@@ -1636,7 +1696,7 @@ wl_nm2id <- function(nm, ...) {
   if (length(id) == 0) {
     .m <- paste0("No watchlist by that name.")
     .alt <- agrep(nm, watchlist$name, ignore.case = T, value = T)
-    .m <- ifelse(length(.alt) > 0, paste0(.m, " Did you mean ", ,"?"), .m)
+    .m <- ifelse(length(.alt) > 0, paste0(.m, " Did you mean ", .alt,"?"), .m)
     rlang::warn(.m)
     id <- watchlist
   }
