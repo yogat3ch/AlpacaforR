@@ -3,7 +3,7 @@
 #' @family Positions
 #' @title Get Positions
 #'
-#' @description The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See [Positions](https://alpaca.markets/docs/api-documentation/api-v2/positions/) for details.
+#' @description The positions API provides information about an account's current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See [Positions](https://alpaca.markets/docs/api-documentation/api-v2/positions/) for details.
 #' @param tickers `(character)` Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector. 
 #' @param action `(character)` `"get"/"g"` to get all positions or those specified by `tickers`. `"close","c"` to close positions specified by `tickers`. Use `"close_all"` to close all positions. 
 #' @inheritParams account
@@ -45,7 +45,7 @@ positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .all <- ifelse(action == "close_all", TRUE, FALSE)
+  .all <- grepl("close_all", action, ignore.case = TRUE)
   if (!.all) {
     action <- c(g = "get", c = "close")[substr(action,1,1)]
   }

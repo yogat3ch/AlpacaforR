@@ -14,41 +14,40 @@ test_that("Positions returns the appropriate data", {
   }
 })
 .open <- clock()$is_open
+
 if (.op && .open) {
   
-  test_that("Positions cancels a single order", {
+  test_that("Positions cancels a single order when market is open", {
     expect_message(positions(.p$symbol[1], action = "c"), regexp = paste0(.p$symbol[1], " closed successfully"))
   })
   
   if (nrow(.p) > 1) {
     
-    test_that("Positions cancels all orders when closing position", {
+    test_that("Positions cancels all orders when closing position and market is open", {
       expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "(?:Canceled order)(?:Position was not modified)")
     })
     
   }
-} else {
-  
-  test_that("Positions cancels a single order", {
+} else  if (.op) {
+  test_that("Positions closes a single position when market is closed", {
     expect_warning(positions(.p$symbol[1], action = "c"))
   })
   
   if (nrow(.p) > 1) {
-    test_that("Positions cancels all orders when closing position", {
+    test_that("Positions cancels all orders when closing position and market is closed", {
       expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "Related orders prevent positions"))
     })
   }
 }
 
-.c <- clock()
-if (.c$is_open) {
+if (.open) {
   .lq <- polygon("lq", symbol = "AMZN")
   order_submit("AMZN", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))
   .lq <- polygon("lq", symbol = "BYND")
   order_submit("BYND", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))
   
   test_that("Positions cancels complex orders correctly", {
-    expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "Canceled order")
+    expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "(?:Order canceled successfully)|(?:closed successfully)"), regexp = "Canceled order")
   })
   
 }
