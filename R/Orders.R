@@ -69,20 +69,25 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
     ticker_id <- toupper(ticker_id)
   }
   if (isTRUE(client_order_id)) {
-    client_order_id <- ":by_client_order_id"
-  } else if (isFALSE(client_order_id)) {
-    client_order_id <- NULL
+    .url$path <- purrr::compact(list(paste0("v", v), "orders:by_client_order_id"))
+  } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
+    .url$path <- purrr::compact(list(paste0("v", v), "orders", .o_id))
   }
   # yogat3ch: Create Query 2020-01-11 2157
-  .url$path <- purrr::compact(list(paste0("v", v), paste0("orders", client_order_id), .o_id))
-  .url$query <- list(status = status,
-                     limit = limit,
-                     after = after,
-                     until = until,
-                     direction = direction,
-                     nested = nested)
+  
+  if (isTRUE(client_order_id)) {
+    .url$query <- list(client_order_id = .o_id)
+  } else {
+    .url$query <- list(status = status,
+                       limit = limit,
+                       after = after,
+                       until = until,
+                       direction = direction,
+                       nested = nested)
+  }
   # Build the url
   .url <- httr::build_url(.url)
+  if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
   # Query
   out <- httr::GET(.url, headers)
   # Clean
@@ -97,7 +102,7 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
 #----------------------------------------------------------------------------------------------
 #UPDATED for V2
 #orders(status = "all",live = TRUE, version = "v2")
-
+#' @family Orders
 #' @rdname orders
 #' @title get_orders
 #' @description `get_orders` is deprecated. Use \code{\link[AlpacaforR]{orders}} instead.
@@ -114,15 +119,15 @@ get_orders <- orders
 # Wed Apr 22 20:23:21 2020
 #' @family Orders
 #' @title Submit, Cancel & Replace Orders, 
-#' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.
+#' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.Depending on the `action` specified, some arguments are required:
 #' \itemize{
 #'  \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are *required*.}
 #'  \item{\code{action = 'replace'}}{ `qty`, `time_in_force`, `limit`, `stop`, `client_order_id` are all eligible. Only one is *required*.}
 #'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object/ Order ID (*Required* when`action = "cancel"/"replace"`). 
-#' To expedite the setting of stops and limits for open positions, if an Order ID from a `'buy'` order is provided when `action = "submit"`, then a `'sell'` order will be populated with the following parameters such that they do not need to be set:
+#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object/ Order ID (*Required* when `action = "cancel"/"replace"`). 
+#' To expedite the setting of stops and limits for open positions, an Order ID from a `'buy'` order can be provided when `action = "submit"` to place a `'sell'` order with the following parameters such that they do not need to be set manually:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
 #'   \item{If \code{qty} is not provided, it will be populated from the buy order}
@@ -156,9 +161,9 @@ get_orders <- orders
 #' @param client_order_id \code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
 #' \itemize{
 #'   \item{\code{`action = 'replace'/'submit'`}}{ *Optional* character vector}
-#'  \item{\code{`action = 'submit'`}}{ If an Order ID is provided to `ticker_id`, this can be a \code{(logical)} to indicate whether the `client_order_id` should be set as the Order ID to effectively link the associated buy & sell orders for your records.}
+#'  \item{\code{`action = 'submit'`}}{ If an Order ID is provided to `ticker_id`, this can be a \code{(logical)} to indicate whether the `client_order_id` for the sell order should be set as the Order ID provided from the buy order to effectively link the associated buy & sell orders for your records.}
 #' } 
-#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all orders placed with `order_class = 'bracket'`. 
+#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'/'oto'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all advanced order types. 
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
 #' \itemize{
 #'  \item{\code{'limit_price'/'l'}}{ \code{numeric} **required** for `'bracket'` & `'oco'` order classes.}
