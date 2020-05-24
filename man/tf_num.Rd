@@ -7,13 +7,13 @@
 tf_num(timeframe, ..., cenv = rlang::caller_env())
 }
 \arguments{
-\item{timeframe}{\code{(character)} For the \code{'v1'} API, one of
+\item{timeframe}{\code{(character)} For the \code{v1} API, one of
 \itemize{
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
-\\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
+\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
 }
 Not case-sensitive.
-For the \code{'v2'} API, \code{multiplier} can be any \code{integer} for any one of the following \code{timeframe}'s:
+For the \code{v2} API, \code{multiplier} can be any \code{integer} for any one of the following \code{timeframe}'s:
 \itemize{
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}
 \item{\code{'h'}/\code{'hour'}}

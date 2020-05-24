@@ -103,5 +103,10 @@ Other Orders:
 \code{\link{order_cancel}()},
 \code{\link{order_replace}()},
 \code{\link{order_submit}()}
+
+Other Orders: 
+\code{\link{order_cancel}()},
+\code{\link{order_replace}()},
+\code{\link{order_submit}()}
 }
 \concept{Orders}

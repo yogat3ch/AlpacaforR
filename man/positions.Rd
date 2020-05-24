@@ -43,7 +43,7 @@ Position \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api
 }
 }
 \description{
-The positions API provides information about an account’s current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See \href{https://alpaca.markets/docs/api-documentation/api-v2/positions/}{Positions} for details.
+The positions API provides information about an account's current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See \href{https://alpaca.markets/docs/api-documentation/api-v2/positions/}{Positions} for details.
 
 \code{get_positions} is deprecated, use \code{\link[AlpacaforR]{positions}} instead.
 

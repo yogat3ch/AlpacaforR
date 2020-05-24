@@ -45,8 +45,8 @@ submit_orders(
 cancel_orders(ticker_id = NULL, live = FALSE, v = 2)
 }
 \arguments{
-\item{ticker_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order object/ Order ID (\emph{Required} when\code{action = "cancel"/"replace"}).
-To expedite the setting of stops and limits for open positions, if an Order ID from a \code{'buy'} order is provided when \code{action = "submit"}, then a \code{'sell'} order will be populated with the following parameters such that they do not need to be set:
+\item{ticker_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order object/ Order ID (\emph{Required} when \code{action = "cancel"/"replace"}).
+To expedite the setting of stops and limits for open positions, an Order ID from a \code{'buy'} order can be provided when \code{action = "submit"} to place a \code{'sell'} order with the following parameters such that they do not need to be set manually:
 \itemize{
 \item{\code{side = 'sell'}}
 \item{If \code{qty} is not provided, it will be populated from the buy order}
@@ -89,10 +89,10 @@ See \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{
 \item{client_order_id}{\code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
 \itemize{
 \item{\code{`action = 'replace'/'submit'`}}{ \emph{Optional} character vector}
-\item{\code{`action = 'submit'`}}{ If an Order ID is provided to \code{ticker_id}, this can be a \code{(logical)} to indicate whether the \code{client_order_id} should be set as the Order ID to effectively link the associated buy & sell orders for your records.}
+\item{\code{`action = 'submit'`}}{ If an Order ID is provided to \code{ticker_id}, this can be a \code{(logical)} to indicate whether the \code{client_order_id} for the sell order should be set as the Order ID provided from the buy order to effectively link the associated buy & sell orders for your records.}
 }}
 
-\item{order_class}{\code{(character)} \code{'simple'}, \code{'bracket'}, \code{'oco'} or \code{'oto'}. \emph{Required for advanced orders.} For details of non-simple order classes, please see \href{https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders}{Advanced Orders}. If \code{order_class = 'bracket'}, \code{type} can be omitted as it will always be \code{'market'}, this is also true with \code{order_class = "oco"} as \code{type} will always be \code{'limit'}. \emph{Note} that order replacement is not supported for all orders placed with \code{order_class = 'bracket'}.}
+\item{order_class}{\code{(character)} \code{'simple'}, \code{'bracket'}, \code{'oco'} or \code{'oto'}. \emph{Required for advanced orders.} For details of non-simple order classes, please see \href{https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders}{Advanced Orders}. If \code{order_class = 'bracket'/'oto'}, \code{type} can be omitted as it will always be \code{'market'}, this is also true with \code{order_class = "oco"} as \code{type} will always be \code{'limit'}. \emph{Note} that order replacement is not supported for all advanced order types.}
 
 \item{take_profit}{\code{(named list)} Additional parameters for take-profit leg of advanced orders:
 \itemize{
@@ -144,7 +144,7 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 }
 \description{
-Places/Replaces/Cancels an order, or cancels all orders depending on argument to \code{action}. See parameter documentation and \href{https://alpaca.markets/docs/api-documentation/api-v2/orders}{Orders} for details.
+Places/Replaces/Cancels an order, or cancels all orders depending on argument to \code{action}. See parameter documentation and \href{https://alpaca.markets/docs/api-documentation/api-v2/orders}{Orders} for details.Depending on the \code{action} specified, some arguments are required:
 \itemize{
 \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are \emph{required}.}
 \item{\code{action = 'replace'}}{ \code{qty}, \code{time_in_force}, \code{limit}, \code{stop}, \code{client_order_id} are all eligible. Only one is \emph{required}.}

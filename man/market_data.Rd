@@ -34,17 +34,17 @@ get_bars(
 )
 }
 \arguments{
-\item{ticker}{\code{(character)} The stock or stocks (in vector format) that you want.}
+\item{ticker}{\code{(character)} The stock or stocks (in vector format) that you want. Non case-sensitive.}
 
-\item{v}{\code{(integer)} The API version number. If \code{1}, the \code{'v1'} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if \code{2}, the \code{'v2'} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used.}
+\item{v}{\code{(integer)} The API version number. If \code{1}, the \code{v1} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if \code{2}, the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used.}
 
-\item{timeframe}{\code{(character)} For the \code{'v1'} API, one of
+\item{timeframe}{\code{(character)} For the \code{v1} API, one of
 \itemize{
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
-\\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
+\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
 }
 Not case-sensitive.
-For the \code{'v2'} API, \code{multiplier} can be any \code{integer} for any one of the following \code{timeframe}'s:
+For the \code{v2} API, \code{multiplier} can be any \code{integer} for any one of the following \code{timeframe}'s:
 \itemize{
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}
 \item{\code{'h'}/\code{'hour'}}
@@ -56,22 +56,22 @@ For the \code{'v2'} API, \code{multiplier} can be any \code{integer} for any one
 }
 Case-sensitive}
 
-\item{multiplier}{For the \code{'v1'} API, with \code{'minute'} \code{timeframe} one of \code{1}/\code{5}/\code{15}. Otherwise, defaults to \code{1}.
-For the \code{'v2'} API, this can be any \code{integer}, also defaults to \code{1}.}
+\item{multiplier}{For the \code{v1} API, with \code{'minute'} \code{timeframe} one of \code{1}/\code{5}/\code{15}. Otherwise, defaults to \code{1}.
+For the \code{v2} API, this can be any \code{integer}, also defaults to \code{1}.}
 
-\item{from}{(equivalent to \code{start} in \code{'v1'}) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{equal to or after} this time. Default is 7 days ago.}
+\item{from}{(equivalent to \code{start} in \code{v1}) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{equal to or after} this time. Default is 7 days ago.}
 
-\item{to}{(equivalent to \code{end} in \code{'v1'}) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{equal to or before} this time. Default is today's date.}
+\item{to}{(equivalent to \code{end} in \code{v1}) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{equal to or before} this time. Default is today's date.}
 
-\item{after}{\emph{\code{'v1'} only} \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{after} this time. Default is 7 days ago. \emph{Cannot be used with \code{from}}}
+\item{after}{\emph{\code{v1} only} \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{after} this time. Default is 7 days ago. \emph{Cannot be used with \code{from}}}
 
-\item{until}{\emph{\code{'v1'} only} \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{before} this time. Default is today's date. \emph{Cannot be used with \code{from}}}
+\item{until}{\emph{\code{v1} only} \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data \emph{before} this time. Default is today's date. \emph{Cannot be used with \code{from}}}
 
-\item{limit}{\emph{v1 only} \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. \emph{Note:} If \code{full} is set to T, this parameter is ignored and forced to 1000.}
+\item{limit}{\emph{\code{v1} only} \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. \emph{Note:} If \code{full} is set to T, this parameter is ignored and forced to 1000.}
 
-\item{full}{\code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the \strong{full} dataset. If FALSE, the request will be submitted to the API as is. \emph{Note:} The \code{'v1'} API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.}
+\item{full}{\code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the \strong{full} dataset. If FALSE, the request will be submitted to the API as is. \emph{Note:} The \code{v1} API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.}
 
-\item{unadjusted}{\emph{'v2' only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. Defaults to \code{FALSE}.}
+\item{unadjusted}{\emph{v2 only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. Defaults to \code{FALSE}.}
 }
 \value{
 \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
@@ -82,7 +82,7 @@ For the \code{'v2'} API, this can be any \code{integer}, also defaults to \code{
 \item{\code{low}}{ \code{(numeric)} low price}
 \item{\code{close}}{ \code{(numeric)} close price}
 \item{\code{volume}}{ \code{(numeric)} volume (in millions)}
-\item{\code{n *'v2' only*}}{ \code{(numeric)} Number of items in aggregate window}
+\item{\code{n *v2 only*}}{ \code{(numeric)} Number of items in aggregate window}
 }
 Additionally, a "query" attribute is attached to each ticker's \code{data.frame} with the "query" data as a \code{list} for each of the calls required to return it. This is accessed via \code{\link[base]{attr}}. Each call is a list with the following items:
 \itemize{
@@ -95,12 +95,12 @@ Additionally, a "query" attribute is attached to each ticker's \code{data.frame}
 }
 }
 \description{
-The bars API provides time-aggregated price and volume data for a single stock or multiple. \strong{The \code{'v2'} (Polygon) API is only available for live accounts and accepts the \code{from}, \code{to}, \code{timeframe}, \code{multiplier}, and \code{unadjusted} arguments.}
+The bars API provides time-aggregated price and volume data for a single stock or multiple. \strong{The \code{v2} (Polygon) API is only available for live accounts and accepts the \code{from}, \code{to}, \code{timeframe}, \code{multiplier}, and \code{unadjusted} arguments.}
 
 \code{get_bars} is deprecated, use \code{\link[AlpacaforR]{market_data}} instead.
 }
 \details{
-All \code{(Date/POSIXlt)} will parse correctly if in \code{YYYY-MM-DD} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or \code{(Datetime/POSIXct)}, \verb{YYYY-MM-DD HH:MM} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The \code{'v2'} API only accepts Dates in YYYY-MM-DD format, any arguments passed to \code{start} or \code{end} will be coerced to Date automatically if using \code{'v2'}. For the \code{'v2'} API, queries with \code{timeframe}: \code{'year'} use \code{12/31} as an aggregate date for each year. Arguments passed to \code{from} & \code{to} will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively.
+All \code{(Date/POSIXlt)} will parse correctly if in \code{YYYY-MM-DD} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or \code{(Datetime/POSIXct)}, \verb{YYYY-MM-DD HH:MM} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The \code{v2} API only accepts Dates in YYYY-MM-DD format, any arguments passed to \code{start} or \code{end} will be coerced to Date automatically if using \code{v2}. For the \code{v2} API, queries with \code{timeframe}: \code{'year'} use \code{12/31} as an aggregate date for each year. Arguments passed to \code{from} & \code{to} will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively.
 }
 \examples{
 # Getting one or more tickers from the v1 API: 

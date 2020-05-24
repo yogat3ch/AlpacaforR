@@ -47,7 +47,8 @@ get_account()
 \seealso{
 Other Account: 
 \code{\link{account_activities}()},
-\code{\link{account_config}()}
+\code{\link{account_config}()},
+\code{\link{account_portfolio}()}
 }
 \concept{Account}
 \concept{Accounts}

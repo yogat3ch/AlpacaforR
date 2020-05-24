@@ -10,9 +10,9 @@ calendar(from = NULL, to = NULL, v = 2)
 get_calendar(from = NULL, to = NULL, v = 2)
 }
 \arguments{
-\item{from}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970.}
+\item{from}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970. If blank, defaults to today's date.}
 
-\item{to}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029.}
+\item{to}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029. If blank, defaults to today's date.}
 
 \item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }

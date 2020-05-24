@@ -25,11 +25,11 @@ account_activities(
 
 \item{after}{\code{(character/Date)} The response will contain only activities submitted after this date in YYYY-MM-DD format. (Cannot be used with date.)}
 
-\item{direction}{asc or desc, default is desc.}
+\item{direction}{\code{(character)} asc or desc, default is desc.}
 
-\item{page_size}{The maximum number of entries to return in the response.}
+\item{page_size}{\code{(integer/numeric)} The maximum number of entries to return in the response.}
 
-\item{page_token}{The ID of the end of your current page of results.}
+\item{page_token}{\code{(character)} The ID of the end of your current page of results to indicate where the next page should start.}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 
@@ -40,7 +40,7 @@ account_activities(
 \itemize{
 \item{\code{id}}{ \code{(character)} An id for the activity. Always in "
 ::" format. Can be sent as \code{page_token} in requests to facilitate the paging of results.}
-\item{\code{activity_type}}{ \code{(character)} "FILL"}
+\item{\code{activity_type}}{ \code{(character)} Activity type to filter for. IE "FILL". Non case-sensitive.}
 \item{\code{transaction_time}}{ \code{(POSIXct)} The time at which the execution occurred.}
 \item{\code{type}}{ \code{(character)} \code{"fill"} or \code{"partial_fill"}}
 \item{\code{price}}{ \code{(numeric)} The per-share price that the trade was executed at.}
@@ -111,6 +111,7 @@ account_activities(activity_type = "FILL")
 \seealso{
 Other Account: 
 \code{\link{account_config}()},
+\code{\link{account_portfolio}()},
 \code{\link{account}()}
 }
 \concept{Account}

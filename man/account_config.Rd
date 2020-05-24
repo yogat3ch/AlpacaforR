@@ -82,6 +82,7 @@ get_config()
 \seealso{
 Other Account: 
 \code{\link{account_activities}()},
+\code{\link{account_portfolio}()},
 \code{\link{account}()}
 }
 \concept{Account}

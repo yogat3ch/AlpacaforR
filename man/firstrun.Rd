@@ -12,10 +12,10 @@ firstrun(paper, live)
 \item{live}{\code{(named chacter)} of length two: \code{key} and \code{secret} for the Alpaca live API.}
 }
 \value{
-Sets environment variables for this session and edits the .Renviron file in R's home directory \code{path.expand("~")} and adds the specified key/secret combinations for future sessions.
+Sets environment variables for this session and edits the .Renviron file in R's home directory \code{path.expand("~")} and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
 }
 \description{
-This function helps set-up your .Renviron file to work with \code{AlpacaforR}. It's for first time users and only needs to be run once.
+This function helps edit the .Renviron file to work with \code{AlpacaforR}. It's for first time users and only needs to be run once.
 }
 \examples{
 \dontrun{

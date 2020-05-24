@@ -10,7 +10,7 @@ clock(tz = NULL, v = 2)
 get_clock(tz = NULL, v = 2)
 }
 \arguments{
-\item{tz}{\code{(character)} A timezone (See \code{\link[base]{timezones}}) to determine how the market hours compare to the \code{tz} hours. If no \code{tz} argument is provided, and the local timezone differs from "America/New_York", \code{clock} will automatically provide the local conversion and offset.}
+\item{tz}{\code{(character)} A timezone (See \code{\link[base]{timezones}} or use \code{OlsonNames()})  to determine how the market hours compare to the \code{tz} hours. If no \code{tz} argument is provided, and the local timezone differs from "America/New_York", \code{clock} will automatically provide the local conversion and offset.}
 
 \item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }

@@ -156,7 +156,7 @@ Arguments:
 \item{\code{"unadjusted"}}{ \code{(logical)} \emph{Optional} NULL, TRUE, FALSE}
 }
 }
-\item{\code{a}}{Aggregates - see ?market-data}
+\item{\code{a}}{ Aggregates - see ?market-data}
 \item{\code{gd}}{ \href{https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor}{Grouped Daily (Bars)}: Get the daily OHLC for entire markets.
 Arguments:
 \itemize{
