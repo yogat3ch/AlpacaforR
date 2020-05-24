@@ -5,8 +5,8 @@
 #' @title Get Market Calendar Times
 #' 
 #' @description The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures. See [Calendar](https://alpaca.markets/docs/api-documentation/api-v2/calendar/) Endpoint for details.
-#' @param from `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970.
-#' @param to `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029.
+#' @param from `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970. If blank, defaults to today's date.
+#' @param to `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029. If blank, defaults to today's date.
 #' @inheritParams account
 #' @return Calendar \code{tibble} A [Calendar](https://alpaca.markets/docs/api-documentation/api-v2/calendar/#calendar-entity) Object consisting of the following:
 #' \itemize{
@@ -48,7 +48,7 @@ calendar <- function(from = NULL, to = NULL, v = 2){
   if (any(.null)){
     message(paste0(paste0("`",names(.null)[.null],"`", collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
     .bounds <- purrr::map(.bounds, ~{
-      if (is.null(.x)) lubridate::today() - lubridate::days(1) else try_date(.x)
+      if (is.null(.x)) lubridate::today() else try_date(.x)
     })
   }
   # Check for weekend values and warn if weekend
