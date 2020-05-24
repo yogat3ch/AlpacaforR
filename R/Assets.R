@@ -5,8 +5,9 @@
 #' @title Get Assets 
 #' 
 #' @description The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag `tradable = FALSE`. See [Assets: GET](https://alpaca.markets/docs/api-documentation/api-v2/assets#get-an-asset) for details.
-#' @param ticker_id `(character)` Find asset details by symbol or ID. If NULL (the default), a list of assets is returned
+#' @param ticker_id `(character)` of asset symbols or IDs. If NULL (the default), a tibble of all assets is returned. 
 #' @inheritParams account 
+#' @details This function is vectorized and will accept a `(character)` vector for `ticker_id`.
 #' @return Asset `(tibble)` [Asset](https://alpaca.markets/docs/api-documentation/api-v2/assets/#asset-entity) Object or array of Asset objects with the following parameters:
 #' \itemize{
 #'  \item{\code{id}}{ \code{(character)} Asset ID as a string.}
@@ -28,7 +29,7 @@
 #' # or by id:
 #' (AAPL <- assets(AAPL$id))
 #' @importFrom httr GET parse_url build_url
-#' @importFrom purrr compact
+#' @importFrom purrr compact map_dfr
 #' @importFrom tibble as_tibble
 #' @export
 assets <- function(ticker_id = NULL, v = 2){
@@ -37,20 +38,26 @@ assets <- function(ticker_id = NULL, v = 2){
   if (!.is_id) ticker_id <- toupper(ticker_id) # caps if ticker
   .url = httr::parse_url(get_url())
   headers = get_headers()
-  
-  # Create url
-  .url$path <- purrr::compact(list(paste0("v",v),
-                                   "assets",
-                                   ticker_id))
-  .url <- httr::build_url(.url)
-  # get response
-  asts = httr::GET(url = .url, headers)
-  asts = response_text_clean(asts)
-  if (!is.null(asts$code)) {
-    rlang::warn(asts$message)
-    return(asts)
+  if (!inherits(v, c("integer", "numeric"))) {
+    message("`v` must be numeric. `v` set to 2.")
+    v <- 2
   }
-  out <- tibble::as_tibble(asts)
+  # Create url
+  out <- purrr::map_dfr(ticker_id, ~{
+    .url$path <- purrr::compact(list(paste0("v",v),
+                                     "assets",
+                                     .x))
+    .url <- httr::build_url(.url)
+    # get response
+    asts = httr::GET(url = .url, headers)
+    asts = response_text_clean(asts)
+    if (!is.null(asts$code)) {
+      rlang::warn(asts$message)
+      return(tibble::tibble(id = NA, class = NA, exchange = NA, symbol = .x, name = "", status = asts$message, tradeable = FALSE, marginable = FALSE))
+    }
+    out <- tibble::as_tibble(asts)
+  })
+  
   return(out)
 }
 #----------------------------------------------------------------------------------------------
