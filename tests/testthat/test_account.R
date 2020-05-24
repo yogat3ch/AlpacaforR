@@ -1,6 +1,6 @@
 #' @include Account.R
 #' @include internal.R
-
+set.seed(1)
 context("Account family of functions works properly.")
 test_that("account retrieves account details properly", {
   .a <- account()
@@ -49,4 +49,119 @@ test_that("account_activities retrieves date ranges correctly", {
 test_that("account_activities throws an error if invalid date is entered", {
   expect_warning(expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument"))
 })
+
+.sample <- sample(s = 10, c(1:77))
+.p <- c(.test = "rds/account_portfolio_test.rds", .res = "rds/account_portfolio_results.rds")
+e <- environment()
+.p <- purrr::iwalk(.p, ~{
+  assign(.y, readRDS(ifelse(basename(getwd()) != "testthat", paste0("tests/testthat/",.x), .x)), envir = e)
+  })
+`%>%` <- magrittr::`%>%`
+purrr::imap(c(char = "pchars", periods = "periods"), ~{
+  .period <- .x
+  .type <- .y
+  purrr::pmap(.test[.sample,], ~{
+    .vars <- list(...)
+    .tt <- glue::glue("account_portfolio works properly with {.period} for test rowid: {.vars$rowid}")
+    test_that(.tt, {
+      .res <- .res[[.type]][[.vars$rowid]]
+      output <- list(warnings = attr(.res, "warn"), messages = attr(.res, "msg"))
+      output <- purrr::map(purrr::compact(output), ~{
+        .i <- .x
+        paste0(purrr::map_chr(unique(stringr::str_extract_all(.i, '[:alnum:]+')[[1]]), ~{glue::glue("(?:{.x})")}), collapse = "|")
+      })
+      out <- new.env()
+      if (!is.null(output$warnings) && !is.null(output$messages)) {
+        expect_message(expect_warning({out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)}, regexp = output$warnings), regexp = output$messages)
+      } else if (!is.null(output$warnings)) {
+        expect_warning({out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)}, regexp = output$warnings)
+      } else if (!is.null(output$messages)) {
+        expect_message({out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)}, regexp = output$messages)
+      } else {
+        out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)
+      }
+      browser(expr =  is.null(.res) || is.null(out$out))
+      expect_equivalent(nrow(.res), nrow(out$out))
+    })
+  })
+})
+
+
+
+# .test <- data.frame(
+#   pmultiplier = c(
+#     day = c(1,7),
+#     week = c(1, 2, 4),
+#     month = c(1, 2, 3),
+#     year = rep(1,3)
+#   ),
+#   period = c(
+#     c("days", "D"),
+#     c("weeks", "W", "Wk"),
+#     c("months", "Mo", "M"),
+#     c("years", "Y", "A")
+#   ),
+#   stringsAsFactors = F
+# )
+# `-` <- lubridate::`.__T__-:base`
+# .test <- tibble::as_tibble(expand.grid(
+#   .test %>% purrr::pmap_chr(paste0),
+#   data.frame(
+#     multiplier = c(
+#       minute = c(1, 5, 15),
+#       hour = c(1, 1),
+#       day = c(1, 1)
+#     ),
+#     timeframe = c(c("m", "minute", "Min"),
+#                   c("h", "Hour"),
+#                   c("day", "D"))
+#   ) %>% purrr::pmap_chr(paste0)
+# )) %>%
+#   setNames(c("pchars", "timeframe")) %>%
+#   dplyr::mutate(periods = (function(pchars){
+#     purrr::map(.[["pchars"]], ~{
+#     .m <- stringr::str_extract(.x, "^\\d+")
+#     .p <- tolower(substr(stringr::str_extract(.x, "[A-Za-z]+"), 0, 1))
+#     .p <- ifelse(.p == "a", "y", .p)
+#     .p <- c(d = "days", w = "weeks", m = "months", y = "years")[.p]
+#     lubridate::period(as.numeric(.m), .p)
+#     })
+#     })(.)) %>%
+#   dplyr::ungroup() %>%
+#   # randomize date_end based on subtracting periods at random from today
+#   mutate(date_end = do.call(c,purrr::map(sample(.[["periods"]], nrow(.)), ~{Sys.Date() - .x})))
+# .test$extended_hours <- sample(c(T,F), 77, replace = T)
+# .test <- dplyr::mutate_if(.test, is.factor, as.character) %>% tibble::rowid_to_column()
+# saveRDS(.test, "tests/testthat/rds/account_portfolio_test.rds")
+# # Create results table
+# .res <- purrr::imap(list(char = "pchars", periods = "periods"), ~{
+#   .period <- .x
+#   out <- purrr::pmap(.test, ~{
+#     .vars <- list(...)
+#     message(paste0(.period, ": Rowid - ", .vars$rowid))
+#     .e <- new.env()
+#     withCallingHandlers(message = function(m) {
+#       if (exists("msg", envir = .e, inherits = F)) {
+#         assign("msg", append(.e$msg, m$message), envir = .e)
+#       } else {
+#         assign("msg", m$message, .e)
+#       }
+#     }, warning = function(m) {
+#       if (exists("warn", envir = .e, inherits = F)) {
+#         assign("warn", append(.e$msg, m$message), envir = .e)
+#       } else {
+#         assign("warn", m$message, .e)
+#       }
+#     }, expr = {
+#       .out <- try(account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours))
+#       browser(expr = class(.out) == "try-error")
+#     })
+#     if (exists("msg", envir = .e, inherits = F)) attr(.out, "msg") <- .e$msg
+#     if (exists("warn", envir = .e, inherits = F)) attr(.out, "warn") <- .e$warn
+#     attr(.out, "args") <- .vars
+#     return(.out)
+#   })
+#   return(out)
+# })
+ # saveRDS(.res, "tests/testthat/rds/account_portfolio_results.rds")
 

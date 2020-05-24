@@ -96,7 +96,7 @@ get_account <- account
 #' @export
 account_config <- function(dtbp_check = NULL, no_shorting = NULL, pdt_check = NULL, suspend_trade = NULL, trade_confirm_email = NULL, live = FALSE, v = 2) {
   #Create body with order details, most common is a named list 
-  .def <- ifelse(length(dtbp_check == "default") == 0, F, dtbp_check == "default")
+  .def <- ifelse(length(dtbp_check == "default") == 0, F, tolower(substr(dtbp_check,0,1)) == "d")
   if (.def) {
     bodyl <- list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)
   } else {
@@ -157,15 +157,15 @@ set_config <- account_config
 #' @param date \code{(character/Date)} The date in YYYY-MM-DD format for which you want to see activities. 
 #' @param until \code{(character/Date)} The response will contain only activities submitted before this date in YYYY-MM-DD format. (Cannot be used with date.)
 #' @param after \code{(character/Date)} The response will contain only activities submitted after this date in YYYY-MM-DD format. (Cannot be used with date.)
-#' @param direction asc or desc, default is desc.
-#' @param page_size The maximum number of entries to return in the response.
-#' @param page_token The ID of the end of your current page of results.
+#' @param direction \code{(character)} asc or desc, default is desc.
+#' @param page_size \code{(integer/numeric)} The maximum number of entries to return in the response.
+#' @param page_token \code{(character)} The ID of the end of your current page of results to indicate where the next page should start.
 #' @inheritParams account
 #' @return \code{TradeActivity} \code{(tibble)} [TradeActivity](https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#tradeactivity-entity) Object or  a [NonTradeActivity](https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#nontradeactivity-entity) Object. See Details.
 #' \itemize{
 #'  \item{\code{id}}{ \code{(character)} An id for the activity. Always in "
 #'  ::" format. Can be sent as `page_token` in requests to facilitate the paging of results.}
-#'  \item{\code{activity_type}}{ \code{(character)} "FILL"}
+#'  \item{\code{activity_type}}{ \code{(character)} Activity type to filter for. IE "FILL". Non case-sensitive.}
 #'  \item{\code{transaction_time}}{ \code{(POSIXct)} The time at which the execution occurred.}
 #'  \item{\code{type}}{ \code{(character)} `"fill"` or `"partial_fill"`}
 #'  \item{\code{price}}{ \code{(numeric)} The per-share price that the trade was executed at.}
@@ -244,6 +244,7 @@ account_activities <- function(activity_type = NULL, date = NULL, until = NULL, 
     }
     
   }
+  if (!is.null(activity_type)) activity_type <- toupper(activity_type)
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -263,6 +264,173 @@ account_activities <- function(activity_type = NULL, date = NULL, until = NULL, 
   out <- aa_transform(aa)
   return(out)
 }
-#----------------------------------------------------------------------------------------------
-#NEW for V2
-#account_activities(activity_type = "FILL")
+
+
+#' @title Account Portfolio History
+#' @family Account
+#' @description The [portfolio history endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns the timeseries data for equity and profit loss information of the account in a requested timespan (optional) for a given timeframe.
+#' @details All \code{(Date/POSIXlt)} will parse correctly if in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly.
+#' @param period `(character/Duration/Period)` *Optional* The period of time with which the data will extend backwards from `date_end` in `number + unit` format. Such as `"1D"`, where `unit` can be `"D"` for day, `"W"` for week, `"M"` for month and `"A"/"Y"` for year. Defaults to `"1M"`. Accepts any number for multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} objects.
+#' @param timeframe `(character)` *Optional* The timeframe of the returned data in `"MT"` format where `M` is a multiplier and `T` is the timeframe from one of the following (non case-sensitive):
+#' #' \itemize{
+#'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
+#'  \item{`'h'`/`'hour'`}{ `multiplier` will be `1`.}
+#'  \item{`'d'`/`'day'`}{ (`multiplier` will be `1`)}
+#' } 
+#'If omitted, "`1Min`" for less than 7 days period, "`15Min`" for less than 30 days, or otherwise `"1D"`.
+#' @param date_end \code{(Date/POSIXlt/Datetime(POSIXct)/character)} *Optional* See Details for formatting guidelines. The end date of the returned data. Defaults to the current market date (rolls over at the market open if `extended_hours = FALSE`, otherwise at 7am ET). *Note* that when `period = 1D` and `date_end` is supplied, the API returns no data.
+#' @param extended_hours `(logical)` *Optional* If true, include extended hours in the result. This is effective only for timeframes less than 1D. Default `FALSE`
+#' @return A [PortfolioHistory](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#portfoliohistory-entity) `(tibble)` Object with R amenable data types. *Note* that base value & timeframe can be accessed by calling `attr(out, "info")` on the returned tibble.
+#' \itemize{
+#'   \item{\code{timestamp}}{ \code{(Date/POSIXlt/Datetime(POSIXct)/character)} time of each data element, with the first element being the beginning of the time window.}
+#'  \item{\code{equity}}{ \code{(numeric)} equity value of the account in dollar amount as of the end of each time window}
+#'  \item{\code{profit_loss}}{ \code{(numeric)} profit/loss in dollar from the base value}
+#'  \item{\code{profit_loss_pct}}{ \code{(numeric)} profit/loss in percentage from the base value}
+#'  \item{\code{base_value}}{ \code{(numeric)} basis in dollar of the profit loss calculation}
+#'  \item{\code{timeframe}}{ \code{(character)} time window size of each data element}
+#' }
+#' @examples 
+#' # Get the previous year's returns for the paper account
+#' account_portfolio("1y")
+#' # Get portfolio history when the COVID-19 pandemic overtook the US
+#' account_portfolio("3m", date_end = "2020-05-20")
+#' @inheritParams account
+#' @importFrom stringr str_extract str_detect regex
+#' @importFrom lubridate `.__T__-:base` `.__T__+:base` as_date duration weeks days
+#' @importFrom httr parse_url build_url GET
+#' @importFrom purrr iwalk compact
+#' @export
+
+account_portfolio <- function(period = NULL, timeframe = NULL, date_end = NULL, extended_hours = FALSE, live = FALSE, v = 2) {
+  # Fix and detect args
+  # check classes ----
+  # Mon May 18 11:01:09 2020
+  .vn <- list(period = c("character", "Period", "NULL"), timeframe = c("character", "NULL"), date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"), extended_hours = "logical", live = "logical", v = c("integer", "numeric"))
+  .e <- environment()
+  purrr::iwalk(.vn, ~{
+    if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
+  })
+  headers <- get_headers()
+  .url <- httr::parse_url(get_url(live))
+  #  period ----
+  # Mon May 18 10:53:29 2020
+  if (is.null(period)) {
+    .period <- "M"
+    .lp <- "months"
+    .pmultiplier <- 1
+    message(paste0("`period` set to 1 Month"))
+  } else if (isFALSE(inherits(period, c("Period", "Duration")))) {
+    .period <- stringr::str_extract(period, "[A-Za-z]+$")
+    .period <- substr(tolower(.period), 0, 1)
+    if (.period == "d") {
+      .period = "D"
+      .lp <- "days"
+    } else if (grepl("a|y", .period)) {
+      .period = "A"
+      .lp <- "years"
+    } else if (.period == "w") {
+      .period <- "W"
+      .lp <- "weeks"
+    } else if (.period == "m") {
+      .period <- "M"
+      .lp <- "months"
+    } else {
+      rlang::abort("`period` must have a unit of (D)ays, (W)eeks, (M)onths, or (Y)e(A)rs")
+    }
+    .pmultiplier <- as.numeric(stringr::str_extract(period, "^\\d+"))
+  } else if (isTRUE(inherits(period, c("Period", "Duration")))) {
+    if (isTRUE(inherits(period, c("Period")))) {
+       .period <- toupper(stringr::str_extract(period, "[A-Za-z]"))
+       .pmultiplier <- as.numeric(stringr::str_extract(period, "[0-9]"))
+       .period <- ifelse(.period == "Y", "A", .period)
+       .lp <- c(D = "days", A = "years", Y = "years", W = "weeks", M = "months")[.period]
+    }
+     
+  }
+  .lp <- lubridate::duration(.pmultiplier, units = .lp)
+  .p_num <- as.numeric(factor(.period, levels = c("D", "W", "M", "A")))
+  #  timeframe ----
+  # Mon May 18 10:53:35 2020
+  # if timeframe is blank
+  
+  if (!is.null(timeframe)) {
+    if (stringr::str_detect(timeframe, "^\\d+")) {
+      # Account for old argument style to timeframe
+      .multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
+      
+    } 
+    .timeframe <- substr(tolower(stringr::str_extract(timeframe, "[A-Za-z]+$")), 0, 1)
+  } else {
+    .timeframe <- ""
+    .multiplier <- 1
+  }
+  
+  
+  # set minimum timeframes if null
+  if (.lp <= lubridate::weeks(1) && !.timeframe %in% c("h","d") && .p_num < 2) {
+    .timeframe <- "m"
+    if (isTRUE(!.multiplier %in% c(1, 5, 15))) {
+      message(paste0("multiplier can be 1,5, or 15 when `timeframe` is minutes. Multiplier set to 5."))
+      .multiplier <- 5
+    }
+  } else if ((.lp > lubridate::weeks(1) && .lp <= lubridate::days(30)) && !.timeframe %in% c("h","d") && .p_num < 3) {
+    .timeframe <- "m"
+    if (isTRUE(!.multiplier %in% c(5, 15))) {
+      message(paste0("multiplier can be 5 or 15 when `timeframe` is minutes and period or `date_end` to the present is > 7 days & < 30 days. Multiplier set to 5."))
+      .multiplier <- 5
+    }
+  } else if (.lp > lubridate::days(30)) {
+    .timeframe <- "d"
+    if (isFALSE(stringr::str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T)))) {
+      message(paste0("`timeframe` must be day when `period` is greater than 30 days."))
+    }
+    
+  }
+  if (isTRUE(.multiplier != 1) && .timeframe == "d") {
+    message(paste0("multiplier must be 1 when `timeframe` is day. Setting to 1."))
+    .multiplier <- 1
+  } 
+  # Get the timeframe in human readable
+  .timeframe <- list(m = c("Minutes", "Min"), h = c("Hours", "H"), d = c("Days", "D"))[[.timeframe]]
+  
+  #  date_end ----
+  # Mon May 18 11:00:40 2020
+  if (!is.null(date_end)) {
+    `-` <- lubridate::`.__T__-:base`
+    `+` <- lubridate::`.__T__+:base`
+    .ac <- lubridate::as_date(account(live)$created_at)
+    .date <- lubridate::as_date(try_date(date_end))
+    if (.date <= .ac) {
+      .date <- lubridate::as_date(.ac + .lp)
+     rlang::warn(paste0("`date_end`: ",.date,", is before account creation date. `date_end` set to ", .ac, " + `period`:", .lp,"=", .date))
+      
+    }
+  } else {
+    .date <- NULL
+  }
+  
+
+  # if either arg was null, message
+  if (is.null(timeframe) || isFALSE(str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T))) || isFALSE(str_detect(timeframe, stringr::regex(as.character(.multiplier))))) {
+    message(paste0("Timeframe set to ", .multiplier," ", .timeframe[1]))
+  }
+  # Send request ----
+  # Mon May 18 11:49:14 2020
+  .url$path <- list(
+    paste0("v",v),
+    "account",
+    "portfolio",
+    "history"
+  )
+  .url$query <- purrr::compact(list(
+    period = paste0(.pmultiplier, .period),
+    timeframe = paste0(.multiplier, .timeframe[2]),
+    date_end = .date,
+    extended_hours = extended_hours
+  ))
+  .url <- httr::build_url(.url)
+  if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(.url)
+  .resp <- httr::GET(.url, headers)
+  out <- port_transform(.resp)
+  return(out)
+}
