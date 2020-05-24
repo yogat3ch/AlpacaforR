@@ -169,15 +169,17 @@ test_that("Condition Mappings is accessible and returns appropriate data", {
   .resp <- polygon("Condition Mappings", ticktype = "quotes")
   expect_equal(dim(.resp), c(45,1))
 })
-
+.c <- calendar()
+.ms_open <- isTRUE(.c$date == lubridate::today())
 test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
-  if (.ms_open %in% c("open", "extended-hours")) {
+  if (.ms_open) {
     .resp <- polygon("Snapshot: All Tickers")
     expect_s3_class(.resp, "tbl")
     expect_length(.resp, 33)
     expect_s3_class(.resp$updated, "POSIXct")
     expect_gt(nrow(.resp), 1)
   } else {
+    # if it's a non market day
     expect_warning(.resp <- polygon("Snapshot: All Tickers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")
   }
   expect_identical(attr(.resp, "query")$status, "OK")
@@ -186,7 +188,7 @@ test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
 test_that("Snapshot: Single Ticker is accessible and returns appropriate data", {
   
   
-  if (.ms_open %in% c("open", "extended-hours")) {
+  if (.ms_open) {
     .resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")
     expect_identical(attr(.resp, "query")$status, "OK")
     expect_s3_class(.resp, "tbl")
@@ -195,15 +197,13 @@ test_that("Snapshot: Single Ticker is accessible and returns appropriate data", 
     expect_s3_class(.resp$updated, "POSIXct")
     expect_equal(nrow(.resp), 1)
   } else {
-    # if themarket is closed
+    # if not a day the market was open
     expect_warning({.resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")}, regexp = "NotFound")
   }
 })
 
 test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
-  
-  
-  if (polygon("Market Status")$market %in% c("open", "extended-hours")) {
+  if (.ms_open) {
     .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
     expect_s3_class(.resp, "tbl")
     expect_length(.resp, 33)
