@@ -200,7 +200,7 @@
 # purrr::imap_chr(.ep[1:24], ~{
 #   `%>%` <- magrittr::`%>%`
 #   if (.y == "a") {
-#     return(paste0("#' \\item{`a`}{Aggregates - see ?market-data}"))
+#     return(paste0("#' \\item{`a`}{ Aggregates - see ?market-data}"))
 #   }
 # 
 #   .out <- glue::glue("#' \\item{`{{.y}}`}{ [{{.x$nm}}]({{.x$href}}):\n", .open = "{{", .close = "}}")
@@ -373,7 +373,7 @@
 #'   \item{\code{"unadjusted"}}{ `(logical)` *Optional* NULL, TRUE, FALSE}
 #'  }
 #' }
-#' \item{`a`}{Aggregates - see ?market-data}
+#' \item{`a`}{ Aggregates - see ?market-data}
 #' \item{`gd`}{ [Grouped Daily (Bars)](https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor): Get the daily OHLC for entire markets.
 #' Arguments:
 #'   \itemize{
@@ -392,7 +392,7 @@
 #' @importFrom purrr compact map
 #' @importFrom httr GET parse_url build_url
 #' @importFrom stringr str_match str_extract regex str_split
-#' @importFrom glue glue_data
+#' @importFrom glue glue_data glue
 #' @export
 
 polygon <- function(ep = NULL, ..., params = NULL){
@@ -408,7 +408,7 @@ polygon <- function(ep = NULL, ..., params = NULL){
   .ref <- grepl("\\+", ep)
   ep <- gsub("\\+","",ep)
   if (.qv %in% c("all", "ref", "sto")) {
-    qv <- .ep[list(all = c(1:24), ref = c(1:6), sto = c(7:24))[[.qv]]]
+    qv <- .ep[list(all = c(1:24), ref = c(1:11), sto = c(12:24))[[.qv]]]
     if (.ref) {
       return(qv)
     } else {
@@ -438,6 +438,40 @@ polygon <- function(ep = NULL, ..., params = NULL){
   }
   # add defaults for parameters not specified
   params <- append(params, purrr::map(.ep[[ep]]$params[!names(.ep[[ep]]$params) %in% names(params)], `[[`, 1))
+  # Check date
+  if (isTRUE("date" %in% names(params))) {
+    params$date <- try_date(params[["date"]])
+    if (is.na(params$date)) {
+      rlang::abort("Invalid format supplied as `date` parameter")
+    }
+  }
+  # Check other params
+  if (isFALSE(is.null(e_p$params))) {
+    if (isFALSE(all(names(params) %in% names(e_p$params)))) {
+      # if a parameter is wrongly named, first fix common confusion ticker/symbol
+      .wn <- setdiff(names(params), names(e_p$params))
+      if (grepl("symbol|ticker", .wn)) {
+        message(paste0("Argument is called `", ifelse(.wn == "symbol", "ticker", "symbol"), "` rather than `", .wn, "`"))
+        params[ifelse(.wn == "symbol", "ticker", "symbol")] <- params[.wn]
+        params[.wn] <- NULL
+      }
+    }
+    if (any(c("ticker", "symbol") %in% names(params))) {
+      # capitalize
+      .pos <- grep("ticker|symbol", names(params))
+      params[[.pos]] <- toupper(params[[.pos]])
+    }
+    .classes <- purrr::map(purrr::map_depth(e_p$params, 2, class), ~{
+      .classes <- unique(unlist(.x))
+      if ("Date" %in% .classes) {
+        .classes <- c(.classes, "POSIXct")
+      }
+      return(.classes)
+    })
+    purrr::pmap(list(params, .classes[names(params)], names(params)), ~{
+      if (isFALSE(inherits(.x, .y))) rlang::abort(glue::glue("Argument {..3} is of type {class(..3)}, when {.y} is expected."))
+    })
+  }
   # assign the appropriate path
   .pv <- stringr::str_detect(e_p$url, "\\{")
   if (.pv) {
