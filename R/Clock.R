@@ -5,7 +5,7 @@
 #' @title Get Clock function
 #' 
 #' @description The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close. See [Clock](https://alpaca.markets/docs/api-documentation/api-v2/clock/) Endpoint for details. *Additionally, if your current timezone is different than that of the market* or if a `tz` is specified, a `local` POSIXct will be appended with corresponding local time (or `tz` time) and it's `offset` from the market for each of the following outputs: `timestamp`, `next_open`, and `next_close`.
-#' @param tz `(character)` A timezone (See \code{\link[base]{timezones}}) to determine how the market hours compare to the `tz` hours. If no `tz` argument is provided, and the local timezone differs from "America/New_York", `clock` will automatically provide the local conversion and offset. 
+#' @param tz `(character)` A timezone (See \code{\link[base]{timezones}} or use `OlsonNames()`)  to determine how the market hours compare to the `tz` hours. If no `tz` argument is provided, and the local timezone differs from "America/New_York", `clock` will automatically provide the local conversion and offset. 
 #' @inheritParams account
 #' @return Clock \code{(list)} A [Clock](https://alpaca.markets/docs/api-documentation/api-v2/clock/#clock-entity) Object:
 #' \itemize{
