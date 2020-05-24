@@ -1,8 +1,8 @@
 #' @title First Run Credential Setup
-#' @description This function helps set-up your .Renviron file to work with `AlpacaforR`. It's for first time users and only needs to be run once.
+#' @description This function helps edit the .Renviron file to work with `AlpacaforR`. It's for first time users and only needs to be run once.
 #' @param paper \code{(named character)} of length two: `key` and `secret` for the Alpaca paper API.
 #' @param live \code{(named chacter)} of length two: `key` and `secret` for the Alpaca live API.
-#' @return Sets environment variables for this session and edits the .Renviron file in R's home directory `path.expand("~")` and adds the specified key/secret combinations for future sessions.
+#' @return Sets environment variables for this session and edits the .Renviron file in R's home directory `path.expand("~")` and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
 #' @importFrom purrr iwalk
 #' @importFrom glue glue
 #' @examples 
@@ -16,11 +16,12 @@ firstrun <- function(paper, live) {
       .k <- .x$k
       .s <- .x$s
     } else {
-      .k <- .x[grep("^k", names(.x))]
-      .s <- .x[grep("^s", names(.x))]
+      .k <- .x[grep("^k", names(.x), ignore.case = T)]
+      .s <- .x[grep("^s", names(.x), ignore.case = T)]
     }
     Sys.setenv(glue::glue("APCA-{.y}-API-KEY-ID"), .k)
     Sys.setenv(glue::glue("APCA-{.y}-API-SECRET-KEY"), .s)
+    if (!file.exists("~/.Renviron")) file.create("~/.Renviron")
     write(paste0(glue::glue("APCA-{.y}-API-KEY-ID = '{.k}'"),"\n", glue::glue("APCA-{.y}-API-SECRET-KEY = '{.s}'")), file = path.expand("~/.Renviron"), append = T)
   })
 }
