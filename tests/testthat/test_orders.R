@@ -120,7 +120,7 @@ if (.ms_open) {
 } else {
   suppressWarnings(.op <- positions("AMZN"))
   if (isTRUE(suppressWarnings(.op$qty) < 2)) {
-    test_that("order_submit warns appropriate when market is closed", {
+    test_that("order_submit warns appropriately when market is closed", {
       expect_warning(expect_message(.oco <- order_submit("AMZN", order_class = "oco", qty = 2, take_profit = list(l = .lq$askprice * 1.03), stop_loss = list(s = .lq$askprice * .96)), regexp = "sell|limit", all = T), regexp = "insufficient qty available for order") 
     })
   }

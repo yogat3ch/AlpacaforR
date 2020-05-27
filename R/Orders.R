@@ -59,6 +59,9 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
+  # set status if abbreviated
+  status <- c(o = "open", c = "closed", a = "all")[tolower(substr(status, 0, 1))]
+  # check if id
   .is_id <- is_id(ticker_id)
   if (.is_id) {
     # if it's an order_id
@@ -94,7 +97,7 @@ orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL
   out <- order_transform(out)
   
   
-  if (!is.null(ticker_id) && !.is_id && length(out) != 0){       #If the ticker is not null, and not an order id then return the orders for the tickers specified.
+  if (isTRUE(inherits(ticker_id, "character") && nchar(ticker_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
     out = dplyr::filter(out, symbol %in% ticker_id)
   }
   return(out)
@@ -213,12 +216,14 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
   # NOTE: ticker_id is not referenced when action = "cancel_all"
-  if (action != "cancel_all") {
+  if (!grepl("cancel_all", action, ignore.case = T)) {
     action <- substr(tolower(action), 0, 1)
     # if the order tbl is supplied directly, extract the id
     if (!inherits(ticker_id, c("character"))) ticker_id <- ticker_id$id
     # if vector length 2 and duplicated (complex orders), remove the dupes
     if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
+  } else if (grepl("cancel_all", action, ignore.case = T)) {
+    action <- tolower(action)
   }
   # smart detect: type, order_class, extended_hours
   # fix names for take_profit, stop_loss if partialed
