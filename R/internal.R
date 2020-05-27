@@ -130,7 +130,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
     }
     
   } else if (v == 2){
-    timeframe <- utils::tail(.tf_opts[[grep(substr(timeframe, 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
+    timeframe <- utils::tail(.tf_opts[[grep(substr(ifelse(timeframe == "month", "Month", timeframe), 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
@@ -1153,12 +1153,12 @@ response_text_clean <- function(dat){
 #' @description for use in functions that accept `ticker_id`
 #' @param ticker_id 
 #' @return \code{logical} indicating whether the object is a 
-#' @importFrom stringr str_count
+#' @importFrom stringr str_detect
 
 is_id <- function(ticker_id) {
   out <- tryCatch({
-    .out <- all(stringr::str_count(ticker_id, "-") ==  4, nchar(ticker_id) == 36)
-    length(.out) > 0 && .out
+    .out <- stringr::str_detect(ticker_id,"[:alnum:]{8}\\-[:alnum:]{4}\\-[:alnum:]{4}\\-[:alnum:]{4}\\-[:alnum:]{12}") && !is.na(ticker_id)
+    isTRUE(.out)
   }, error = function(e) FALSE)
   return(out)
 }
@@ -1451,6 +1451,7 @@ order_check <- function(penv = NULL, ...) {
     .e <- list(...)
     fetch_vars(.vn, e = .e)
   }
+  
   # ticker_id ----
   # Fri May 01 11:15:39 2020
   # Check if ticker is id
@@ -1486,8 +1487,8 @@ order_check <- function(penv = NULL, ...) {
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {
     if (!is.null(side)) {
-      side <- tolower(substr(side, 0, 1))
-      side <- ifelse(side == "b", "buy", "sell")
+      side <- try(c(b = "buy", s = "sell")[tolower(substr(side, 0, 1))])
+      if (class(side) == "try-error") rlang::abort("Invalid value for `side`")
     } else if (is.null(side)) {
       if ((order_class %||% "none") %in% c("bracket", "oto")) {
         side <- "buy"
