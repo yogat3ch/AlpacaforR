@@ -429,7 +429,7 @@ polygon <- function(ep = NULL, ..., params = NULL){
     e_p <- .ep[[ep]]
   }
   if (.ref) {
-    return(e_p)
+    return(.ep[ep])
   }
   if (ep == "a") {
     rlang::abort("See ?market_data for aggregates endpoint.")
