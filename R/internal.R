@@ -134,7 +134,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
-  rlang::env_bind(cenv, .tf_num = .tf_num, timeframe = timeframe, multiplier = multiplier)
+  rlang::env_bind(cenv, .tf_num = .tf_num, timeframe = timeframe, multiplier = multiplier, .tf_order = .tf_order)
 }
 #' @title Create API amenable boundaries based on user input for market_data
 
@@ -153,7 +153,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
 #' @importFrom dplyr lead
 #' @importFrom magrittr `%>%`
 #' @importFrom stats setNames
-bars_bounds <- function(...) {
+bars_bounds <- function(..., fc = NULL) {
   `%>%` <- magrittr::`%>%`
   `%||%` <- rlang::`%||%`
   `!!!` <- rlang::`!!!`
@@ -245,7 +245,7 @@ bars_bounds <- function(...) {
         # lubridate does not support multi-weeks to floor_date, so we just subtract multiplier - 1 weeks
         .out <- .out - lubridate::duration(multiplier - 1, "weeks")
       }
-      if (!identical(.out,.oout)) {
+      if (!identical(.out,.oout) && isTRUE(fc)) {
         message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'from'/'after' coerced to ", .out))
       }
       
@@ -635,6 +635,7 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", .tf_num = c("integer", "numeric"), .tf_order = c("factor"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
+  browser(expr = !".tf_order" %in% ls(all.names = T))
   if (!".tf_num" %in% ls(all.names = TRUE)) tf_num(timeframe)
   # If data.frame is input, output just the tibble (not a list)
   if(is.data.frame(bars)) {
