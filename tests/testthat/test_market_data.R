@@ -25,3 +25,5 @@ test_that("market_data errors are informative when incompatible arguments are re
 test_that("market_data warning and messages are informative when incompatible arguments are requested and arguments are omitted.", {
   expect_warning(expect_message(market_data(ticker = "BYND", v = 1, multiplier = 7, timeframe = "d"), regexp = "(?:`to` argument omitted)|(?:`from` argument omitted)"), regexp = "The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.")
 })
+
+

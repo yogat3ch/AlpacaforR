@@ -110,7 +110,7 @@ fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.
 tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   
   .e <- list(...)
-  .vn <- list(multiplier = c("integer", "numeric"), v = c("integer", "numeric"), timeframe = "character")
+  .vn <- list(multiplier = c("integer", "numeric"), v = c("integer", "numeric"), timeframe = c("character", "factor"))
   fetch_vars(.vn, e = .e)
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
   .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
@@ -130,7 +130,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
     }
     
   } else if (v == 2){
-    timeframe <- utils::tail(.tf_opts[[grep(substr(ifelse(timeframe == "month", "Month", timeframe), 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
+    timeframe <- utils::tail(.tf_opts[[grep(substr(ifelse(timeframe == "month", "Month", as.character(timeframe)), 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
   }
   # Get the timeframe as a numeric
   .tf_num <- which(.tf_order %in% timeframe)
@@ -257,7 +257,7 @@ bars_bounds <- function(..., fc = NULL) {
         # Convert to the appropriate quarter boundary
         .out <- lubridate::int_end(.qs[[.q]])
       }
-      if (!identical(.out,.oout)) {
+      if (!identical(.out,.oout) && isTRUE(fc)) {
         message(paste0("Floor/Ceiling dates are necessary to retrieve inclusive aggregates\n'to'/'until' coerced to ", .out))
       }
     }
@@ -513,8 +513,8 @@ bars_expected <- function(bars, ...) {
   #Calendar expansion for segmenting queries and data completeness check:  Thu Mar 26 08:50:42 2020 ----
   #Get the trading days in between the sequence
   if (.tf_num < 4) {
-    .cal <- calendar(.bounds[[1]], .bounds[[2]]) %>%
-      dplyr::filter(date >= lubridate::as_date(.bounds[[1]]) & date <= lubridate::now())
+    suppressWarnings({suppressMessages({.cal <- calendar(.bounds[[1]], .bounds[[2]]) %>%
+      dplyr::filter(date >= lubridate::as_date(.bounds[[1]]) & date <= lubridate::now())})})
   }
   
   
@@ -635,7 +635,6 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", .tf_num = c("integer", "numeric"), .tf_order = c("factor"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
-  browser(expr = !".tf_order" %in% ls(all.names = T))
   if (!".tf_num" %in% ls(all.names = TRUE)) tf_num(timeframe)
   # If data.frame is input, output just the tibble (not a list)
   if(is.data.frame(bars)) {

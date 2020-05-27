@@ -163,7 +163,6 @@ test_that("bars_url returns URLs as anticipated", {
       # FINALLY figured out how to call arguments by name in pmap
       .bounds <- list(...)[[.sym]]
       timeframe <- list(...)[["timeframe"]]
-      .tf_num <- which(.tf_order %in% ..2)
       .url <- bars_url(ticker = "AMZN", .bounds = .bounds, timeframe = ..2, multiplier = ..1, unadjusted = F)
       
     })
@@ -181,7 +180,6 @@ test_that("bars_get returns the appropriate data", {
       # FINALLY figured out how to call arguments by name in pmap
       list2env(list(...), envir = environment())
       .url <- list(...)[[.sym]]
-      .tf_num <- which(.tf_order %in% ..2)
       .dat <- bars_get(url = .url)
       .dat <- purrr::map(.dat, ~{attr(.x, "query") <- NULL})
     })
@@ -241,6 +239,7 @@ test_that("bars_missing accurately identifies missing data", {
       .tf_num <- which(.tf_order %in% .tf)
       message(paste0("from = ", as.character(.bounds[[1]]), " to = ", as.character(.bounds[[2]]), " multiplier = ",..1, " timeframe = ",..2, " tf_num: ",.tf_num))
       message(paste0("bars_missing"))
+      if (inherits(.bars[[1]], "list")) return(.bars)
       bars_missing(bars = .bars, v = v, .bounds = .bounds, timeframe = ..2, multiplier = ..1)
     }))
   })
@@ -265,6 +264,7 @@ test_that("bars_complete returns all expected data consistently", {
       message(paste0("missing retrieved"))
       .tf_num <- which(.tf_order %in% timeframe)
       message(paste0("bars_complete"))
+      if (inherits(.bars[[1]], "list")) return(.bars)
       .complete <- bars_complete(bars = .bars, .missing = .missing, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier, unadjusted = unadjusted, .tf_order = .tf_order)
       
     })
