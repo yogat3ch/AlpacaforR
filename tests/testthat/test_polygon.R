@@ -175,7 +175,6 @@ test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
   if (.ms_open) {
     .resp <- polygon("Snapshot: All Tickers")
     expect_s3_class(.resp, "tbl")
-    expect_length(.resp, 33)
     expect_s3_class(.resp$updated, "POSIXct")
     expect_gt(nrow(.resp), 1)
   } else {
@@ -192,7 +191,6 @@ test_that("Snapshot: Single Ticker is accessible and returns appropriate data", 
     .resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")
     expect_identical(attr(.resp, "query")$status, "OK")
     expect_s3_class(.resp, "tbl")
-    expect_length(.resp, 33)
     expect_identical(.resp$ticker, "BYND")
     expect_s3_class(.resp$updated, "POSIXct")
     expect_equal(nrow(.resp), 1)
@@ -206,7 +204,6 @@ test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data",
   if (.ms_open) {
     .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
     expect_s3_class(.resp, "tbl")
-    expect_length(.resp, 33)
     expect_s3_class(.resp$lastQuote.t,  "POSIXct")
   } else {
     expect_warning(.resp <- polygon("Snapshot: Gainers/Losers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")

@@ -2,13 +2,13 @@
 #' @import Orders.R
 
 context("Test that family: orders throws errors/messages as expected.")
-.ms_open <<- clock()$is_open
+.open <<- clock()$is_open
 .ao <- orders()
 if (isTRUE(inherits(.ao, "tbl") && try(nrow(.ao) > 0))) {
   order_submit(a = "cancel_all")
 }
 .ao <- orders()
-if (.ms_open) {
+if (.open) {
   test_that("orders returns no orders properly.", {
     #assumes no open orders
     expect_type(expect_message(orders(), regexp = "No orders for the selected query/filter criteria. 
@@ -59,7 +59,7 @@ test_that("orders properly detects the order", {
 
 .lq <<- polygon("lq", symbol = "AMZN")
 
-if (.ms_open) {
+if (.open) {
   test_that("An expedited stop can be placed on the order with appropriate messages", {
       expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T)
       expect_identical(.so$client_order_id, .o$id)
@@ -68,11 +68,11 @@ if (.ms_open) {
   test_that("An expedited stop warns if the buy order did not fill and there is an insufficient quantity available", {
     expect_warning(expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T), regexp = "insufficient qty available for order")
   })
-} else if (!.ms_open){
+} else if (!.open){
   expect_warning(expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T), "cannot open a short sell while a long buy order is open")
 }
 
-if (.ms_open && exists(".so")) {
+if (.open && exists(".so")) {
   test_that("order_submit properly modifies the simple sell order", {
     .r <<- order_submit(.so$id, action = "r", qty = 1, stop = .lq$askprice * .95)
     # when the market is open
@@ -103,7 +103,7 @@ test_that("order_submit properly cancels the bracket order", {
   
 })
 
-if (.ms_open) {
+if (.open) {
   test_that("order_submit properly cancels the simple sell replacement order", {
       expect_message({.co <- order_submit(.r$id, "c")}, "Order canceled successfully")
       expect_true(is.list(.co))
@@ -112,7 +112,7 @@ if (.ms_open) {
 } 
   
 
-if (.ms_open) {
+if (.open) {
   test_that("order_submit properly places an oco order_class", {
     .o <- order_submit("AMZN", qty = 2, side = "b", type = "m")
     expect_message(.oco <- order_submit("AMZN", order_class = "oco", qty = 2, take_profit = list(l = .lq$askprice * 1.03), stop_loss = list(s = .lq$askprice * .96)), regexp = "sell|limit", all = T)
@@ -126,21 +126,23 @@ if (.ms_open) {
   }
 }
 
-
-
 test_that("order_submit properly places an oto order_class", {
   .lq <- polygon("lq", symbol = "BYND")
   expect_message(.oto <- order_submit("BYND", order_class = "oto", qty = 2, stop_loss = list(s = .lq$askprice * .96)), regexp = "oto", all = T)
 })
+
+.oo <- orders()
 .ca <- order_submit(a = "cancel_all")  
-if (.ms_open) {
-  test_that("order_submit properly cancels all open orders",{
+if (.open && length(.oo) > 0) {
+  test_that("order_submit properly cancels all open orders when market is open and there are orders to cancel",{
   expect_true(any(.ca$status %in% c("pending_cancel")))
   expect_true(nrow(.ca) > 1)
   expect_s3_class(do.call(c, dplyr::select(.ca, dplyr::ends_with("at"))), "POSIXct")
-  expect_message(orders(), regexp = "(?:No orders for the selected query\\/filter criteria. 
-  Check `ticker_id` or set status \\= \\'all\\' to see all orders.)")
-    })
-} else {
   expect_message(orders(), regexp = "(?:No orders for the selected query\\/filter criteria)|(?: Check `ticker_id` or set status \\= \\'all\\' to see all orders.)")
+    })
+} else if (length(.oo) > 0) {
+  test_that("order_submit properly cancels all oepn order when there are no open orders to cancel", {
+    expect_message(orders(), regexp = "(?:No orders for the selected query\\/filter criteria)|(?: Check `ticker_id` or set status \\= \\'all\\' to see all orders.)")
+  })
+  
 }

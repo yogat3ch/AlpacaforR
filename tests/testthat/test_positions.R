@@ -24,7 +24,7 @@ if (.op && .open) {
   if (nrow(.p) > 1) {
     
     test_that("Positions cancels all orders when closing position and market is open", {
-      expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully"), regexp = "(?:Canceled order)(?:Position was not modified)")
+      expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully")
     })
     
   }
