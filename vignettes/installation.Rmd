@@ -1,6 +1,9 @@
 ---
 title: "Getting Started with AlpacaforR"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    self_contained: yes
+    keep_md: yes
 vignette: >
   %\VignetteIndexEntry{Getting Started}
   %\VignetteEngine{knitr::rmarkdown}

@@ -1,6 +1,6 @@
 Package: AlpacaforR
 Title: Trade with Alpaca using R
-Version: 0.2.0
+Version: 0.9.0
 Authors@R: c(
     person("Jagger", "Villalobos", email = "jagger.vill@gmail.com", role = c("aut")),
     person("Holsenbeck", "Stephen", email = "sholsen@alumni.emory.edu", role = c("aut", "cre")))
@@ -21,5 +21,7 @@ Suggests:
     withr,
     knitr,
     rmarkdown,
-    qpdf
+    qpdf,
+    vcr,
+    webmockr
 VignetteBuilder: knitr
