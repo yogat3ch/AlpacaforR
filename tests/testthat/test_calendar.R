@@ -2,6 +2,7 @@
 #' @include Clock.R
 
 context("calendar functions correctly")
+vcr::use_cassette("calendar returns the appropriate response", {
 test_that("calendar returns the appropriate response", {
   expect_message({.c <- calendar()}, regexp = "`from`, `to` arg\\(s\\) is\\/are NULL")
   expect_message({.c <- calendar("2020-03-04", "2020-04-26")}, regexp = "Sunday")
@@ -12,5 +13,6 @@ test_that("calendar returns the appropriate response", {
   expect_s3_class(.c$dow, "factor")
   expect_s3_class(.c, "data.frame")
   expect_length(.c, 8)
+})
 })
 

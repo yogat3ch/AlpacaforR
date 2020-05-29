@@ -2,6 +2,7 @@
 #' @include Clock.R
 
 context("Clock functions correctly")
+vcr::use_cassette("clock returns the appropriate response", {
 test_that("clock returns the appropriate response", {
   .c <- clock()
   if (lubridate::wday(lubridate::today(), week_start = 7) %in% c(1,7)) {
@@ -11,7 +12,9 @@ test_that("clock returns the appropriate response", {
   expect_true(is.list(.c))
   expect_length(.c, 4)
 })
+})
 
+vcr::use_cassette("clock returns the appropriate response when timezone is different", {
 test_that("clock returns the appropriate response when timezone is different", {
   withr::with_envvar(c(TZ = "America/Los_Angeles"), {
     .c <- clock()
@@ -20,4 +23,5 @@ test_that("clock returns the appropriate response when timezone is different", {
     expect_named(.c$next_close, c("market", "local", "offset"))
   })
   
+})
 })

@@ -77,13 +77,16 @@ test_results <- readRDS(.p)
 context("Test that all CURL Retrieval functions work properly")
 # Sat Apr 11 11:00:11 2020
 
+vcr::use_cassette("response_text_clean returns appropriate object", {
 test_that("response_text_clean returns appropriate object", {
   .resp <- httr::GET('https://postman-echo.com/get?foo1=bar1&foo2=bar2')
   .resp <- response_text_clean(.resp)
   expect_identical(.resp$args, list("foo1" = "bar1", "foo2" = "bar2"))
   expect_true(stringr::str_detect(.resp$headers$accept, "json"))
 })
+})
 
+vcr::use_cassette("get_headers returns headers and errors as intended", {
 test_that("get_headers returns headers and errors as intended", {
   # Set environment variables
   # .env_var <- Sys.getenv(c("APCA-LIVE-API-KEY-ID", 
@@ -126,6 +129,7 @@ test_that("get_headers returns headers and errors as intended", {
   #   eval(rlang::call2("Sys.setenv", !!rlang::enexpr(.y) := .x))
   # })
 })
+})
 
 test_that("get_url works", {
   expect_identical(get_url(T),"https://api.alpaca.markets")
@@ -134,6 +138,7 @@ test_that("get_url works", {
 
 context("Test that all bars_* helper functions work properly")
 
+vcr::use_cassette("bars_bounds returns boundaries as anticipated", {
 test_that("bars_bounds returns boundaries as anticipated", {
   .bound <- purrr::imap(c(ub = "upper_bound" , sb = "single_bound", lb = "lower_bound"), ~{
     .sym <- .x
@@ -150,12 +155,16 @@ test_that("bars_bounds returns boundaries as anticipated", {
   names(.bound) <- paste0(names(.bound), "_bounds")
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_bounds"))), .bound) 
 })
+})
 
+vcr::use_cassette("bars_bounds returns NA when unexpected parameters are provided", {
 test_that("bars_bounds returns NA when unexpected parameters are provided", {
   expect_warning(bars_bounds(from = "1000-2-3", to = "4/15/2020", v = 2, timeframe = "minute", multiplier = 5), regexp = "`from`")
   expect_warning(bars_bounds(from = "Feb. 25, 2020", to = lubridate::today() + lubridate::years(51), v = 2, timeframe = "minute", multiplier = 5), regexp = "`to`")
 })
+})
 
+vcr::use_cassette("bars_url returns URLs as anticipated", {
 test_that("bars_url returns URLs as anticipated", {
   .url <- purrr::imap(c(ub = "ub_bounds" , sb = "sb_bounds", lb = "lb_bounds"), ~{
     .sym <- .x
@@ -172,7 +181,9 @@ test_that("bars_url returns URLs as anticipated", {
   names(.url) <- paste0(names(.url), "_url")
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_url"))), .url) 
 })
+})
 
+vcr::use_cassette("bars_get returns the appropriate data", {
 test_that("bars_get returns the appropriate data", {
   .dat <- purrr::imap(c(ub = "ub_url" , sb = "sb_url", lb = "lb_url"), ~{
     .sym <- .x
@@ -190,7 +201,9 @@ test_that("bars_get returns the appropriate data", {
   names(.dat) <- paste0(names(.dat), "_data")
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_data"))) %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})), .dat) 
 })
+})
 
+vcr::use_cassette("bars_expected returns the appropriate time-series", {
 test_that("bars_expected returns the appropriate time-series", {
   .exp <- purrr::imap(c(ub = "ub" , sb = "sb", lb = "lb"), ~{
     .sym <- paste0(.x, "_data")
@@ -224,7 +237,9 @@ test_that("bars_expected returns the appropriate time-series", {
   }
 )))
 })
+})
 
+vcr::use_cassette("bars_missing accurately identifies missing data", {
 test_that("bars_missing accurately identifies missing data", {
   .missing <- purrr::imap(c(ub = "upper_bound" , sb = "single_bound", lb = "lower_bound"), ~{
     .sym <- .x
@@ -248,7 +263,9 @@ test_that("bars_missing accurately identifies missing data", {
   .missing <- tibble::as_tibble(.missing)
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_missing"))), .missing) 
 })
+})
 
+vcr::use_cassette("bars_complete returns all expected data consistently", {
 test_that("bars_complete returns all expected data consistently", {
   
   .complete <- purrr::imap(c(ub = "upper_bound" , sb = "single_bound", lb = "lower_bound"), ~{
@@ -273,6 +290,7 @@ test_that("bars_complete returns all expected data consistently", {
   names(.complete) <- paste0(names(.complete), "_complete")
   .complete <- tibble::as_tibble(.complete)
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_complete"))) %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})), .complete %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})))
+})
 })
 
 

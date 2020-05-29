@@ -1,8 +1,6 @@
 #' @include Websockets.R
 #' @include internal.R
 
-library(websocket)
-
 context("Websocket tests")
 if (rlang::is_interactive()) {
   test_that("ws_create returns the appropriate websocket object", {
@@ -17,5 +15,5 @@ if (rlang::is_interactive()) {
     expect_identical(attr(.ws, "api"), "p")
     expect_equal(.ws$ws$readyState()[1], 0)
     .ws$ws$close()
-  })
+})
 }
