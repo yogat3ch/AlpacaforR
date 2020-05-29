@@ -144,6 +144,7 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
 #'@param after See \code{\link[AlpacaforR]{market_data}}
 #'@param until See \code{\link[AlpacaforR]{market_data}}
 #'@param v See \code{\link[AlpacaforR]{market_data}}
+#'@param fc Toggle for `first_call` mode that prints all messages to console. 
 #'@return \code{(list)} A list with two Date/Datetime items that are boundaries for the date range necessary to call the API with to retrieve the appropriate data from the specified API. Items will have names corresponding to the non-NULL \code{from/to/after/until} arguments in the calling environment or supplied to the function.
 #'@keywords internal
 #' @importFrom rlang is_named env_bind current_env caller_env env_get warn "!!!" "%||%"
@@ -1813,7 +1814,11 @@ poly_transform <- function(resp, ep) {
       if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
       .o$.tbl <- dplyr::bind_cols(.t, .o$.tbl[6:9]) 
     }
-  .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, rlang::`%||%`, y = NA, .ragged = T)
+  .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, .f = ~{
+    .out <- rlang::`%||%`(x = .x, y = NA)
+    if (length(.x) < 1) .out <- NA
+    return(.out)
+    }, .ragged = T)
   .m <- .mode(purrr::map_int(.o$.tbl, length))
   .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
   .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)

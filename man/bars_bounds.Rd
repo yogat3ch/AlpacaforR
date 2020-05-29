@@ -4,9 +4,11 @@
 \alias{bars_bounds}
 \title{Create API amenable boundaries based on user input for market_data}
 \usage{
-bars_bounds(...)
+bars_bounds(..., fc = NULL)
 }
 \arguments{
+\item{fc}{Toggle for \code{first_call} mode that prints all messages to console.}
+
 \item{from}{See \code{\link[AlpacaforR]{market_data}}}
 
 \item{to}{See \code{\link[AlpacaforR]{market_data}}}
