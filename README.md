@@ -1,17 +1,3 @@
----
-title: "Getting Started with AlpacaforR"
-output: 
-  rmarkdown::html_vignette:
-    self_contained: yes
-    keep_md: yes
-vignette: >
-  %\VignetteIndexEntry{Getting Started}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-
-
 # `AlpacaforR` 🦙𝘙
 This brief tutorial covers connecting `AlpacaforR` to the [Alpaca API](https://alpaca.markets) and navigating the package. The [Alpaca API Docs](https://alpaca.markets/docs/api-documentation/api-v2/) provides a more general overview of the authentication, API limits, an explanation of paper & live trading, and release notes. It's worth checking out. If you have never heard of Alpaca, you can learn more [here!](https://alpaca.markets/docs/about-us/) If you want to reference this material later from within R, you can do so with `vignette("AlpacaforR", "Getting Started")`
 
@@ -726,7 +712,7 @@ watchlist("FANG", a = "d")
 #> # A tibble: 0 x 0
 ```
 
-## Market Data {#market-data}
+## Market Data
 The `market_data` function is designed to access market & pricing data 📈 provided by Alpaca via the [Market Data Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/market-data/) and via Alpaca's [Polygon integration](https://alpaca.markets/docs/api-documentation/api-v2/polygon-integration/). Making a request from one or the other is as simple as switching `v = 1` for Alpaca's API (the default) to `v = 2` for [Polygon's Aggregates Endpoint](https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor) (available to Alpaca users with a live account).
 The Alpaca Data API consolidates data sources from five different exchanges.
 
