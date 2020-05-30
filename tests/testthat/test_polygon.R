@@ -5,7 +5,7 @@
 `%>%` <- magrittr::`%>%`
 context("Test all endpoints accessible from the polygon function")
 
-vcr::use_cassette("Tickers is accessible and returns the appropriate data", {
+vcr::use_cassette("Tickers_is_accessible_and_returns_the_appropriate_data", {
 test_that("Tickers is accessible and returns the appropriate data", {
   .resp <- polygon("Tickers", search = "Tesla", market = "stocks")
   expect_true(any(stringr::str_detect(.resp$ticker, "TSLA")))
@@ -15,7 +15,7 @@ test_that("Tickers is accessible and returns the appropriate data", {
 })
 })
 
-vcr::use_cassette("Ticker Types is accessible and returns appropriate data", {
+vcr::use_cassette("Ticker_Types_is_accessible_and_returns_appropriate_data", {
 test_that("Ticker Types is accessible and returns appropriate data", {
   .resp <- polygon("Ticker Types")
   expect_identical(class(.resp), "list")
@@ -23,7 +23,7 @@ test_that("Ticker Types is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Ticker Details is accessible and returns appropriate data", {
+vcr::use_cassette("Ticker_Details_is_accessible_and_returns_appropriate_data", {
 test_that("Ticker Details is accessible and returns appropriate data", {
   .resp <- polygon("Ticker Details", symbol = "AMZN")
   expect_s3_class(do.call(c, .resp[, c("listdate","updated")]), "POSIXct")
@@ -33,7 +33,7 @@ test_that("Ticker Details is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Ticker Details is accessible and returns appropriate data", {
+vcr::use_cassette("Ticker_Details_is_accessible_and_returns_appropriate_data", {
 test_that("Ticker Details is accessible and returns appropriate data", {
   .resp <- polygon("Ticker News", symbol = "BYND")
   expect_s3_class(.resp$timestamp, "POSIXct")
@@ -41,7 +41,7 @@ test_that("Ticker Details is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Markets is accessible and returns appropriate data", {
+vcr::use_cassette("Markets_is_accessible_and_returns_appropriate_data", {
 test_that("Markets is accessible and returns appropriate data", {
   .resp <- polygon("Markets")
   expect_true(any(stringr::str_detect(.resp$market, "STOCKS")))
@@ -49,7 +49,7 @@ test_that("Markets is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Locales is accessible and returns appropriate data", {
+vcr::use_cassette("Locales_is_accessible_and_returns_appropriate_data", {
 test_that("Locales is accessible and returns appropriate data", {
   .resp <- polygon("Locales")
   expect_identical(sum(.resp$locale %in% c("G","US")), 2L)
@@ -57,7 +57,7 @@ test_that("Locales is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Stock Splits is accessible and returns appropriate data", {
+vcr::use_cassette("Stock_Splits_is_accessible_and_returns_appropriate_data", {
 test_that("Stock Splits is accessible and returns appropriate data", {
   .resp <- polygon("Stock Splits", symbol = "AMD")
   expect_s3_class(.resp$exDate, "Date")
@@ -68,7 +68,7 @@ test_that("Stock Splits is accessible and returns appropriate data", {
 })
 
 
-vcr::use_cassette("Stock Dividends is accessible and returns appropriate data", {
+vcr::use_cassette("Stock_Dividends_is_accessible_and_returns_appropriate_data", {
 test_that("Stock Dividends is accessible and returns appropriate data", {
   .resp <- polygon("Stock Dividends", symbol = "MSFT")
   expect_s3_class(.resp$exDate, "Date")
@@ -78,7 +78,7 @@ test_that("Stock Dividends is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Stock Financials is accessible and returns appropriate data", {
+vcr::use_cassette("Stock_Financials_is_accessible_and_returns_appropriate_data", {
 test_that("Stock Financials is accessible and returns appropriate data", {
   .resp <- polygon("Stock Financials", symbol = "BYND")
   expect_s3_class(.resp$calendarDate, "Date")
@@ -89,7 +89,7 @@ test_that("Stock Financials is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Market Status is accessible and returns appropriate data", {
+vcr::use_cassette("Market_Status_is_accessible_and_returns_appropriate_data", {
 test_that("Market Status is accessible and returns appropriate data", {
   .resp <- polygon("Market Status")
   expect_s3_class(.resp$serverTime, "POSIXct")
@@ -98,7 +98,7 @@ test_that("Market Status is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Market Holidays is accessible and returns appropriate data", {
+vcr::use_cassette("Market_Holidays_is_accessible_and_returns_appropriate_data", {
 test_that("Market Holidays is accessible and returns appropriate data", {
   .resp <- polygon("Market Holidays")
   expect_s3_class(.resp$date, "Date")
@@ -108,7 +108,7 @@ test_that("Market Holidays is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Exchanges is accessible and returns appropriate data", {
+vcr::use_cassette("Exchanges_is_accessible_and_returns_appropriate_data", {
 test_that("Exchanges is accessible and returns appropriate data", {
   .resp <- polygon("Exchanges")
   expect_true(any(stringr::str_detect(.resp$name, "NYSE America")))
@@ -116,7 +116,7 @@ test_that("Exchanges is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Historic Trades is accessible and returns appropriate data", {
+vcr::use_cassette("Historic_Trades_is_accessible_and_returns_appropriate_data", {
 test_that("Historic Trades is accessible and returns appropriate data", {
   .resp <- polygon("Historic Trades", limit = 5)
   expect_s3_class(.resp$time, "POSIXct")
@@ -144,7 +144,7 @@ test_that("Historic Trades is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Historic Quotes is accessible and returns appropriate data", {
+vcr::use_cassette("Historic_Quotes_is_accessible_and_returns_appropriate_data", {
 test_that("Historic Quotes is accessible and returns appropriate data", {
   .resp <- polygon("Historic Quotes", ticker = "MSFT", date = "2008-04-15", limit = 5)
   expect_identical(.resp$time, structure(c(1208246852.8, 1208246875.777, 1208246877.527, 1208247302.04, 1208247302.04), class = c("POSIXct", "POSIXt"), tzone = "America/New_York"))
@@ -171,33 +171,33 @@ test_that("Historic Quotes is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Last Trade is accessible and returns appropriate data", {
+vcr::use_cassette("Last_Trade_is_accessible_and_returns_appropriate_data", {
 test_that("Last Trade is accessible and returns appropriate data", {
   .resp <- polygon("Last trade for a symbol", symbol = "BYND")
   expect_lt(lubridate::as.difftime(lubridate::now() - .resp$timestamp), 
-                   lubridate::as.difftime(10, units = "days"))
+            lubridate::as.difftime(10, units = "days"))
   expect_identical(attr(.resp,"query"), list(status = "success", symbol = "BYND"))
 })
 })
 
-vcr::use_cassette("Last Quote is accessible and returns appropriate data", {
+vcr::use_cassette("Last_Quote_is_accessible_and_returns_appropriate_data", {
 test_that("Last Quote is accessible and returns appropriate data", {
   .resp <- polygon("Last quote for a symbol", symbol = "BYND")
   expect_lt(lubridate::as.difftime(lubridate::now() - .resp$timestamp), 
-                   lubridate::as.difftime(10, units = "days"))
+            lubridate::as.difftime(10, units = "days"))
   expect_identical(attr(.resp,"query"), list(status = "success", symbol = "BYND"))
   expect_equal(dim(.resp), c(1,7))
 })
 })
 
-vcr::use_cassette("Daily Open/Close is accessible and returns appropriate data", {
+vcr::use_cassette("Daily_Open_Close_is_accessible_and_returns_appropriate_data", {
 test_that("Daily Open/Close is accessible and returns appropriate data", {
   .resp <- polygon("Daily Open/Close", symbol = "BYND", date = "2019-12-04")
   expect_identical(.resp, structure(list(from = structure(1575430200, class = c("POSIXct", "POSIXt"), tzone = "America/New_York"), symbol = "BYND", open = 76.62, high = 77.2, low = 73.75, close = 74.41, afterHours = 73.757, volume = 4315965L), class = c("tbl_df", "tbl", "data.frame"), row.names = c(NA, -1L), query = list(status = "OK")))
 })
 })
 
-vcr::use_cassette("Condition Mappings is accessible and returns appropriate data", {
+vcr::use_cassette("Condition_Mappings_is_accessible_and_returns_appropriate_data", {
 test_that("Condition Mappings is accessible and returns appropriate data", {
   .resp <- polygon("Condition Mappings", ticktype = "trades")
   expect_equal(dim(.resp), c(55,1))
@@ -205,12 +205,11 @@ test_that("Condition Mappings is accessible and returns appropriate data", {
   expect_equal(dim(.resp), c(45,1))
 })
 })
-vcr::use_cassette("polygon calendar", {
-  .c <- calendar()
+vcr::use_cassette("polygon_calendar", {
+.c <- calendar()
 })
-
 .ms_open <- isTRUE(.c$date == lubridate::today())
-vcr::use_cassette("Snapshot: All Tickers is accessible and returns appropriate data", {
+vcr::use_cassette("Snapshot_All_Tickers_is_accessible_and_returns_appropriate_data", {
 test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
   if (.ms_open) {
     .resp <- polygon("Snapshot: All Tickers")
@@ -225,7 +224,7 @@ test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Snapshot: Single Ticker is accessible and returns appropriate data", {
+vcr::use_cassette("Snapshot_Single_Ticker_is_accessible_and_returns_appropriate_data", {
 test_that("Snapshot: Single Ticker is accessible and returns appropriate data", {
   
   
@@ -243,7 +242,7 @@ test_that("Snapshot: Single Ticker is accessible and returns appropriate data", 
 })
 })
 
-vcr::use_cassette("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
+vcr::use_cassette("Snapshot_Gainers_Losers_is_accessible_and_returns_appropriate_data", {
 test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
   if (.ms_open) {
     .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
@@ -256,7 +255,7 @@ test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data",
 })
 })
 
-vcr::use_cassette("Previous Close is accessible and returns appropriate data", {
+vcr::use_cassette("Previous_Close_is_accessible_and_returns_appropriate_data", {
 test_that("Previous Close is accessible and returns appropriate data", {
   .resp <- polygon("Previous Close", ticker = "BYND")
   expect_identical(attr(.resp, "query")$status, "OK")
@@ -268,7 +267,7 @@ test_that("Previous Close is accessible and returns appropriate data", {
 })
 
 
-vcr::use_cassette("Grouped Daily (Bars) is accessible and returns appropriate data", {
+vcr::use_cassette("Grouped_Daily_Bars_is_accessible_and_returns_appropriate_data", {
 test_that("Grouped Daily (Bars) is accessible and returns appropriate data", {
   .resp <- polygon("Grouped Daily (Bars)", locale = "US", market = "STOCKS", date = "2020-04-16")
   expect_identical(attr(.resp, "query")$status, "OK")

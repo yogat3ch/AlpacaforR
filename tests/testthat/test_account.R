@@ -2,7 +2,7 @@
 #' @include internal.R
 set.seed(1)
 context("Account family of functions works properly.")
-vcr::use_cassette("account retrieves account details properly", {
+vcr::use_cassette("account_retrieves_account_details_properly", {
 test_that("account retrieves account details properly", {
   .a <- account()
   expect_length(.a, 26)
@@ -10,28 +10,28 @@ test_that("account retrieves account details properly", {
 })
 })
 
-vcr::use_cassette("account_config properly retrieves account parameters", {
+vcr::use_cassette("account_config_properly_retrieves_account_parameters", {
 test_that("account_config properly retrieves account parameters", {
   .ac <- account_config()
   expect_length(.ac, 5)
 })
 })
 
-vcr::use_cassette("account_config properly sets account parameters", {
+vcr::use_cassette("account_config_properly_sets_account_parameters", {
 test_that("account_config properly sets account parameters", {
   .ac <- account_config(suspend_trade = T, no_shorting = T)
   expect_true(all(unlist(.ac[c("no_shorting", "suspend_trade")])))
 })
 })
 
-vcr::use_cassette("account_config can reset to default", {
+vcr::use_cassette("account_config_can_reset_to_default", {
 test_that("account_config can reset to default", {
   .ac <- account_config("default")
   expect_identical(.ac, list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)[names(.ac)])
 })
 })
 
-vcr::use_cassette("account_activities properly retrieves activities", {
+vcr::use_cassette("account_activities_properly_retrieves_activities", {
 test_that("account_activities properly retrieves activities", {
   .aa <- account_activities()
   expect_s3_class(.aa, "tbl")
@@ -44,7 +44,7 @@ test_that("account_activities properly retrieves activities", {
 })
 })
 `-` <- lubridate::`.__T__-:base`
-vcr::use_cassette("account_activities retrieves date ranges correctly", {
+vcr::use_cassette("account_activities_retrieves_date_ranges_correctly", {
 test_that("account_activities retrieves date ranges correctly", {
   .aa <- account_activities(after = lubridate::today() - lubridate::weeks(2))
   .int <- lubridate::interval(lubridate::today() - lubridate::weeks(2), lubridate::today() + lubridate::days(1), tzone = Sys.timezone())
@@ -58,7 +58,7 @@ test_that("account_activities retrieves date ranges correctly", {
 })
 })
 
-vcr::use_cassette("account_activities throws an error if invalid date is entered", {
+vcr::use_cassette("account_activities_throws_an_error_if_invalid_date_is_entered", {
 test_that("account_activities throws an error if invalid date is entered", {
   expect_warning(expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument"))
 })
@@ -69,7 +69,7 @@ test_that("account_activities throws an error if invalid date is entered", {
 e <- environment()
 .p <- purrr::iwalk(.p, ~{
   assign(.y, readRDS(ifelse(basename(getwd()) != "testthat", paste0("tests/testthat/",.x), .x)), envir = e)
-  })
+})
 `%>%` <- magrittr::`%>%`
 purrr::imap(c(char = "pchars", periods = "periods"), ~{
   .period <- .x
@@ -77,7 +77,7 @@ purrr::imap(c(char = "pchars", periods = "periods"), ~{
   purrr::pmap(.test[.sample,], ~{
     .vars <- list(...)
     .tt <- glue::glue("account_portfolio works properly with {.period} for test rowid: {.vars$rowid}")
-    vcr::use_cassette("account_portfolio", {
+vcr::use_cassette("account_porfolio", {
     test_that(.tt, {
       .res <- .res[[.type]][[.vars$rowid]]
       output <- list(warnings = attr(.res, "warn"), messages = attr(.res, "msg"))
@@ -97,7 +97,7 @@ purrr::imap(c(char = "pchars", periods = "periods"), ~{
       }
       browser(expr =  is.null(.res) || is.null(out$out))
       expect_equivalent(nrow(.res), nrow(out$out))
-    })
+})
     })
   })
 })

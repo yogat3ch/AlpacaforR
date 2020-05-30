@@ -3,7 +3,7 @@
 
 context("Watchlist family of functions works as intended.")
 
-vcr::use_cassette("A watchlist can be created with a single entry", {
+vcr::use_cassette("A_watchlist_can_be_created_with_a_single_entry", {
 test_that("A watchlist can be created with a single entry", {
   (wl <- watchlist(name = "test", tickers = "MSFT")) 
   expect_length(wl, 10)
@@ -12,14 +12,14 @@ test_that("A watchlist can be created with a single entry", {
 })
 })
 
-vcr::use_cassette("The watchlist appears in the list of watchlists", {
+vcr::use_cassette("The_watchlist_appears_in_the_list_of_watchlists", {
 test_that("The watchlist appears in the list of watchlists", {
- wls <- watchlist() 
- expect_true("test" %in% wls$name)
+  wls <- watchlist() 
+  expect_true("test" %in% wls$name)
 })
 })
 
-vcr::use_cassette("The watchlist is returned when it's name is passed as an arg", {
+vcr::use_cassette("The_watchlist_is_returned_when_it_s_name_is_passed_as_an_arg", {
 test_that("The watchlist is returned when it's name is passed as an arg", {
   (wl <- watchlist("test"))
   expect_length(wl, 10)
@@ -27,14 +27,14 @@ test_that("The watchlist is returned when it's name is passed as an arg", {
   expect_identical(attr(wl, "info")$name, "test")
 })
 }) 
- 
-vcr::use_cassette("The watchlist can be deleted successfully", {
+
+vcr::use_cassette("The_watchlist_can_be_deleted_successfully", {
 test_that("The watchlist can be deleted successfully", {
   expect_message(wl <- watchlist("test", a = "d"), regexp = "Watchlist deleted successfully")
 })
 })
- 
-vcr::use_cassette("A watchlist can have it's values replaced and renamed simultaneously", {
+
+vcr::use_cassette("A_watchlist_can_have_it_s_values_replaced_and_renamed_simultaneously", {
 test_that("A watchlist can have it's values replaced and renamed simultaneously", {
   watchlist(name = "test", tickers = c("AAPL", "WMT"))
   .t <- c("FB", "AAPL", "AMZN", "NFLX", "GOOG", "WMT")
@@ -45,15 +45,15 @@ test_that("A watchlist can have it's values replaced and renamed simultaneously"
 })
 })
 
-vcr::use_cassette("A watchlist can be renamed and have a single asset removed", {
+vcr::use_cassette("A_watchlist_can_be_renamed_and_have_a_single_asset_removed", {
 test_that("A watchlist can be renamed and have a single asset removed", {
   (wl <- watchlist("test2", name = "FAANG", ticker = "WMT", action = "d")) 
   expect_identical(attr(wl, "info")$name, "FAANG")
   expect_identical(wl$symbol, c("FB", "AAPL", "AMZN", "NFLX", "GOOG"))
 })
 })
- 
-vcr::use_cassette("A watchlist can be renamed and have assets added", {
+
+vcr::use_cassette("A_watchlist_can_be_renamed_and_have_assets_added", {
 test_that("A watchlist can be renamed and have assets added", {
   (wl <- watchlist("FAANG", "FABANGG", ticker = c("BYND", "GOOGL"), action = "a"))
   expect_identical(attr(wl, "info")$name, "FABANGG")
@@ -61,24 +61,23 @@ test_that("A watchlist can be renamed and have assets added", {
 })
 })
 
-vcr::use_cassette("A watchlist can have assets simply removed", {
+vcr::use_cassette("A_watchlist_can_have_assets_simply_removed", {
 test_that("A watchlist can have assets simply removed", {
   (wl <- watchlist("FABANGG", tickers = c("BYND", "GOOGL"), action = "d")) 
   expect_identical(wl$symbol, c("FB", "AAPL", "AMZN", "NFLX", "GOOG"))
 })
 })
 
-vcr::use_cassette("A watchlist can be just renamed", {
+vcr::use_cassette("A_watchlist_can_be_just_renamed", {
 test_that("A watchlist can be just renamed", {
   (wl <- watchlist("FABANGG", "FAANG"))
   expect_identical(attr(wl, "info")$name, "FAANG")
 })
 })
- 
-vcr::use_cassette("The watchlist can be deleted", {
+
+vcr::use_cassette("The_watchlist_can_be_deleted", {
 test_that("The watchlist can be deleted", {
   expect_length(watchlist("FAANG", a = "d"), 0) 
 })
 })
- # remove it (with partial action argument)
- 
+# remove it (with partial action argument)

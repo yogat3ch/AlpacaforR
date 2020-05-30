@@ -2,7 +2,7 @@
 #' @include Clock.R
 
 context("calendar functions correctly")
-vcr::use_cassette("calendar returns the appropriate response", {
+vcr::use_cassette("calendar_returns_the_appropriate_response", {
 test_that("calendar returns the appropriate response", {
   expect_message({.c <- calendar()}, regexp = "`from`, `to` arg\\(s\\) is\\/are NULL")
   expect_message({.c <- calendar("2020-03-04", "2020-04-26")}, regexp = "Sunday")

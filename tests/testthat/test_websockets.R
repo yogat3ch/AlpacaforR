@@ -1,8 +1,11 @@
 #' @include Websockets.R
 #' @include internal.R
 
+library(websocket)
+
 context("Websocket tests")
 if (rlang::is_interactive()) {
+
   test_that("ws_create returns the appropriate websocket object", {
     .ws <- ws_create("Alpaca", log_msgs = F)
     expect_identical(class(.ws$ws), c("WebSocket", "R6"))
@@ -16,4 +19,5 @@ if (rlang::is_interactive()) {
     expect_equal(.ws$ws$readyState()[1], 0)
     .ws$ws$close()
 })
+  
 }
