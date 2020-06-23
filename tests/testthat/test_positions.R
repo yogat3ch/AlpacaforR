@@ -28,8 +28,8 @@ vcr::use_cassette("Positions_cancels_a_single_order_when_market_is_open", {
   
   if (nrow(.p) > 1) {
     
-vcr::use_cassette("Positions_cancels_all_orders_when_closing_position_and_market_is_open", {
-    test_that("Positions cancels all orders when closing position and market is open", {
+vcr::use_cassette("Positions_cancels_all_orders_when_market_is_open", {
+    test_that("Positions_cancels_all_orders_when_market_is_open", {
       expect_message({.cp <- positions(a = "close_all")}, regexp = "All positions closed successfully")
 })
     })
@@ -43,8 +43,8 @@ vcr::use_cassette("Positions_closes_a_single_position_when_market_is_closed", {
   })
   
   if (nrow(.p) > 1) {
-vcr::use_cassette("Positions_cancels_all_orders_when_closing_position_and_market_is_closed", {
-    test_that("Positions cancels all orders when closing position and market is closed", {
+vcr::use_cassette("Positions_cancels_all_orders_when_market_is_closed", {
+    test_that("Positions_cancels_all_orders_when_market_is_closed", {
       expect_warning(expect_message({.cp <- positions(a = "close_all")}, regexp = "Related orders prevent positions"))
 })
     })
@@ -52,15 +52,15 @@ vcr::use_cassette("Positions_cancels_all_orders_when_closing_position_and_market
 }
 
 if (.open) {
-  vcr::use_cassette("positions_amzn", {
-    .lq <- polygon("lq", symbol = "AMZN")
+  vcr::use_cassette("positions_amzn", match_requests_on = "path", {
+    .lq <<- polygon("lq", symbol = "AMZN")
   })
   vcr::use_cassette("positions_order_submit_amzn", {
   order_submit("AMZN", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))
   })
 
-  vcr::use_cassette("positions_bynd", {
-    .lq <- polygon("lq", symbol = "BYND")
+  vcr::use_cassette("positions_bynd", match_requests_on = "path", {
+    .lq <<- polygon("lq", symbol = "BYND")
   })
   
   

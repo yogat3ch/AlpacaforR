@@ -46,8 +46,8 @@ test_that("account_activities properly retrieves activities", {
 `-` <- lubridate::`.__T__-:base`
 vcr::use_cassette("account_activities_retrieves_date_ranges_correctly", {
 test_that("account_activities retrieves date ranges correctly", {
-  .aa <- account_activities(after = lubridate::today() - lubridate::weeks(2))
-  .int <- lubridate::interval(lubridate::today() - lubridate::weeks(2), lubridate::today() + lubridate::days(1), tzone = Sys.timezone())
+  .aa <- account_activities(after = lubridate::ymd("2020-06-01") - lubridate::weeks(2), until = lubridate::ymd("2020-06-01"))
+  .int <- lubridate::interval(lubridate::ymd("2020-06-01") - lubridate::weeks(2), lubridate::ymd("2020-06-01") + lubridate::days(1), tzone = Sys.timezone())
   .nr <- tryCatch(nrow(.aa), error = function(e) 0)
   if (.nr > 0) {
     expect_true(all(lubridate::`%within%`(.aa$transaction_time, .int)))
@@ -74,12 +74,13 @@ e <- environment()
 purrr::imap(c(char = "pchars", periods = "periods"), ~{
   .period <- .x
   .type <- .y
-  purrr::pmap(.test[.sample,], ~{
+  purrr::pmap(e$.test[.sample,], ~{
     .vars <- list(...)
     .tt <- glue::glue("account_portfolio works properly with {.period} for test rowid: {.vars$rowid}")
-vcr::use_cassette("account_porfolio", {
+    .ct <- paste0(stringr::str_extract_all(.tt, "[:alnum:]+")[[1]], collapse = "_")
+vcr::use_cassette(.ct, {
     test_that(.tt, {
-      .res <- .res[[.type]][[.vars$rowid]]
+      .res <- e$.res[[.type]][[.vars$rowid]]
       output <- list(warnings = attr(.res, "warn"), messages = attr(.res, "msg"))
       output <- purrr::map(purrr::compact(output), ~{
         .i <- .x
@@ -145,11 +146,12 @@ vcr::use_cassette("account_porfolio", {
 #     })(.)) %>%
 #   dplyr::ungroup() %>%
 #   # randomize date_end based on subtracting periods at random from today
-#   mutate(date_end = do.call(c,purrr::map(sample(.[["periods"]], nrow(.)), ~{Sys.Date() - .x})))
+#   mutate(date_end = do.call(c,purrr::map(sample(.[["periods"]], nrow(.)), ~{lubridate::ymd("2020-06-15") - .x})))
 # .test$extended_hours <- sample(c(T,F), 77, replace = T)
 # .test <- dplyr::mutate_if(.test, is.factor, as.character) %>% tibble::rowid_to_column()
 # saveRDS(.test, "tests/testthat/rds/account_portfolio_test.rds")
-# # Create results table
+# .test <- readRDS("tests/testthat/rds/account_portfolio_test.rds")
+# #Create results table
 # .res <- purrr::imap(list(char = "pchars", periods = "periods"), ~{
 #   .period <- .x
 #   out <- purrr::pmap(.test, ~{

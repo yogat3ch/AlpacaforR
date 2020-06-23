@@ -184,9 +184,8 @@ test_that("bars_url returns URLs as anticipated", {
   expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_url"))), .url) 
 })
 })
+.test_raw <- dplyr::ungroup(dplyr::select(test_results, multiplier, timeframe, dplyr::ends_with("_data"))) %>% dplyr::mutate_at(dplyr::vars(dplyr::ends_with("_data")), ~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL}))
 
-vcr::use_cassette("bars_get_returns_the_appropriate_data", {
-test_that("bars_get returns the appropriate data", {
   .dat <- purrr::imap(c(ub = "ub_url" , sb = "sb_url", lb = "lb_url"), ~{
     .sym <- .x
     .bound <- purrr::pmap(test_results, ~{
@@ -195,15 +194,18 @@ test_that("bars_get returns the appropriate data", {
       .url <- list(...)[[.sym]]
       .dat <- bars_get(url = .url)
       .dat <- purrr::map(.dat, ~{attr(.x, "query") <- NULL})
+      .lab <- paste0("bars_get_",.sym,"_",..1,..2)
+      vcr::use_cassette(.lab, match_requests_on = "method", {
+        test_that(.lab, {
+          expect_identical(.test_raw %>% 
+            dplyr::filter(multiplier == ..1 & timeframe == ..2) %>% 
+            magrittr::extract2(stringr::str_replace(.sym, "url", "data")) %>% extract2(1),
+            .dat)
+        })
+      })
     })
-    
-  })
-  
-  .dat <- tibble::as_tibble(.dat)
-  names(.dat) <- paste0(names(.dat), "_data")
-  expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_data"))) %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})), .dat) 
 })
-})
+
 
 vcr::use_cassette("bars_expected_returns_the_appropriate_time_series", {
 test_that("bars_expected returns the appropriate time-series", {
@@ -267,32 +269,36 @@ test_that("bars_missing accurately identifies missing data", {
 })
 })
 
-vcr::use_cassette("bars_complete_returns_all_expected_data_consistently", {
-test_that("bars_complete returns all expected data consistently", {
+.test_raw <- dplyr::ungroup(dplyr::select(test_results, multiplier, timeframe, dplyr::ends_with("_complete"))) %>% dplyr::mutate_at(dplyr::vars(dplyr::ends_with("_complete")), ~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL;.x}))
+
   
-  .complete <- purrr::imap(c(ub = "upper_bound" , sb = "single_bound", lb = "lower_bound"), ~{
-    .sym <- .y
-    .complete <- purrr::pmap(test_results, ~{
-      message(paste(.sym))
-      .vars <- list(...)
-      list2env(.vars[c("timeframe", "multiplier")], environment())
-      .bars <- .vars[[paste0(.sym, "_data")]]
-      .bounds <- .vars[[paste0(.sym, "_bounds")]]
-      message(paste0("bars retrieved"))
-      .missing <- .vars[[paste0(.sym, "_missing")]]
-      message(paste0("missing retrieved"))
-      .tf_num <- which(.tf_order %in% timeframe)
-      message(paste0("bars_complete"))
-      if (inherits(.bars[[1]], "list")) return(.bars)
-      .complete <- bars_complete(bars = .bars, .missing = .missing, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier, unadjusted = unadjusted, .tf_order = .tf_order)
-      
+.complete <- purrr::imap(c(ub = "upper_bound" , sb = "single_bound", lb = "lower_bound"), ~{
+  .sym <- .y
+  .complete <- purrr::pmap(test_results, ~{
+    message(paste(.sym))
+    .vars <- list(...)
+    list2env(.vars[c("timeframe", "multiplier")], environment())
+    .bars <- .vars[[paste0(.sym, "_data")]]
+    .bounds <- .vars[[paste0(.sym, "_bounds")]]
+    message(paste0("bars retrieved"))
+    .missing <- .vars[[paste0(.sym, "_missing")]]
+    message(paste0("missing retrieved"))
+    tf_num(timeframe)
+    message(paste0("bars_complete"))
+    if (inherits(.bars[[1]], "list")) return(.bars)
+    .complete <- bars_complete(bars = .bars, .missing = .missing, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier, unadjusted = unadjusted, .tf_order = .tf_order)
+    .complete <- purrr::map(.complete, ~{attr(.x, "query") <- NULL;.x})
+    .lab <- paste0("bars_complete_",.sym,"_",..1,..2)
+
+    vcr::use_cassette(.lab, match_requests_on = "method", {
+      test_that(.lab, {
+        expect_equal(.test_raw %>% 
+                           dplyr::filter(multiplier == ..1 & timeframe == ..2) %>% 
+                           magrittr::extract2(paste0(.sym, "_complete")) %>% extract2(1),
+                         .complete, tolerance=1e-3)
+      })
     })
-    
   })
-  names(.complete) <- paste0(names(.complete), "_complete")
-  .complete <- tibble::as_tibble(.complete)
-  expect_identical(dplyr::ungroup(dplyr::select(test_results, dplyr::ends_with("_complete"))) %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})), .complete %>% dplyr::mutate_all(~purrr::map_depth(., 2, ~{attr(.x, "query") <- NULL})))
-})
 })
 
 

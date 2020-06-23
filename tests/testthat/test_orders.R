@@ -8,7 +8,7 @@ vcr::use_cassette("clock_is_open", {
 vcr::use_cassette("get_orders", {
 .ao <<- orders()
 })
-vcr::use_cassette("cancel_all_initial", {
+vcr::use_cassette("cancel_all_initial", record = "new_episodes", {
 if (isTRUE(inherits(.ao, "tbl") && try(nrow(.ao) > 0))) {
   order_submit(a = "cancel_all")
 }
@@ -84,19 +84,19 @@ test_that("orders properly detects the order", {
   expect_equal(dim(.oo[1,]), c(1,28))
 })
 })
-vcr::use_cassette("polygon_last_quote", {
+vcr::use_cassette("polygon_last_quote", match_requests_on = "path", {
 .lq <<- polygon("lq", symbol = "AMZN")
 })
 if (.open) {
-vcr::use_cassette("An_expedited_stop_can_be_placed_on_the_order_with_appropriate_messages", {
-  test_that("An expedited stop can be placed on the order with appropriate messages", {
+vcr::use_cassette("An_expedited_stop_can_be_placed_with_appropriate_messages", {
+  test_that("An_expedited_stop_can_be_placed_with_appropriate_messages", {
     expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T)
     expect_identical(.so$client_order_id, .o$id)
 })
   })
 } else if (isTRUE(suppressWarnings(positions(.o$symbol)$qty) < .o$qty)){
-vcr::use_cassette("An_expedited_stop_warns_if_the_buy_order_did_not_fill_and_there_is_an_insufficient_quantity_available", {
-  test_that("An expedited stop warns if the buy order did not fill and there is an insufficient quantity available", {
+vcr::use_cassette("An_expedited_stop_warns_if_insufficient_quantity_available", {
+  test_that("An expedited stop warns if insufficient quantity available", {
     expect_warning(expect_message({.so <<- order_submit(.o$id, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type", all = T), regexp = "insufficient qty available for order")
 })
   })
@@ -120,7 +120,7 @@ vcr::use_cassette("order_submit_properly_modifies_the_simple_sell_order", {
 } else if (exists(".so")) {
 vcr::use_cassette("order_submit_errors_if_outside_of_market_hours", {
   test_that("order_submit errors if outside of market hours", {
-    .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)|(?:Not Found)"
+    .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)|(?:Not Found)|(?:`ticker_id` is not an Order ID.)"
     expect_warning({.r <<- order_submit(.so$id, action = "r", qty = 1, stop = .lq$askprice * .95)}, regexp = .m)
     expect_true(stringr::str_detect(.r, .m))
 })
@@ -175,10 +175,11 @@ vcr::use_cassette("order_submit_warns_appropriately_when_market_is_closed", {
     })
   }
 }
-
+vcr::use_cassette("orders_lq", match_requests_on = "path", {
+  .lq <<- polygon("lq", symbol = "BYND")
+})
 vcr::use_cassette("order_submit_properly_places_an_oto_order_class", {
 test_that("order_submit properly places an oto order_class", {
-  .lq <- polygon("lq", symbol = "BYND")
   expect_message(.oto <- order_submit("BYND", order_class = "oto", qty = 2, stop_loss = list(s = .lq$askprice * .96)), regexp = "oto", all = T)
 })
 })
@@ -198,8 +199,8 @@ vcr::use_cassette("order_submit_properly_cancels_all_open_orders_when_market_is_
 })
   })
 } else if (length(.oo) > 0) {
-vcr::use_cassette("order_submit_properly_cancels_all_oepn_order_when_there_are_no_open_orders_to_cancel", {
-  test_that("order_submit properly cancels all oepn order when there are no open orders to cancel", {
+vcr::use_cassette("order_submit_cancels_all_when_no_open_orders_to_cancel", {
+  test_that("order_submit cancels all when no open orders to cancel", {
     expect_message(orders(), regexp = "(?:No orders for the selected query\\/filter criteria)|(?: Check `ticker_id` or set status \\= \\'all\\' to see all orders.)")
 })
   })

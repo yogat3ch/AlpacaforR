@@ -34,8 +34,8 @@ test_that("The watchlist can be deleted successfully", {
 })
 })
 
-vcr::use_cassette("A_watchlist_can_have_it_s_values_replaced_and_renamed_simultaneously", {
-test_that("A watchlist can have it's values replaced and renamed simultaneously", {
+vcr::use_cassette("A_watchlist_replaces_and_renames_simultaneously", {
+test_that("A watchlist replaces and renames simultaneously", {
   watchlist(name = "test", tickers = c("AAPL", "WMT"))
   .t <- c("FB", "AAPL", "AMZN", "NFLX", "GOOG", "WMT")
   (wl <- watchlist("test", name = "test2", tickers = .t, action = "r"))
