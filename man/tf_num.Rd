@@ -9,6 +9,8 @@ tf_num(timeframe, ..., cenv = rlang::caller_env())
 \arguments{
 \item{timeframe}{\code{(character)} For the \code{v1} API, one of
 \itemize{
+\item{\code{'t'/'lt'/'trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+\item{\code{'q'/'lq'/'quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
 \item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
 }
