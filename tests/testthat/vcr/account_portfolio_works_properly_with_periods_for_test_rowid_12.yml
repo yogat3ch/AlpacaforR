@@ -1,0 +1,62 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:27:51 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '673'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"387697.16","regt_buying_power":"193824.56","daytrading_buying_power":"387697.16","cash":"96912.28","portfolio_value":"96912.28","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"96912.28","last_equity":"96924.29","long_market_value":"0","short_market_value":"0","initial_margin":"0","maintenance_margin":"0","last_maintenance_margin":"0","sma":"0","daytrade_count":10}'
+  recorded_at: 2020-06-18 20:27:52 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/portfolio/history?period=1D&timeframe=5Min&date_end=2019-06-27&extended_hours=FALSE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Thu, 18 Jun 2020 20:27:52 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"timestamp":[1561642200,1561642500,1561642800,1561643100,1561643400,1561643700,1561644000,1561644300,1561644600,1561644900,1561645200,1561645500,1561645800,1561646100,1561646400,1561646700,1561647000,1561647300,1561647600,1561647900,1561648200,1561648500,1561648800,1561649100,1561649400,1561649700,1561650000,1561650300,1561650600,1561650900,1561651200,1561651500,1561651800,1561652100,1561652400,1561652700,1561653000,1561653300,1561653600,1561653900,1561654200,1561654500,1561654800,1561655100,1561655400,1561655700,1561656000,1561656300,1561656600,1561656900,1561657200,1561657500,1561657800,1561658100,1561658400,1561658700,1561659000,1561659300,1561659600,1561659900,1561660200,1561660500,1561660800,1561661100,1561661400,1561661700,1561662000,1561662300,1561662600,1561662900,1561663200,1561663500,1561663800,1561664100,1561664400,1561664700,1561665000,1561665300,1561665600],"equity":[100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000],"profit_loss":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"profit_loss_pct":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"base_value":100000,"timeframe":"5Min"}'
+  recorded_at: 2020-06-18 20:27:52 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

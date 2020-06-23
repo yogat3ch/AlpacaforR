@@ -1,0 +1,34 @@
+http_interactions:
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"BYND","qty":"2","side":"buy","type":"market","time_in_force":"day","order_class":"oto","stop_loss":{"stop_price":"147.1104"}}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Tue, 23 Jun 2020 19:13:20 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"232a6962-8bc6-42af-94f9-28a791159251","client_order_id":"5f621d24-1baf-4cf3-95a2-28aa2099cd39","created_at":"2020-06-23T19:13:20.000925Z","updated_at":"2020-06-23T19:13:20.008465Z","submitted_at":"2020-06-23T19:13:19.980412Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","symbol":"BYND","asset_class":"us_equity","qty":"2","filled_qty":"0","filled_avg_price":null,"order_class":"oto","order_type":"market","type":"market","side":"buy","time_in_force":"day","limit_price":null,"stop_price":null,"status":"accepted","extended_hours":false,"legs":[{"id":"ac8979ea-d0b4-4048-93fb-38134cdc8386","client_order_id":"8b1a9bfa-9625-4a96-8f4e-68e5301649e9","created_at":"2020-06-23T19:13:20.000925Z","updated_at":"2020-06-23T19:13:20.000925Z","submitted_at":"2020-06-23T19:13:19.980412Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","symbol":"BYND","asset_class":"us_equity","qty":"2","filled_qty":"0","filled_avg_price":null,"order_class":"oto","order_type":"stop","type":"stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"147.1104","status":"held","extended_hours":false,"legs":null}]}'
+  recorded_at: 2020-06-23 19:13:23 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

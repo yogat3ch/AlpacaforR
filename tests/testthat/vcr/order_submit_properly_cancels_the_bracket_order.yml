@@ -1,0 +1,30 @@
+http_interactions:
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/orders/9c7825f9-242f-445e-beff-f3d868d490d6
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 204
+      category: Success
+      reason: No Content
+      message: 'Success: (204) No Content'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 23 Jun 2020 19:12:54 GMT
+      content-type: application/json; charset=UTF-8
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: ''
+  recorded_at: 2020-06-23 19:12:55 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

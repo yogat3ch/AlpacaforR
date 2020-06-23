@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v1/last_quote/stocks/AMZN?apiKey=
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-length: '168'
+      content-type: application/json; charset=utf-8
+      date: Tue, 23 Jun 2020 19:12:28 GMT
+      server: nginx/1.17.8
+      strict-transport-security: max-age=15724800; includeSubDomains
+      x-request-id:
+      - 411ccaa12ccde49506caf3349cddd8fe
+      - 411ccaa12ccde49506caf3349cddd8fe
+    body:
+      encoding: UTF-8
+      file: no
+      string: |
+        {"last":{"askexchange":12,"askprice":2774.68,"asksize":1,"bidexchange":12,"bidprice":2773.12,"bidsize":1,"timestamp":1592939548377},"status":"success","symbol":"AMZN"}
+  recorded_at: 2020-06-23 19:12:28 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

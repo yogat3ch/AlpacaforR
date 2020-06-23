@@ -1,0 +1,59 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:25:32 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '673'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"387697.16","regt_buying_power":"193824.56","daytrading_buying_power":"387697.16","cash":"96912.28","portfolio_value":"96912.28","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"96912.28","last_equity":"96924.29","long_market_value":"0","short_market_value":"0","initial_margin":"0","maintenance_margin":"0","last_maintenance_margin":"0","sma":"0","daytrade_count":10}'
+  recorded_at: 2020-06-18 20:25:35 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/portfolio/history?period=1D&timeframe=1H&date_end=2020-05-15&extended_hours=TRUE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:25:33 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '728'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"timestamp":[1589540400,1589544000,1589547600,1589551200,1589554800,1589558400,1589562000,1589565600,1589569200,1589572800,1589576400,1589580000,1589583600],"equity":[96675.94,96657.54,96649.54,96629.74,96900,96600.34,96744.64,96719.58,96721.89,96742.59,96747.12,96742.07,97020.32],"profit_loss":[58.72,40.32,32.32,12.52,282.78,-16.88,127.42,102.36,104.67,125.37,129.9,124.85,403.1],"profit_loss_pct":[0.0006077591551485336,0.0004173169130720176,0.0003345159382561411,0.00012958352558684673,0.0029268074573041945,-0.0001747100568614994,0.001318812526379873,0.0010594384727691398,0.0010833472542472243,0.0012975947765833048,0.001344480828572795,0.0012922127132202726,0.004172134118534978],"base_value":96617.22,"timeframe":"1H"}'
+  recorded_at: 2020-06-18 20:25:35 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

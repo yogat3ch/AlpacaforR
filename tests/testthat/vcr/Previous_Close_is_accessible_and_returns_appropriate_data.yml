@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/BYND/prev?apiKey=
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-length: '198'
+      content-type: application/json
+      date: Thu, 18 Jun 2020 20:38:17 GMT
+      server: nginx/1.17.8
+      strict-transport-security: max-age=15724800; includeSubDomains
+      x-request-id:
+      - b3ac4591d6035ad57caa0cc6865407d2
+      - b3ac4591d6035ad57caa0cc6865407d2
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"BYND","status":"OK","queryCount":1,"resultsCount":1,"adjusted":true,"results":[{"T":"BYND","v":1.6288552e+07,"vw":161.6922,"o":155.98,"c":156.34,"h":167.16,"l":154.37,"t":1592424000000}]}'
+  recorded_at: 2020-06-18 20:38:16 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

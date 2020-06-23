@@ -1,0 +1,33 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/BYND?apiKey=
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=utf-8
+      date: Thu, 18 Jun 2020 20:38:16 GMT
+      server: nginx/1.17.8
+      strict-transport-security: max-age=15724800; includeSubDomains
+      transfer-encoding: chunked
+      vary: Accept-Encoding
+      x-request-id:
+      - 73598dea8d98cd201d637496f8b4ca2f
+      - 73598dea8d98cd201d637496f8b4ca2f
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"OK","ticker":{"day":{"c":158.2,"h":160.97,"l":154.88,"o":157.26,"v":6287332,"vw":157.8413},"lastQuote":{"P":158,"S":2,"p":157.7,"s":5,"t":1592512677375675348},"lastTrade":{"c":[12],"i":"15969","p":157.7,"s":488,"t":1592512587027674348,"x":4},"min":{"av":6287196,"c":157.7,"h":157.7,"l":157.7,"o":157.7,"v":513,"vw":157.7044},"prevDay":{"c":156.34,"h":167.16,"l":154.37,"o":155.98,"v":16288552,"vw":161.6922},"ticker":"BYND","todaysChange":1.36,"todaysChangePerc":0.87,"updated":1592512587027674348}}'
+  recorded_at: 2020-06-18 20:38:15 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

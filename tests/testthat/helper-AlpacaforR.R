@@ -1,12 +1,19 @@
 library("vcr")
-invisible(vcr::vcr_configure(dir = "vcr", log = TRUE))
+if (basename(getwd()) == "AlpacaforR") {
+  vcr::vcr_log_file("tests/testthat/vcr.log")
+  invisible(vcr::vcr_configure(dir = "tests/testthat/vcr", log = TRUE, log_opts = list(file = "tests/testthat/vcr.log"), write_disk_path = "tests/testthat/vcr"))
+} else {
+  vcr::vcr_log_file("vcr/vcr.log")
+  invisible(vcr::vcr_configure(dir = "vcr", log = TRUE))
+}
+
 # get all files that start with "test" in the testthat directory
 # .fn <- list.files("tests/testthat", pattern = "^test", full.names = T)
 # tests <- purrr::map(.fn %>% setNames(nm = basename(.)), ~{
 #   # read the file
 #   .lines <- readLines(.x)
-#   # get the line numbers of the test_that expressions. 
-#   # script assumes that all tests are written in the format: 
+#   # get the line numbers of the test_that expressions.
+#   # script assumes that all tests are written in the format:
 #   # test_that("my test", {
 #   #   [tests]...
 #   # })

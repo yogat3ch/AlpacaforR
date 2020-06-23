@@ -1,0 +1,35 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/reference/markets?apiKey=
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-encoding: gzip
+      content-length: '182'
+      content-type: application/json
+      date: Thu, 18 Jun 2020 20:37:38 GMT
+      server: nginx/1.17.8
+      strict-transport-security: max-age=15724800; includeSubDomains
+      x-request-id:
+      - f64b5cd2eb1ff40b3d629ac232f7cb30
+      - f64b5cd2eb1ff40b3d629ac232f7cb30
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"OK","results":[{"market":"STOCKS","desc":"Stocks / Equities
+        / ETFs"},{"market":"INDICES","desc":"Indices"},{"market":"MF","desc":"Mutual
+        Funds"},{"market":"MMF","desc":"Money Market Funds"},{"market":"CRYPTO","desc":"Crypto"},{"market":"FX","desc":"Forex
+        / Currencies"},{"market":"BONDS","desc":"Bonds"}]}'
+  recorded_at: 2020-06-18 20:37:38 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 207
+      category: Success
+      reason: Multi-Status (WebDAV; RFC 4918)
+      message: 'Success: (207) Multi-Status (WebDAV; RFC 4918)'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 23 Jun 2020 19:13:30 GMT
+      content-type: application/json; charset=UTF-8
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"id":"ac8979ea-d0b4-4048-93fb-38134cdc8386","status":200,"body":{"asset_class":"us_equity","asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","canceled_at":null,"client_order_id":"5f621d24-1baf-4cf3-95a2-28aa2099cd39","created_at":"2020-06-23T19:13:20.000925Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":"2020-06-23T19:13:20.066493Z","filled_avg_price":"153.16","filled_qty":"2","id":"232a6962-8bc6-42af-94f9-28a791159251","legs":[{"asset_class":"us_equity","asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","canceled_at":null,"client_order_id":"8b1a9bfa-9625-4a96-8f4e-68e5301649e9","created_at":"2020-06-23T19:13:20.000925Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","id":"ac8979ea-d0b4-4048-93fb-38134cdc8386","legs":null,"limit_price":null,"order_class":"oto","order_type":"stop","qty":"2","replaced_at":null,"replaced_by":null,"replaces":null,"side":"sell","status":"new","stop_price":"147.1104","submitted_at":"2020-06-23T19:13:20.095971Z","symbol":"BYND","time_in_force":"day","type":"stop","updated_at":"2020-06-23T19:13:20.264681Z"}],"limit_price":null,"order_class":"oto","order_type":"market","qty":"2","replaced_at":null,"replaced_by":null,"replaces":null,"side":"buy","status":"filled","stop_price":null,"submitted_at":"2020-06-23T19:13:19.980412Z","symbol":"BYND","time_in_force":"day","type":"market","updated_at":"2020-06-23T19:13:20.077557Z"}},{"id":"697df140-1944-4848-82b0-1da091f1102c","status":200,"body":{"asset_class":"us_equity","asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","canceled_at":null,"client_order_id":"16ec9303-67ba-466b-8bc3-4a38db4030df","created_at":"2020-06-23T19:13:08.222168Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","id":"697df140-1944-4848-82b0-1da091f1102c","legs":null,"limit_price":"2857.92","order_class":"oco","order_type":"limit","qty":"2","replaced_at":null,"replaced_by":null,"replaces":null,"side":"sell","status":"pending_cancel","stop_price":null,"submitted_at":"2020-06-23T19:13:08.216237Z","symbol":"AMZN","time_in_force":"day","type":"limit","updated_at":"2020-06-23T19:13:30.721147602Z"}}]'
+  recorded_at: 2020-06-23 19:13:33 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

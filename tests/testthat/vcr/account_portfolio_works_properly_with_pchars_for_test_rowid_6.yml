@@ -1,0 +1,62 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:24:03 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '673'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"387697.16","regt_buying_power":"193824.56","daytrading_buying_power":"387697.16","cash":"96912.28","portfolio_value":"96912.28","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"96912.28","last_equity":"96924.29","long_market_value":"0","short_market_value":"0","initial_margin":"0","maintenance_margin":"0","last_maintenance_margin":"0","sma":"0","daytrade_count":10}'
+  recorded_at: 2020-06-18 20:24:05 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/portfolio/history?period=1M&timeframe=1D&date_end=2020-03-15&extended_hours=FALSE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Thu, 18 Jun 2020 20:24:05 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"timestamp":[1582036200,1582122600,1582209000,1582295400,1582554600,1582641000,1582727400,1582813800,1582900200,1583159400,1583245800,1583332200,1583418600,1583505000,1583760600,1583847000,1583933400,1584019800,1584106200],"equity":[100069.39,100545.93,100197.31,99412.69,97839.46,96792.37,97262.33,95200.6,95366.9,97849.72,96853.6,98266.18,97229.75,96812.86,94422.73,96476.72,95363.35,92489.93,95606.03],"profit_loss":[-574.2,476.54,-348.63,-784.13,-1575.23,-2622.32,467.87,-2057.71,116.88,2616.25,-995.07,1411.47,-1033.8,-416.89,-2395.08,2045.39,-1076.19,-2887.65,3092.7],"profit_loss_pct":[0,0.0047620955818757,0.0012782130479659936,-0.006557648864866857,-0.022299101940712558,-0.04850370915132909,-0.043904415120204855,-0.06413184999620468,-0.06298286281153946,-0.03727718206518709,-0.047067466538585595,-0.033180159479221934,-0.04335149565134529,-0.047453297774439435,-0.07101861291507668,-0.050894970659344035,-0.061482160413785514,-0.08990095064589387,-0.05946884490273407],"base_value":100069.39,"timeframe":"1D"}'
+  recorded_at: 2020-06-18 20:24:05 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

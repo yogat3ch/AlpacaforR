@@ -1,0 +1,30 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/assets/BLAH
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 404
+      category: Client error
+      reason: Not Found
+      message: 'Client error: (404) Not Found'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:36:32 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '54'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"code":40410000,"message":"asset not found for BLAH"}'
+  recorded_at: 2020-06-18 20:36:32 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2

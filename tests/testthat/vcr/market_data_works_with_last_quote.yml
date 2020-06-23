@@ -1,0 +1,88 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/TWTR
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:37:27 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '169'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"TWTR","last":{"askprice":34.11,"asksize":11,"askexchange":9,"bidprice":34.06,"bidsize":1,"bidexchange":15,"timestamp":1592510405589917616}}'
+  recorded_at: 2020-06-18 20:37:27 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/BYND
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:37:27 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '170'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"BYND","last":{"askprice":158.12,"asksize":1,"askexchange":17,"bidprice":157.85,"bidsize":4,"bidexchange":9,"timestamp":1592511355973561645}}'
+  recorded_at: 2020-06-18 20:37:27 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/AAPL
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: 
+      APCA-API-SECRET-KEY: 
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Thu, 18 Jun 2020 20:37:27 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '170'
+      connection: keep-alive
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"AAPL","last":{"askprice":351.65,"asksize":1,"askexchange":17,"bidprice":351.77,"bidsize":1,"bidexchange":3,"timestamp":1592512613309427877}}'
+  recorded_at: 2020-06-18 20:37:27 GMT
+  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
