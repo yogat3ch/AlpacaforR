@@ -34,12 +34,14 @@ get_bars(
 )
 }
 \arguments{
-\item{ticker}{\code{(character)} The stock or stocks (in vector format) that you want. Non case-sensitive.}
+\item{ticker}{\code{(character)} The stock or stocks (in vector format) for which data will be retrieved. Non case-sensitive.}
 
 \item{v}{\code{(integer)} The API version number. If \code{1}, the \code{v1} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if \code{2}, the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used.}
 
 \item{timeframe}{\code{(character)} For the \code{v1} API, one of
 \itemize{
+\item{\code{'t'/'lt'/'trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+\item{\code{'q'/'lq'/'quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
 \item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
 }
@@ -125,6 +127,10 @@ purrr::map(bars, ~range(.x$time)) # The range appears the same
 plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
 axis(1, bars$BYND$time, format(bars$BYND$time, "\%b \%d"), cex.axis = .7)
 # That's more like it!
+# Get the last quote for a ticker (or multiple):
+market_data("TWTR", timeframe = "q")
+# or the last trade for multiple tickers:
+market_data(c("TWTR","AAPL","BYND"), timeframe = "t")
 get_bars("AAPL")
 }
 \concept{Market-Data}

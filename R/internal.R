@@ -327,7 +327,7 @@ bars_url <- function(..., limit = NULL) {
   
   .e <- list(...)
   fetch_vars(.vn, e = .e)
-  if (!".tf_num" %in% ls(all.names = T)) tf_num(timeframe)
+  if (!".tf_num" %in% ls(all.names = T) && !timeframe %in% c("q","t")) tf_num(timeframe)
   # Format ticker:  Thu Mar 26 08:48:03 2020 ----
   if (v == 1) {
     .ticker = ifelse(length(ticker) > 1, paste0(trimws(ticker), collapse = ","), ticker)
@@ -343,8 +343,15 @@ bars_url <- function(..., limit = NULL) {
       limit <- 1000
     }  
   }
-  
-  if (v == 1) {
+  # timeframe is quote or trade ----
+  # Sun Jun 14 16:08:07 2020
+  if (v == 1 && timeframe %in% c("t", "q")) {
+    .url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
+    .url <- purrr::map_chr(setNames(ticker, ticker), ~{
+      .url$path <- list("v1", ifelse(timeframe == "t", "last","last_quote"), "stocks", .x)
+      .url <- utils::URLdecode(httr::build_url(.url))
+    })
+  } else if (v == 1) {
     .url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
     # multiplier & timeframe ----
     # Fri May 08 21:26:15 2020
@@ -412,8 +419,23 @@ bars_get <- function(url, ...) {
   .vn <- list(url = c("character","list"), v = c("integer", "numeric"), .tf_order = c("factor"), timeframe = c("factor", "character"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
-  if (!".tf_num" %in% ls(all.names = T)) tf_num(timeframe)
-  if (v == 1) {
+  if (!".tf_num" %in% ls(all.names = T) && !timeframe %in% c("q","t")) tf_num(timeframe)
+  if (timeframe %in% c("t","q")) {
+    headers = get_headers()
+    query <- list()
+    bars <- purrr::imap_dfr(url, ~{
+      agg_quote = httr::GET(url = .x, headers)
+      .query <- list()
+      .query$status_code <- agg_quote$status_code
+      .query$url <- agg_quote$url
+      .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York")
+      agg_quote <- response_text_clean(agg_quote)
+      .out <- bars_transform(agg_quote)
+      query[[.y]] <<- .query
+      return(.out)
+    })
+    attr(bars, "query") <- query
+  } else if (v == 1) {
     headers = get_headers()
     if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving\n", url))
     agg_quote = httr::GET(url = url, headers)
@@ -428,24 +450,24 @@ bars_get <- function(url, ...) {
     agg_quote = response_text_clean(agg_quote)
     
     .e <- rlang::current_env()
-    purrr::iwalk(agg_quote, ~{
-      .warn <- tryCatch({is.null(nrow(.x)) || nrow(.x) == 0},  error = function(cond) {assign("err", cond, .e);TRUE})
-      if (.warn) {
-        rlang::warn(paste0(.y, " returned no data."))
-      }  
-    })
-    
+    if (!timeframe %in% c("q","t")) {
+      # only check output if it's a bars request
+      purrr::iwalk(agg_quote, ~{
+        .warn <- tryCatch({is.null(nrow(.x)) || nrow(.x) == 0},  error = function(cond) {assign("err", cond, .e);TRUE})
+        if (.warn) {
+          rlang::warn(paste0(.y, " returned no data."))
+        }  
+      })
+    }
     bars <- bars_transform(agg_quote)
     # add query metadata to match v2 api
     bars <- purrr::imap(bars, ~{
       .query$ticker <- .y
-     if (!is.null(.x)) attr(.x, "query") <- .query  
+      if (!is.null(.x)) attr(.x, "query") <- .query  
       .x
     })
-    
-    
-    
-  } else if (v == 2) {
+  
+      } else if (v == 2) {
     # get for v2 API
     if (is.null(names(url))) {
       names(url) <- stringr::str_extract(url, "(?<=ticker\\/)\\w+")
@@ -1053,15 +1075,26 @@ bars_complete <- function(bars, .missing, ...) {
 
 bars_transform <- function(bars) {
   `%>%` <- magrittr::`%>%`
-  bars = purrr::imap(bars, ~{
-    if (!any("data.frame" %in% class(.x))) {
-      message(paste0("The symbol ", .y, " returned no data.")) 
-      return(NULL)
-    } 
-    nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
-    out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01", tz = "America/New_York"))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
-      dplyr::rename((!!nms))
-  })  
+  if (any(grepl("^last", names(bars)[3]))) {
+    # if last quote or trade
+    .sym <- bars$symbol
+    bars <- tibble::as_tibble(bars[[grep("^last", names(bars))]])
+    bars$symbol <- .sym
+    bars <- bars %>% 
+      dplyr::select(symbol, dplyr::everything()) %>% 
+      dplyr::mutate_at(dplyr::vars(timestamp), ~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin))
+  } else {
+    bars = purrr::imap(bars, ~{
+      if (!any("data.frame" %in% class(.x))) {
+        message(paste0("The symbol ", .y, " returned no data.")) 
+        return(NULL)
+      } 
+      nms <- c(time = "t", open = "o", high = "h", low = "l", close = "c", volume = "v")
+      out <- dplyr::mutate_at(.x, dplyr::vars("t"), ~as.POSIXct(.,origin = "1970-01-01", tz = "America/New_York"))  %>% dplyr::mutate_at(dplyr::vars(o,h,c,l,v),~as.numeric(.)) %>%
+        dplyr::rename((!!nms))
+    })  
+  }
+  return(bars)
 }
 
 
@@ -1212,11 +1245,11 @@ pos_transform <- function(pos) {
   }
   
   if(any(grepl(pattern = "^4", x = .code))) {
-    rlang::warn(paste("Position was not",ifelse(.method == "GET", "found.", "modified."),"\n Message:", .message))
+    rlang::warn(paste("Position was not",ifelse(grepl("GET", .method, ignore.case = TRUE), "found.", "modified."),"\n Message:", .message))
     return(.pos)
-  } else if (.sym != "positions" && .sym %in% .pos$symbol && .method == "DELETE") {
+  } else if (.sym != "positions" && .sym %in% .pos$symbol && grepl("DELETE", .method, ignore.case = TRUE)) {
     message(paste0(.sym, " closed successfully."))
-  } else if (.method == "DELETE" && any(grepl("^2", .pos$body$code %||% .pos$status))) {
+  } else if (grepl("DELETE", .method, ignore.case = TRUE) && any(grepl("^2", .pos$body$code %||% .pos$status))) {
     message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$sym[grepl("^2", .pos$body$code %||% .pos$status)], collapse = ", ")))
   }
   
@@ -1224,7 +1257,7 @@ pos_transform <- function(pos) {
   if(length(.pos) == 0) {
     message("No positions are open at this time.")
     out <- .pos
-  } else if(length(.pos) > 1 && !(.method == "DELETE" && .sym == "positions")) {
+  } else if(length(.pos) > 1 && !(grepl("DELETE", .method, ignore.case = TRUE) && .sym == "positions")) {
     out <- order_transform(pos)
   } else if (.sym == "positions") {
     # if close_all
@@ -1256,7 +1289,6 @@ aa_transform <- function(resp) {
     .message <- resp$message
   } else if (class(resp) == "response") {
     .method <- resp$request$method
-    .sym <- stringr::str_extract(resp$request$url, "\\w+$")
     .code <- resp$status_code
     #browser()
     .resp <- response_text_clean(resp)
@@ -1398,8 +1430,8 @@ order_transform <- function(o) {
     return(.o)
   }
   
-  if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && .method == "DELETE")) {
-    if (.method == "DELETE" && "body" %in% names(.o)) {.o <- .o$body;.q <- .o[1:2]}
+  if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && grepl("DELETE", .method, ignore.case = TRUE))) {
+    if (grepl("DELETE", .method, ignore.case = TRUE) && "body" %in% names(.o)) {.o <- .o$body;.q <- .o[1:2]}
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
@@ -1420,10 +1452,10 @@ order_transform <- function(o) {
         out <- o_transform(.o) 
       })})
     
-  } else if (length(.o) == 0 && .method == "GET") {
+  } else if (length(.o) == 0 && grepl("GET", .method, ignore.case = TRUE)) {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
     out <- .o
-  } else if (.method == "DELETE") {
+  } else if (grepl("DELETE", .method, ignore.case = TRUE)) {
     # case when deleting single order
     out <- .o
   }

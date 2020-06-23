@@ -5,10 +5,12 @@
 #' @title Get Market Data
 #' 
 #' @description The bars API provides time-aggregated price and volume data for a single stock or multiple. **The `v2` (Polygon) API is only available for live accounts and accepts the `from`, `to`, `timeframe`, `multiplier`, and `unadjusted` arguments.**
-#' @param ticker \code{(character)} The stock or stocks (in vector format) that you want. Non case-sensitive.
+#' @param ticker \code{(character)} The stock or stocks (in vector format) for which data will be retrieved. Non case-sensitive.
 #' @param v \code{(integer)} The API version number. If `1`, the `v1` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if `2`, the `v2` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used. 
 #' @param timeframe \code{(character)} For the `v1` API, one of
 #' \itemize{
+#'  \item{`'t'/'lt'/'trade'`}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+#'  \item{`'q'/'lq'/'quote'`}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
 #'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
 #'  \item{`'d'`/`'day'`}{ (`multiplier` will be `1`)}
 #' } 
@@ -76,6 +78,10 @@
 #' plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
 #' axis(1, bars$BYND$time, format(bars$BYND$time, "%b %d"), cex.axis = .7)
 #' # That's more like it!
+#' # Get the last quote for a ticker (or multiple):
+#' market_data("TWTR", timeframe = "q")
+#' # or the last trade for multiple tickers:
+#' market_data(c("TWTR","AAPL","BYND"), timeframe = "t")
 #' @importFrom stringr str_detect str_extract regex
 #' @importFrom purrr map_chr map_lgl keep
 #' @importFrom rlang abort warn
@@ -89,6 +95,14 @@
 
 market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE){
   `%>%` <- magrittr::`%>%`
+  # Last trade and quote handling  ----
+  if (grepl("^(?:lt)$|^t$|(?:trade)|^q$|^(?:lq)$|(?:quote)", timeframe, ignore.case = TRUE)) {
+    timeframe <- ifelse(grepl("^lt$|^t$|trade", timeframe, ignore.case = TRUE), "t", "q")
+    .url <- bars_url(timeframe = timeframe)
+    .out <- bars_get(.url)
+    return(.out)
+  }
+  # Sun Jun 14 15:58:33 2020
   #param check:  Thu Mar 26 08:34:13 2020 ----
   if((is.null(from) || is.null(to)) && (is.null(start) || is.null(end))){
     stop("Please enter either 'from' & 'to' or 'after' & 'until' arguments.")
@@ -99,9 +113,10 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
     multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
     timeframe <- tolower(stringr::str_extract(timeframe, "\\w+"))
   }
-  tf_num(timeframe)
+  
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
   .bounds <- bars_bounds(from = from, to = to, after = after, until = until, fc = TRUE)
+  tf_num(timeframe)
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(.bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
