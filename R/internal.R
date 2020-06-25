@@ -323,7 +323,7 @@ bars_bounds <- function(..., fc = NULL) {
 bars_url <- function(...) {
   `%||%` <- rlang::`%||%`
   `!!!` <- rlang::`!!!`
-  .vn <- list(ticker = c("character"), .bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", limit = c("integer","numeric"))
+  .vn <- list(ticker = c("character"), .bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", limit = c("integer","numeric", "NULL"))
   
   .e <- list(...)
   fetch_vars(.vn, e = .e)
