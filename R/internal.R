@@ -320,10 +320,10 @@ bars_bounds <- function(..., fc = NULL) {
 #' @importFrom stringr str_extract str_sub
 #' @importFrom httr parse_url build_url
 #' @importFrom utils URLdecode
-bars_url <- function(..., limit = NULL) {
+bars_url <- function(...) {
   `%||%` <- rlang::`%||%`
   `!!!` <- rlang::`!!!`
-  .vn <- list(ticker = c("character"), .bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical")
+  .vn <- list(ticker = c("character"), .bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", limit = c("integer","numeric"))
   
   .e <- list(...)
   fetch_vars(.vn, e = .e)
