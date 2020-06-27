@@ -80,9 +80,11 @@ fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.
     if (length(.missed) > 0) {
       .vars <- purrr::walk(append(sf, penv, after = 0), ~{
         if (identical(globalenv(), .x)) return(NULL)
+        if (length(.missed) == 0) return(NULL)
         .v <- rlang::env_get_list(env = .x, names(.missed), default = Inf, inherit = FALSE)
         .v <- try({purrr::discard(.v, is_inf)})
         .v <- .v[purrr::map2_lgl(.v, .vn[names(.v)], ~inherits(.x, .y))]
+        .missed <<- .missed[!.missed %in% names(.v)]
         rlang::env_bind(cenv, !!!.v)
       })
     }
