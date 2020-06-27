@@ -295,7 +295,7 @@ test_that("bars_missing accurately identifies missing data", {
         expect_equal(.test_raw %>% 
                            dplyr::filter(multiplier == ..1 & timeframe == ..2) %>% 
                            magrittr::extract2(paste0(.sym, "_complete")) %>% extract2(1),
-                         .complete, tolerance=1e-1)
+                         .complete, tolerance=5e-1)
       })
     })
   })

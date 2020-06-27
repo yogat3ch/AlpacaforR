@@ -1846,7 +1846,7 @@ poly_transform <- function(resp, ep) {
     if (is.data.frame(.o$.tbl$day) || is.list(.o$.tbl$day)) {
       .t <- unlist(.o$.tbl[1:5], recursive = FALSE)
       if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
-      .o$.tbl <- dplyr::bind_cols(.t, .o$.tbl[6:9]) 
+      .o$.tbl <- dplyr::bind_cols(tibble::as_tibble(.t), .o$.tbl[6:9]) 
     }
   .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, .f = ~{
     .out <- rlang::`%||%`(x = .x, y = NA)
