@@ -310,7 +310,7 @@ account_portfolio <- function(period = NULL, timeframe = NULL, date_end = NULL, 
   purrr::iwalk(.vn, ~{
     if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
   })
-  headers <- get_headers()
+  headers <- get_headers(live)
   .url <- httr::parse_url(get_url(live))
   #  period ----
   # Mon May 18 10:53:29 2020
