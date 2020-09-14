@@ -120,8 +120,12 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
   .tf_order <- purrr::map_chr(.tf_opts, utils::tail, 1) %>% {factor(., levels = .)}
   
   if (v == 1) {
+    .t <- grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)
+    if (length(.t) < 1) {
+      stop(paste0("`",timeframe,"` is not a valid timeframe for the v1 API. See ?market_data documentation."))
+    }
     # Get the timeframe
-    timeframe <- utils::tail(.tf_opts[c(1,3)][[grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)]], 1)
+    timeframe <- utils::tail(.tf_opts[c(1,3)][[.t]], 1)
     
     # Check args
     if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
@@ -177,10 +181,24 @@ bars_bounds <- function(..., fc = NULL) {
     message(paste0("`to` argument omitted, setting to ", to))
   }
   if (all(c("from", "to") %in% ls(all.names = T)) || all(c("after", "until") %in% ls(all.names = T))) {
-    .date_vars <- list(from = from, to = to, after = after, until = until)
+    .date_vars <- list(from = from, after = after, to = to, until = until)
   }
   # Remove NULL arguments
   .bounds <- purrr::compact(.date_vars)
+  if ((missing(fc) || isFALSE(get0("fc", inherits = FALSE, mode = "logical"))) && length(.bounds) > 2) {
+    
+    # in some instances when bars_missing is called, after was supplied by the user, but the from-to arguments are being used. fetch_vars will zap all three arguments, and make bars_bounds inaccurate. To accommodate this case, grab the argument names passed in the call and use those. If only one argument was passed (and values were filled interally), switch is used to add the other argument and sort alphabetically such that the order of the dates will be accurate (since [f]rom <  [t]o & [a]fter < [u]ntil).
+    .b <- purrr::keep(names(match.call()), ~nchar(.x) > 0 && .x %in% c("from", "to", "after", "until"))
+    if (length(.b) != 2) {
+      .b <- sort(c(.b, switch(.b,
+                               from = "to",
+                               to = "from", 
+                               after = "until",
+                               until = "after")))
+      
+    }
+    .bounds <- .bounds[.b]
+  }
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   .bounds <- purrr::imap(.bounds, ~{
     .out <- try_date(.x)
@@ -370,8 +388,8 @@ bars_url <- function(...) {
     .url$query <- list(symbols = .ticker,
                       limit = limit,
                       start = .bounds$from,
-                      end = .bounds$to,
                       after = .bounds$after,
+                      end = .bounds$to,
                       until = .bounds$until
     )
     # Build the url
@@ -550,16 +568,8 @@ bars_expected <- function(bars, ...) {
   .expected <- purrr::imap(bars, ~{
     if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL)
     .cutoff <- attr(.x, "query")$ts %||% tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||% lubridate::now()
-    # if there is data
-    if (nrow(.x) > 0) {
-      .bgn <- .x$time[1]
-      if (.tf_num < 4) {
-        .cal <- dplyr::filter(.cal, date >= lubridate::as_date(.bgn))
-      }
-    } else {
-      .bgn <- .bounds[[1]]
-    }
-    browser(expr = .tf_num == 5 && .timeframe == "minute")
+    .bgn <- .bounds[[1]]
+    #browser(expr = .tf_num == 5 && .timeframe == "minute")
     if (.tf_num < 3) {
       # units for floor/ceiling
       .units <- paste0(
@@ -646,7 +656,7 @@ bars_expected <- function(bars, ...) {
 #' }
 #' @keywords internal
 #' @importFrom purrr map map2 map_dfr
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows distinct
 #' @importFrom tibble tibble
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%||%" is_named
@@ -670,8 +680,9 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
   } 
   
   .expected <- bars_expected(bars, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier)
-  
+  #browser(expr = length(bars) != length(.expected))
   .out <- purrr::map2(bars, .expected, ~{
+
     if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL) # if no data was returned
     .ticker <- attr(.x, "query")$ticker %||% attr(.x, "query")[[1]] %||% ticker
     .expected <- .y
@@ -732,7 +743,7 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
         # add one day previous and one day ahead
         .url_md <- c(.md[1] - .tf_dur, .md, .md[length(.md)] + .tf_dur)
         # split up by weeks
-        .leading <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
+        .leading <- split(.url_md, paste0(lubridate::year(.url_md),"-",lubridate::isoweek(.url_md))) %>% 
           # map over the weeks
           purrr::map_dfr(~{
             .gap_times <- range(.x)
@@ -780,7 +791,7 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
         # add one period previous and one period ahead
         .url_md <- c(.md[1] - .tf_dur, .md, .md[length(.md)] + .tf_dur)
         # split up by weeks
-        .lagging <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
+        .lagging <- split(.url_md, paste0(lubridate::year(.url_md),"-",lubridate::isoweek(.url_md))) %>% 
           # map over the weeks
           purrr::map_dfr(~{
             .gap_times <- range(.x)
@@ -826,7 +837,7 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
         # add one day previous
         .url_md <- c(.missing_dates[1] - .tf_dur, .missing_dates)
         # split up by weeks
-        .mid <- split(.url_md, lubridate::isoweek(.url_md)) %>% 
+        .mid <- split(.url_md, paste0(lubridate::year(.url_md),"-",lubridate::isoweek(.url_md))) %>% 
           # map over the weeks
           purrr::map_dfr(~{
             .gap_times <- range(.x)
@@ -904,6 +915,8 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
         #browser()
       }
     }
+    
+    .out <- dplyr::distinct_at(.out, .vars = dplyr::vars(url), .keep_all = TRUE)
     return(.out)
   })
   if (length(.out) == 0) {
@@ -912,6 +925,7 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
     # If a single data.frame is fed in, return just the missing tibble
     .out <- .out[[1]]
   }
+  
   return(.out)
 }
 
@@ -979,13 +993,20 @@ bars_complete <- function(bars, .missing, ...) {
                 .b <- bars_bounds(from = .x, to = .x, multiplier = multiplier, timeframe = timeframe)
                 .out <- lubridate::interval(start = .x, end = .b$to)
               } else if (v == 2) {
-                .out <- lubridate::interval(start = .d[which.max(which(.d < .x))], end = .x)
+                .s <- .d[which.max(which(.d < .x))]
+                # sometimes there will be none greater and .d_int will be 1 shorter than .m_tib_missing - in these instances use <=
+                if (length(.s) < 1) .s <- .d[which.max(which(.d <= .x))]
+                .out <- lubridate::interval(start = .s, end = .x)
               } else {
-                .out <- lubridate::interval(start = .x, end = .d[which.min(which(.d > .x))])
+                .e <- .d[which.min(which(.d > .x))]
+                # sometimes there will be none less and .d_int will be 1 shorter than .m_tib_missing - in these instances use >=
+                if (length(.e) < 1) .e <- .d[which.max(which(.d >= .x))]
+                .out <- lubridate::interval(start = .x, end = .e)
               }
               return(.out)
             }) %>% do.call(c, .)
               # Compute the aggregates for the times in the interval
+            #browser(expr = length(.d_int) != length(.m_tib_missing))
             .new <- purrr::map2_dfr(.d_int, .m_tib_missing, ~{
                 .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
                 # If no data is returned even with reduced timeframe return NA
@@ -1521,6 +1542,25 @@ order_check <- function(penv = NULL, ...) {
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {
+    
+    # set type if partialled and order_class is NULL  ----
+    # Thu Apr 30 20:20:16 2020
+    if (!is.null(type) && is.null(order_class)){
+      type <- tolower(type)
+      if (grepl("^s", type) && grepl("(?<!i)l", type, perl = TRUE)) {
+        type <- "stop_limit"
+      } else if (grepl("^t", type) && grepl("s", type)) {
+        type <- "trailing_stop"
+        side <- "sell"
+      } else if (substr(type,1,1) == "s") {
+        type <- "stop"
+      } else if (substr(type,1,1) == "l") {
+        type <- "limit"
+      } else if (substr(type,1,1) == "m") {
+        type <- "market"
+      }
+    }
+    
     if (!is.null(side)) {
       side <- try(c(b = "buy", s = "sell")[tolower(substr(side, 0, 1))])
       if (class(side) == "try-error") rlang::abort("Invalid value for `side`")
@@ -1549,21 +1589,7 @@ order_check <- function(penv = NULL, ...) {
       })
       names(stop_loss) <- .n
     }
-    # set type if partialled and order_class is NULL  ----
-    # Thu Apr 30 20:20:16 2020
-    
-    if (!is.null(type) && is.null(order_class)){
-      type <- tolower(type)
-      if (grepl("s", type) && grepl("l", type)) {
-        type <- "stop_limit"
-      } else if (substr(type,1,1) == "s") {
-        type <- "stop"
-      } else if (substr(type,1,1) == "l") {
-        type <- "limit"
-      } else if (substr(type,1,1) == "m") {
-        type <- "market"
-      }
-    } else if ((order_class %||% "none") == "bracket" && (type %||% "none") != "market") {
+    if ((order_class %||% "none") == "bracket" && (type %||% "none") != "market") {
       message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
       type <- "market"
     } else if ((order_class %||% "none") == "oco" && (type %||% "none") != "limit") {
@@ -1593,11 +1619,11 @@ order_check <- function(penv = NULL, ...) {
       } else if (is.null(type)) {
         rlang::abort("`type` must be set.")
       }
-      # throw errors if not detected or arguments dont match
+      # throw errors if not detected or arguments don't match
       if (type == "limit" && is.null(limit)){ 
         rlang::abort(paste0("Please set limit price."))
-      } else if (type == "stop" && is.null(stop)) {
-        rlang::abort(paste0("Please set stop price."))
+      } else if ((type == "stop" || type == "trailing_stop") && is.null(stop)) {
+        rlang::abort(paste0("Please set value for `stop` argument when `type = ", type,"`."))
       } else if ((is.null(stop) || is.null(limit)) && type == "stop_limit") {
         rlang::abort(paste0(paste0(unlist(purrr::imap(list(stop = stop, limit = limit), ~{
           if (is.null(.x)) .y else NULL
