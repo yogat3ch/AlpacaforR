@@ -85,7 +85,7 @@
 #' @importFrom stringr str_detect str_extract regex
 #' @importFrom purrr map_chr map_lgl keep
 #' @importFrom rlang abort warn
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @export
 
 # Generate the list in the docs:
@@ -94,7 +94,6 @@
 
 
 market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE){
-  `%>%` <- magrittr::`%>%`
   # Last trade and quote handling  ----
   if (grepl("^(?:lt)$|^t$|(?:trade)|^q$|^(?:lq)$|(?:quote)", timeframe, ignore.case = TRUE)) {
     timeframe <- ifelse(grepl("^lt$|^t$|trade", timeframe, ignore.case = TRUE), "t", "q")

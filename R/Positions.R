@@ -40,7 +40,12 @@
 #' @importFrom purrr map_dfr compact
 #' @importFrom tibble as_tibble
 #' @export
-positions <- function(tickers = NULL, action = "get", live = FALSE, v = 2){
+positions <-
+  function(tickers = NULL,
+           action = "get",
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   if (is.character(tickers)) tickers <- toupper(tickers)
   #Set URL, live = FALSE & Headers
   .url = httr::parse_url(get_url(live))

@@ -31,7 +31,10 @@
 #' @importFrom purrr map_if
 #' @importFrom lubridate as_datetime
 #' @export
-account <- function(live = FALSE, v = 2){
+account <-
+  function(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -94,7 +97,15 @@ get_account <- account
 #' @importFrom httr GET PATCH
 #' @importFrom purrr compact
 #' @export
-account_config <- function(dtbp_check = NULL, no_shorting = NULL, pdt_check = NULL, suspend_trade = NULL, trade_confirm_email = NULL, live = FALSE, v = 2) {
+account_config <-
+  function(dtbp_check = NULL,
+           no_shorting = NULL,
+           pdt_check = NULL,
+           suspend_trade = NULL,
+           trade_confirm_email = NULL,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   #Create body with order details, most common is a named list 
   .def <- ifelse(length(dtbp_check == "default") == 0, F, tolower(substr(dtbp_check,0,1)) == "d")
   if (.def) {
@@ -231,10 +242,20 @@ set_config <- account_config
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr mutate_at vars
 #' @importFrom lubridate as_datetime as_date
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom rlang abort warn
 #' @export
-account_activities <- function(activity_type = NULL, date = NULL, until = NULL, after = NULL, direction = "desc", page_size = 50, page_token = NULL, live = FALSE, v = 2){
+account_activities <-
+  function(activity_type = NULL,
+           date = NULL,
+           until = NULL,
+           after = NULL,
+           direction = "desc",
+           page_size = 50,
+           page_token = NULL,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   .dt <- purrr::compact(list(date = date, after = after, until = until))
   if (length(.dt) > 0) {
     .dt <- purrr::map(.dt, try_date)
@@ -301,7 +322,14 @@ account_activities <- function(activity_type = NULL, date = NULL, until = NULL, 
 #' @importFrom purrr iwalk compact
 #' @export
 
-account_portfolio <- function(period = NULL, timeframe = NULL, date_end = NULL, extended_hours = FALSE, live = FALSE, v = 2) {
+account_portfolio <-
+  function(period = NULL,
+           timeframe = NULL,
+           date_end = NULL,
+           extended_hours = FALSE,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   # Fix and detect args
   # check classes ----
   # Mon May 18 11:01:09 2020

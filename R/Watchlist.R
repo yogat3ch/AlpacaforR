@@ -81,10 +81,17 @@
 #' @importFrom stringr str_count
 #' @importFrom rlang abort
 #' @importFrom jsonlite toJSON
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom dplyr distinct
 #' @export
-watchlist <- function(watchlist_id = NULL, name = NULL, tickers = NULL, action = NULL, live = FALSE, v = 2){
+watchlist <-
+  function(watchlist_id = NULL,
+           name = NULL,
+           tickers = NULL,
+           action = NULL,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   
   # Set URL & Headers
   .url = httr::parse_url(get_url(live))
@@ -278,7 +285,7 @@ get_watchlist <- watchlist
 #' @importFrom stringr str_count
 #' @importFrom rlang warn abort
 #' @importFrom jsonlite toJSON
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom dplyr distinct
 #' @keywords internal
 watchlist_update <- function(watchlist_id = NULL, name = NULL, tickers = NULL, action = "add", live = FALSE, v = 2){

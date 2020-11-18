@@ -43,13 +43,12 @@
 #'  \item{\code{msgs}}{ \code{(tibble)}  object that stores the timestamps `ts` and message content `msg` for all messages received via the websocket.}
 #'  \item{\code{bars}}{ \code{(list)} For Polygon websockets, all channel data are stored in this object as `tibble`s named according to the channel.}
 #' }
-#' @importFrom lubridate now
 #' @importFrom dplyr bind_rows
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom purrr walk accumulate imap_chr
 #' @importFrom tibble tibble
 #' @importFrom stringr str_split str_remove
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom rlang eval_tidy is_expression
 #' @import websocket
 #' @examples 
@@ -67,7 +66,6 @@
 #' @export
 
 ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, log_path = "", action = NULL, aenv = NULL, toConsole = T) {
-  `%>%` <- magrittr::`%>%`
   api <- tolower(substr(api, 0, 1))
   if (api == "a" && isTRUE(log_bars)) {
     message(paste0("Bars are only logged for Polygon websocket endpoints. `log_bars` will be ignored."))
@@ -117,7 +115,7 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, l
   })
   rm(e)
   ws$onOpen(function(event) {
-    .msg <- paste0(lubridate::now(),", ", "Connection Created")
+    .msg <- paste0(Sys.time(),", ", "Connection Created")
     ws_msg(out, msg = .msg)
     ws_log(out, .log = .log, msg = .msg) 
     if (api == "a") {
@@ -173,14 +171,14 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, l
   ws$onClose(function(event) {
     .r <- c(`1000` = "closed by user", `1005` = "no status received", `1006` = "end of broadcast")[as.character(event$code)]
     
-    .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket client disconnected with code: ", event$code,
+    .msg <- paste0(Sys.time(),", Websocket client disconnected with code: ", event$code,
         " and reason: ", .r)
     ws_msg(out, msg = .msg)
     ws_log(out, .log = .log, msg = .msg)
   })
   ws$onError(function(event) {
     .msg <- paste0(readBin(event$message, character(), n=1000), collapse="")
-    .msg <- paste0(lubridate::now(tz = Sys.timezone()),", Websocket Error: '", .msg, "'")
+    .msg <- paste0(Sys.time(),", Websocket Error: '", .msg, "'")
     ws_msg(out, msg = .msg)
     ws_log(out, .log = .log, msg = .msg)
   })

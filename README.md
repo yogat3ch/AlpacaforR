@@ -40,16 +40,28 @@ library(AlpacaforR)
 Connecting to the Alpaca API requires a KEY-ID 🔑 and SECRET-KEY 🗝  as specifically named environment variables for both live and paper accounts.
 These values can be found on the respective Alpaca dashboards. Hit "Regenerate Key" if the secret key is no longer visible.
 
+#### The `live` Option
+
+Alpaca provides all users with a paper account. Users in the United States have the option of creating a live account after verifying their financial info. 
+In order to simplify working on a particular account for an extended period of time, `AlpacaforR` now (as of 2020-11-09) supports the usage of an option in the R session. 
+
+To set the current session to only use the live account, simply run:
+
+`Sys.setenv("APCA-LIVE" = TRUE)`
+
+The default value will be `FALSE` if no option is set. All functions will use the paper account when `live = FALSE`. Read on to learn how to set this option permanently.
+
 The simplest way to set these values for this and future R sessions is to use `AlpacaforR::firstrun` to add these to your `.Renviron` file and set them for this session. If you have not yet created an `.Renviron` file - it will be created in your R root folder. This folder is found by calling `path.expand("~")`. 
 The current root folder of this R instance is: <code>C:/Users/Administrator/Documents</code>, the `.Renviron` file will reside there if it doesn't already. 
 
-`firstrun` takes two arguments: `paper` and `live`, both of which will be named vectors with key & secret for paper and live accounts respectively.
+`firstrun` takes three arguments: `paper_api`, `live_api` and `live`. `paper_api` and `live_api` will be named vectors with key & secret for paper and live accounts respectively. The `live` argument is a logical which sets the default value for `live` in future sessions. See <a href="#live-or-paper-url">The Live or Paper section</a> for details. 
 
 
 ```r
 firstrun(
-  paper = c(key = "Your-paper-key", secret = "Your-paper-secret"),
-  live = c(key = "Your-live-key", secret = "Your-live-secret")
+  paper_api = c(key = "Your-paper-key", secret = "Your-paper-secret"),
+  live_api = c(key = "Your-live-key", secret = "Your-live-secret"),
+  live = FALSE
 )
 ```
 If using RStudio, these parameters can be added to the `.Renviron` file another way by typing `usethis::edit_r_environ()` at the console. The keys are added as `name = key` pairs like so:
@@ -59,6 +71,7 @@ APCA-PAPER-API-KEY-ID = "PAPER-KEY"
 APCA-PAPER-API-SECRET-KEY = "PAPER-SECRET"
 APCA-LIVE-API-KEY-ID = "LIVE-KEY"
 APCA-LIVE-API-SECRET-KEY = "LIVE-SECRET"
+APCA-LIVE = FALSE
 ```
 The following guide details how to [set environment variables permanently](https://stackoverflow.com/questions/49738564/r-set-environment-variable-permanently) if you prefer to do this manually via your file system with a text editor.
 
@@ -68,6 +81,7 @@ Sys.getenv('APCA-PAPER-API-KEY-ID')
 Sys.getenv('APCA-PAPER-API-SECRET-KEY')
 Sys.getenv('APCA-LIVE-API-KEY-ID')
 Sys.getenv('APCA-LIVE-API-SECRET-KEY')
+Sys.getenv('APCA-LIVE')
 ```
 
 The output should be the key/secret values entered.
@@ -77,6 +91,7 @@ Sys.setenv('APCA-PAPER-API-KEY-ID' = "...")
 Sys.setenv('APCA-PAPER-API-SECRET-KEY' = "...")
 Sys.setenv('APCA-LIVE-API-KEY-ID' = "...")
 Sys.setenv('APCA-LIVE-API-SECRET-KEY' = "...")
+Sys.setenv('APCA-LIVE' = FALSE)
 ```
 
 If `usethis` is not installed, it can be installed from CRAN, or the .REnviron file can be edited manually with the guide linked above.
@@ -86,6 +101,7 @@ If `usethis` is not installed, it can be installed from CRAN, or the .REnviron f
 Once these environmental variables are set, all `AlpacaforR` 🦙𝘙 functions will work correctly.
 
 > 🛑 User keys & secrets *MUST* be set as the appropriately named environment variables shown above for all demos hereforward to work!
+
  
 ### Live or Paper URL?
 [Account Plans](https://alpaca.markets/docs/trading-on-alpaca/account-plans/) documents the key differences between the account types. When using `AlpacaforR`, interaction with the live or paper account is indicated by setting the `live = TRUE/FALSE` argument. The argument is set to `FALSE` by default. E.g:

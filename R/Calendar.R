@@ -31,12 +31,11 @@
 #' @importFrom lubridate today days as_date wday ymd interval ymd_hm
 #' @importFrom dplyr mutate_at vars starts_with mutate select
 #' @importFrom stringr str_sub
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @export
 
 
 calendar <- function(from = NULL, to = NULL, v = 2){
-  `%>%` <- magrittr::`%>%`
   #Set URL & Headers
   .url = httr::parse_url(get_url())
   headers = get_headers()
