@@ -55,7 +55,18 @@
 #' @importFrom httr parse_url build_url GET
 #' @importFrom purrr compact
 #' @export
-orders <- function(ticker_id = NULL, status = "open", limit = NULL, after = NULL, until = NULL, direction = "desc", client_order_id = NULL, nested = T, live = FALSE, v = 2){
+orders <-
+  function(ticker_id = NULL,
+           status = "open",
+           limit = NULL,
+           after = NULL,
+           until = NULL,
+           direction = "desc",
+           client_order_id = NULL,
+           nested = T,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -147,19 +158,21 @@ get_orders <- orders
 #' }
 #' @param qty \code{(integer)} The amount of shares to trade (*required* when `action = "submit"`, *optional* when `action = 'replace'`).
 #' @param side \code{(character)} The side of the trade. I.E `"buy"/"b"` or `"sell"/"s"`. (*required* when `action = "submit"`). Assumed to be `"buy"` if `order_class = "bracket"`. 
-#' @param type \code{(character)} The type of trade order. I.E `"market"/"m"`,`"limit"/"l"`,`"stop"/"s"`,`"stop_limit"/"sl"`, etc. Default `NULL`. Typically *required* except in certain situations where it can be assumed:
+#' @param type \code{(character)} The type of trade order. I.E `"market"/"m"`,`"limit"/"l"`,`"stop"/"s"`,`"stop_limit"/"sl"`, `"trailing_stop"/"ts"` etc. Default `NULL`. Typically *required* except in certain situations where the value can be assumed:
 #' \itemize{
-#'   \item{\code{stop} is set}{ `type = "stop"`}
-#'   \item{\code{limit} is set}{ `type = "limit"`}
-#'   \item{\code{stop} & \code{limit} are set}{ `type = "stop_limit"`}
-#'   \item{\code{order_class = "bracket"}}{ `type = "market"`}
-#'   \item{\code{order_class = "oco"}}{ `type = "limit"`}
-#'   \item{\code{order_class = "oto"}}{ `type = "market"`}
+#'   \item{\code{stop} is set (and `type` is unset)}{ `type = "stop"/"s"`}
+#'   \item{\code{limit} is set}{ `type = "limit"/"l"`}
+#'   \item{\code{stop} & \code{limit} are set}{ `type = "stop_limit"/"sl"`}
+#'   \item{\code{order_class = "bracket"}}{ `type = "market"/"m"`}
+#'   \item{\code{order_class = "oco"}}{ `type = "limit"/"l"`}
+#'   \item{\code{order_class = "oto"}}{ `type = "market"/"m"`}
+#'   \item{\code{trail_price} is set}{ `type = "trailing_stop"`}
+#'   \item{\code{trail_percent} is set}{ `type = "trailing_stop"`}
 #' }
 #' See [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders) for details.
 #' @param time_in_force \code{(character)} The time in force for the order. *Optional* when `action = "replace"`. Args can be `"day"`, `"gtc"`, `"opg"` etc. Default `"day"`. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders). 
 #' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
-#' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
+#' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`.
 #' @param extended_hours \code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with `type = 'limit'` and `time_in_force = 'day'` on the V2 API.
 #' @param client_order_id \code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
 #' \itemize{
@@ -176,6 +189,8 @@ get_orders <- orders
 #'   \item{\code{stop_price/s}}{ \code{numeric} **required** for bracket orders}
 #'   \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. **Required** for `'bracket'` & `'oco'` order classes}
 #' }
+#' @param trail_price \code{(numeric)} a dollar value away from the highest water mark (hwm). If you set this to 2.00 for a sell trailing stop, the stop price is always hwm - 2.00
+#' @param trail_percent \code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99
 #' @inheritParams account
 #' @inherit orders return
 #' @examples 
@@ -203,15 +218,40 @@ get_orders <- orders
 #' # note that the names of these list items can be partial
 #' (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
 #' # side is assumed to be buy, and type is assumed to be market
+#' # Set a trailing stop by price
+#' m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
+#' ts_o <- order_submit(m_o$id, trail_price = 30)
+#' # Set a trailing stop by percent
+#' m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
+#' ts_o <- order_submit(m_o$id, trail_percent = 5)
 #' }
 #' # all open orders can be canceled with `action = "cancel_all"`
 #' order_submit(a = "cancel_all")
 #' @importFrom httr POST PATCH DELETE parse_url build_url
-#' @importFrom rlang abort
+#' @importFrom rlang abort list2 `!!`
 #' @importFrom purrr modify_depth compact
 #' @importFrom jsonlite toJSON
 #' @export
-order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, type = NULL, time_in_force = "day", limit = NULL, stop = NULL, extended_hours = NULL, client_order_id = NULL, order_class = NULL, take_profit = NULL, stop_loss = NULL, live = FALSE, v = 2){
+
+order_submit <-
+  function(ticker_id,
+           action = "submit",
+           qty = NULL,
+           side = NULL,
+           type = NULL,
+           time_in_force = "day",
+           limit = NULL,
+           stop = NULL,
+           extended_hours = NULL,
+           client_order_id = NULL,
+           order_class = NULL,
+           take_profit = NULL,
+           stop_loss = NULL,
+           trail_price,
+           trail_percent,
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+           v = 2) {
+    
   #Set URL & Headers
   .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
@@ -225,6 +265,19 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
   } else if (grepl("cancel_all", action, ignore.case = T)) {
     action <- tolower(action)
   }
+    
+  # change args in the event of trailing stop
+  if (!missing(trail_price) || !missing(trail_percent)) {
+    type <- "trailing_stop"
+  }
+  if (type == "trailing_stop") {
+    .mc <- match.call()
+    stop_price <- grep("^trail", names(.mc), value = TRUE)
+    stop <- .mc[[stop_price]]
+  } else {
+    stop_price <- "stop_price"
+  }
+  
   # smart detect: type, order_class, extended_hours
   # fix names for take_profit, stop_loss if partialed
   # or throw errors/warnings for specific criteria
@@ -233,26 +286,28 @@ order_submit <- function(ticker_id, action = "submit", qty = NULL, side = NULL, 
     list2env(ot, envir = environment())
   }
   
-  # detect the argument provided to ticker_id
   .is_id <- is_id(ticker_id)
+  # detect the argument provided to ticker_id
   if (action == "s") {
+  
     #Create body with order details if action is submit or replace
     bodyl <-
         append(purrr::modify_depth(purrr::compact(
-          list(
+          rlang::list2(
             symbol = ticker_id,
             qty = qty,
             side = side,
             type = type,
             time_in_force = time_in_force,
             limit_price = limit,
-            stop_price = stop,
+            !!stop_price := stop,
             client_order_id = client_order_id,
             order_class = order_class
             )
         ),-1, .f = as.character),
         purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
         stop_loss = stop_loss)), -1, .f = as.character))
+    
     bodyl$extended_hours <- extended_hours
     bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
   } else if (action == "r") {

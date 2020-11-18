@@ -2,6 +2,24 @@
 # Helper functions for market_data ----
 # Sat Mar 28 09:40:23 2020
 
+#  Re-exports ----
+# Sun Sep 20 11:15:14 2020
+#' @keywords internal
+dplyr::`%>%`
+
+#' @keywords internal
+rlang::`%||%`
+
+#' @keywords internal
+rlang::`!!!`
+
+#' @keywords internal
+rlang::`!!`
+
+#' @keywords internal
+rlang::`%|%`
+
+
 # try_date ----
 # Sat Apr 18 11:55:17 2020
 #' @title String to Date/Datetime conversion for market_data
@@ -11,8 +29,10 @@
 #' @importFrom stringr str_detect
 #' @importFrom dplyr between
 #' @importFrom lubridate ymd_hm parse_date_time is.Date is.POSIXct is.POSIXlt force_tz origin as_datetime
+#' @importFrom rlang is_empty
+
 try_date <- function(.x, tz = "America/New_York") {
-  suppressMessages({
+  suppressWarnings(suppressMessages({
     if (inherits(.x, "character")) {
       if (stringr::str_detect(.x, ":")) {
         # if a character and datetime
@@ -25,21 +45,24 @@ try_date <- function(.x, tz = "America/New_York") {
       .out <- lubridate::force_tz(.x, tzone = tz)
     } else if (inherits(.x, c("integer", "numeric"))) {
       .out <- list()
-      .out[[1]] <- lubridate::as_date(.x, origin = lubridate::origin, tz = tz)
+      .out[[1]] <- lubridate::as_date(.x, origin = lubridate::origin)
       .out[[2]] <- lubridate::as_datetime(.x, origin = lubridate::origin, tz = tz)
       .out[[3]] <- lubridate::as_datetime(.x / 1e3, origin = lubridate::origin, tz = tz)
       .out[[4]] <- lubridate::as_datetime(.x / 1e9, origin = lubridate::origin, tz = tz)
-      .out <- purrr::keep(.out, ~dplyr::between(ifelse(is.na(lubridate::year(.x)), 0, lubridate::year(.x)), 1792,2050))
-      if (!length(.out) != 1) 
+      .out <- do.call(c, .out)
+      .out <- purrr::keep(.out, ~dplyr::between(ifelse(is.na(lubridate::year(.x)), 0, lubridate::year(.x)), 1817,2050))
+      if (rlang::is_empty(.out)) 
         .out <- NA 
-      else 
-        .out <- .out[[1]]
+      else if (length(.out) > 1) {
+        rlang::warn(paste0("Input date could not be parsed unambiguously. Returning the more recent of ", paste0(.out, collapse = ", ")))
+        .out <- max(.out)
+      } 
       
     } else {
       # If the format is incorrect return NA
       .out <- NA
     }
-  })
+  }))
   
   return(.out)
 }
@@ -66,7 +89,7 @@ is_inf <- function(.x) {
 #' @importFrom purrr discard map2_lgl walk
 
 fetch_vars <- function(.vn, e = NULL, cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env()), sf = rev(sys.frames())) {
-  `!!!` <- rlang::`!!!`
+  
   try(list2env(e, envir = cenv), silent = TRUE)
   # remove the variables already existing
   .vn <- .vn[!names(.vn) %in% ls(all.names = TRUE, envir = cenv)]
@@ -158,12 +181,12 @@ tf_num <- function(timeframe, ..., cenv = rlang::caller_env()) {
 #' @importFrom stringr str_extract str_detect
 #' @importFrom lubridate ymd_hm ymd is.Date is.POSIXct is.POSIXlt force_tz wday make_date year interval `%within%` floor_date int_start duration ceiling_date int_end days hour as_datetime as_date year today
 #' @importFrom dplyr lead
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom stats setNames
 bars_bounds <- function(..., fc = NULL) {
-  `%>%` <- magrittr::`%>%`
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
+  
+  
+  
   
   #trickery to get the variables from the calling environment
   .vn = list(.tf_num = c("integer", "numeric"), from = c("character","POSIXct", "Datetime", "Date", "NULL"), to = c("character","POSIXct", "Datetime", "Date", "NULL"), after = c("character","POSIXct", "Datetime", "Date", "NULL"), until = c("character","POSIXct", "Datetime", "Date", "NULL"), v = c("integer", "numeric"), timeframe = c("factor", "character"), multiplier = c("integer", "numeric"), .tf_order = "factor")
@@ -341,8 +364,8 @@ bars_bounds <- function(..., fc = NULL) {
 #' @importFrom httr parse_url build_url
 #' @importFrom utils URLdecode
 bars_url <- function(...) {
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
+  
+  
   .vn <- list(ticker = c("character"), .bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", limit = c("integer","numeric", "NULL"))
   
   .e <- list(...)
@@ -426,16 +449,16 @@ bars_url <- function(...) {
 #' @param url \code{(character)} the url rendered by \code{\link[AlpacaforR]{bars_url}}
 #' @return \code{(list)} See \code{\link[AlpacaforR]{market_data}} as the output is the same.
 #' @keywords internal
-#' @importFrom magrittr "%>%"
+#' @importFrom dplyr `%>%`
 #' @importFrom rlang is_named env_bind current_env caller_env env_get warn "%||%"
 #' @importFrom purrr iwalk imap map
 #' @importFrom httr GET
 #' @importFrom lubridate with_tz parse_date_time
 #' @importFrom stringr str_extract str_replace
 bars_get <- function(url, ...) {
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
-  `%>%` <- magrittr::`%>%`
+  
+  
+  
   .vn <- list(url = c("character","list"), v = c("integer", "numeric"), .tf_order = c("factor"), timeframe = c("factor", "character"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
@@ -500,7 +523,7 @@ bars_get <- function(url, ...) {
       agg_quote = httr::GET(url = .url)
       # Save the query meta-date for appending to the output df
       .query <- list()
-      .query$status_code <- agg_quote$status_code
+      .query$status_code <- agg_quote$status
       .query$url <- .url
       .query$ts <- lubridate::with_tz(lubridate::parse_date_time(agg_quote[["headers"]][["date"]], "a, d b Y T"), tz = "America/New_York")  
       if (agg_quote$status_code != 200) {
@@ -513,7 +536,7 @@ bars_get <- function(url, ...) {
         return(append(agg_quote[1:5], values = .query[2:3]))
       }
       # Get the query meta-info returned by the API
-      query <- append(agg_quote[1:5], .query)
+      query <- append(agg_quote[stringr::str_which(names(agg_quote), "results", negate = TRUE)], .query)
       agg_quote$results$t = agg_quote$results$t/1000
       
       agg_quote <- bars_transform(agg_quote["results"])$results
@@ -538,16 +561,12 @@ bars_get <- function(url, ...) {
 #' @return \code{(Date/Datetime)} A vector of expected date/datetimes based on the \code{.bounds}, \code{timeframe} and \code{multiplier}
 #' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%||%" "%|%" is_named
 #' @importFrom stringr str_extract
-#' @importFrom magrittr "%>%" extract2
 #' @importFrom lubridate as_date now ceiling_date int_start int_end force_tz floor_date today day make_date year month
 #' @importFrom purrr map imap reduce
-#' @importFrom dplyr filter mutate mutate_if mutate_at vars
+#' @importFrom dplyr filter mutate mutate_if mutate_at vars `%>%` pull
 #' @keywords internal
 bars_expected <- function(bars, ...) {
-  `%>%` <- magrittr::`%>%`
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
-  `%|%` <- rlang::`%|%`
+
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), .tf_num = c("integer", "numeric"), .tf_order = c("factor"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
@@ -566,8 +585,13 @@ bars_expected <- function(bars, ...) {
   .timeframe <- timeframe
   .by <- paste0(.multiplier, " ", ifelse(.timeframe == "minute", substr(as.character(.timeframe), 1, 3), as.character(.timeframe)),"s")
   .expected <- purrr::imap(bars, ~{
-    if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL)
-    .cutoff <- attr(.x, "query")$ts %||% tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||% lubridate::now()
+    # If just the metadata was received, return it
+    if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(.x)
+    # Get the timestamp of the query as a cutoff time
+    .cutoff <- attr(.x, "query")$ts %||%
+      tryCatch (attr(.x, "query")[[1]][["ts"]], error = function (e) NULL) %||%
+      lubridate::now()
+    
     .bgn <- .bounds[[1]]
     #browser(expr = .tf_num == 5 && .timeframe == "minute")
     if (.tf_num < 3) {
@@ -612,7 +636,7 @@ bars_expected <- function(bars, ...) {
         dplyr::mutate(d = lubridate::day(actual)) %>% 
         dplyr::mutate_if(anyNA, ~ {. %|% .[length(.) - 1] %|% .[1]}) %>% 
         dplyr::mutate_at(dplyr::vars(expected), ~lubridate::make_date(y, m, d)) %>% 
-        magrittr::extract2("expected")
+        dplyr::pull("expected")
       
     } else if (.tf_num == 6) {
       
@@ -656,17 +680,14 @@ bars_expected <- function(bars, ...) {
 #' }
 #' @keywords internal
 #' @importFrom purrr map map2 map_dfr
-#' @importFrom dplyr bind_rows distinct
+#' @importFrom dplyr bind_rows distinct `%>%`
 #' @importFrom tibble tibble
-#' @importFrom magrittr "%>%"
 #' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%||%" is_named
 #' @importFrom lubridate now duration hm as_datetime origin with_tz force_tz isoweek interval `%within%` is.Date as_date
 #' @importFrom stringr str_extract
 
 bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
-  `%>%` <- magrittr::`%>%`
+  
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", .tf_num = c("integer", "numeric"), .tf_order = c("factor"))
   .e <- list(...)
   fetch_vars(.vn, e = .e)
@@ -681,10 +702,10 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
   
   .expected <- bars_expected(bars, v = v, .bounds = .bounds, timeframe = timeframe, multiplier = multiplier)
   #browser(expr = length(bars) != length(.expected))
-  .out <- purrr::map2(bars, .expected, ~{
+  .out <- purrr::pmap(list(bars, .expected, names(bars)), ~{
 
-    if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL) # if no data was returned
-    .ticker <- attr(.x, "query")$ticker %||% attr(.x, "query")[[1]] %||% ticker
+    #if (rlang::`%||%`(.x$resultsCount, 1) == 0) return(NULL) # if no data was returned
+    .ticker <- attr(.x, "query")$ticker %||% attr(.x, "query")[[1]] %||% ..3
     .expected <- .y
     if (.tf_num < 3) {
       .cutoff <- (attr(.x, "query")$ts %||% attr(.x, "query")[[1]]$ts %||% lubridate::now()) - lubridate::duration(multiplier, timeframe)
@@ -730,14 +751,14 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
       .tf_dur <- lubridate::duration(multiplier, timeframe)
     }
     
-    
+    .ma <- suppressWarnings(min(.actual))
     # If there are leading missing dates (the most common case)
-    if (any(.missing_dates < min(.actual))) {
+    if (any(.missing_dates < .ma)) {
       # get the leading missing dates
-      .md <- .missing_dates[.missing_dates < min(.actual)]
+      .md <- .missing_dates[.missing_dates < .ma]
       #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
       # remove the leading missing dates
-      .missing_dates <- .missing_dates[!.missing_dates < min(.actual)]
+      .missing_dates <- .missing_dates[!.missing_dates < .ma]
       # return the day endpoint bounds that will retrieve the missing data
       if (.tf_num < 4 && !.tf_reduce) {
         # add one day previous and one day ahead
@@ -780,13 +801,14 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
       # if there are no more missing dates, return the dataframe
       if (length(.missing_dates) == 0) .out <- .leading
     }
+    .ma <- suppressWarnings(max(.actual))
     # If there are lagging missing dates (the 2nd most common case)
-    if (any(.missing_dates > max(.actual))) {
+    if (any(.missing_dates > .ma)) {
       # retrieve missing > the max
-      .md <- .missing_dates[.missing_dates > max(.actual)]
+      .md <- .missing_dates[.missing_dates > .ma]
       #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
       # remove the lagging missing dates
-      .missing_dates <- .missing_dates[!.missing_dates > max(.actual)]
+      .missing_dates <- .missing_dates[!.missing_dates > .ma]
       if (.tf_num < 4 && !.tf_reduce) {
         # add one period previous and one period ahead
         .url_md <- c(.md[1] - .tf_dur, .md, .md[length(.md)] + .tf_dur)
@@ -919,8 +941,12 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
     .out <- dplyr::distinct_at(.out, .vars = dplyr::vars(url), .keep_all = TRUE)
     return(.out)
   })
-  if (length(.out) == 0) {
-    .out <- NULL # If empty just return NULL
+  
+  if (any(c(
+    rlang::is_empty(.out),
+    !is.data.frame(try(.out[[1]], silent = TRUE))
+  ))) {
+    .out <- NULL # If empty or not a df just return NULL
   } else if (bars_df) {
     # If a single data.frame is fed in, return just the missing tibble
     .out <- .out[[1]]
@@ -937,17 +963,16 @@ bars_missing <- function(bars, ..., .tf_reduce = FALSE) {
 #'@details The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, **all params must be named**. 
 #' @param \code{bars} Returned by \code{bars_get}
 #' @param \code{.missing} Returned by \code{bars_missing}
-#' @importFrom magrittr "%>%"
 #' @importFrom purrr map map2 pmap_dfr map2_dfr
 #' @importFrom stringr str_extract str_extract_all
-#' @importFrom dplyr arrange distinct
+#' @importFrom dplyr arrange distinct `%>%` 
 #' @importFrom lubridate ymd interval `%within%`
 #' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%|%" "%||%" is_named
 #' @keywords internal
 bars_complete <- function(bars, .missing, ...) {
-  `%>%` <- magrittr::`%>%`
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
+  
+  
+  
   .vn <- list(.bounds = "list", multiplier = c("numeric", "integer"), timeframe = c("factor", "character"), v = c("numeric", "integer"), unadjusted = "logical", .tf_num = c("integer", "numeric"), .tf_order = c("factor"), limit = c("integer", "numeric"), full = "logical")
   .e <- list(...)
   fetch_vars(.vn, e = .e)
@@ -1052,10 +1077,7 @@ bars_complete <- function(bars, .missing, ...) {
         if (length(.still_md) < length(.md)) {
           # if we found some of the missing dates then bind the found dates
           if (v == 1) .new <- .new[- 7] # remove the n row for the v1 API
-          ext$.out <- bind_rows(
-            ext$.out,
-            .new[.new$time %in% .md,]  
-          )
+          ext$.out <- dplyr::bind_rows(purrr::keep(list(ext$.out, .new[.new$time %in% .md,]), ~inherits(.x, "data.frame")))
           # and make the still missing, the .md object
           if (length(.still_md) > 0) {
             .m_tib <- bars_missing(ext$.out, .bounds = .bounds, .tf_reduce = ext$.tf_reduce %||% F, ticker = ticker)
@@ -1094,10 +1116,10 @@ bars_complete <- function(bars, .missing, ...) {
 #' @importFrom purrr imap
 #' @importFrom dplyr mutate_at vars rename
 #' @importFrom lubridate force_tz
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 
 bars_transform <- function(bars) {
-  `%>%` <- magrittr::`%>%`
+  
   if (any(grepl("^last", names(bars)[3]))) {
     # if last quote or trade
     .sym <- bars$symbol
@@ -1141,7 +1163,7 @@ get_headers <- function(live=FALSE){
          .headers <- httr::add_headers('APCA-API-KEY-ID' = Sys.getenv("APCA-PAPER-API-KEY-ID"), 
                                       'APCA-API-SECRET-KEY' = Sys.getenv("APCA-PAPER-API-SECRET-KEY"))
   )
-  purrr::iwalk(.headers$header, ~{
+  purrr::iwalk(.headers$headers, ~{
     if (nchar(.x) == 0) {
       .ev <- stringr::str_replace(.y, "(?<=APCA)", ifelse(live, "-LIVE", "-PAPER"))
       rlang::abort(message = paste0(.ev," is unset. Please set your API credentials as environmental variables. See vignette('installation', 'AlpacaforR') for details.")) #TODO if package name change, change this value
@@ -1229,7 +1251,7 @@ is_id <- function(ticker_id) {
 #' @importFrom purrr pwalk
 #' @importFrom tibble as_tibble
 pos_transform <- function(pos) {
-  `%||%` <- rlang::`%||%`
+  
   if (class(pos) != "response") {
     .code <- pos$code
     .message <- pos$message
@@ -1306,7 +1328,7 @@ pos_transform <- function(pos) {
 #' @importFrom tibble as_tibble
 
 aa_transform <- function(resp) {
-  `%>%` <- magrittr::`%>%`
+  
   if (class(resp) != "response") {
     .code <- resp$code
     .message <- resp$message
@@ -1346,14 +1368,14 @@ aa_transform <- function(resp) {
 #' @inherit account_portfolio return
 #' @keywords internal
 #' @importFrom tibble as_tibble
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom stringr str_extract
 #' @importFrom rlang warn
 #' @importFrom dplyr mutate_at vars
 #' @importFrom lubridate as_datetime origin
 
 port_transform <- function(resp) {
-  `%>%` <- magrittr::`%>%`
+  
   if (class(resp) != "response") {
     .code <- resp$code
     .message <- resp$message
@@ -1497,13 +1519,30 @@ order_transform <- function(o) {
 #' @importFrom purrr imap_chr map imap
 order_check <- function(penv = NULL, ...) {
   # get rlang fns while testing (so you don't have to manually load the package each time)
-  `!!!` <- rlang::`!!!`
-  `%||%` <- rlang::`%||%`
+  
+  
   # add the arguments to the environment ----
   # Thu Apr 30 17:29:18 2020
   .o <- try(list2env(as.list(penv), environment()))
-  if (class(.o) == "try-error"){
-    .vn <- list(ticker_id = "character", action = "character", type = "character", qty = c("numeric","integer"), side = "character", time_in_force = "logical", limit = c("numeric","integer"), stop = c("numeric","integer"), extended_hours = "logical", client_order_id = "character", order_class = "character", take_profit = "list", stop_loss = "list")
+  if (class(.o) == "try-error") {
+    .vn <-
+      list(
+        ticker_id = "character",
+        action = "character",
+        type = "character",
+        qty = c("numeric", "integer"),
+        side = "character",
+        time_in_force = "logical",
+        limit = c("numeric", "integer"),
+        stop = c("numeric", "integer"),
+        extended_hours = "logical",
+        client_order_id = "character",
+        order_class = "character",
+        take_profit = "list",
+        stop_loss = "list",
+        trail_price = c("numeric", "integer"),
+        trail_percent = c("numeric", "integer")
+      )
     .e <- list(...)
     fetch_vars(.vn, e = .e)
   }
@@ -1539,6 +1578,7 @@ order_check <- function(penv = NULL, ...) {
       rlang::abort(paste0(order_class, "is invalid `order_class`. See ?order_submit for help."))
     }
   }
+  
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {
@@ -1551,7 +1591,6 @@ order_check <- function(penv = NULL, ...) {
         type <- "stop_limit"
       } else if (grepl("^t", type) && grepl("s", type)) {
         type <- "trailing_stop"
-        side <- "sell"
       } else if (substr(type,1,1) == "s") {
         type <- "stop"
       } else if (substr(type,1,1) == "l") {
@@ -1574,6 +1613,27 @@ order_check <- function(penv = NULL, ...) {
       } else {
         rlang::abort("`side` is required for order submissions.")
       }
+    }
+    
+    # Short sell/stop buy warning
+    if (side == "sell") {
+      try({
+        .pos <- positions(ticker_id)
+        .ss <- ticker_id[!ticker_id %in% .pos$symbol]
+      }, silent = TRUE)
+      
+      if (!rlang::is_empty(.ss)) {
+        warning("No positions exist for ",paste0(.ss, collapse = ", "),". This order will be a short sell.", immediate. = TRUE)
+      }
+    } else if (side == "buy" && (!is.null(stop))) {
+      if (stop_price == "stop_price") {
+        .warn_msg <- paste0("reaches ", stop)
+      } else if (stop_price == "trail_price") {
+        .warn_msg <- paste0("decreases by ", stop)
+      } else if (stop_price == "trail_percent") {
+        .warn_msg <- paste0("decreases by ", stop, " percent")
+      }
+      warning("This stop buy order will execute when the price ", .warn_msg , immediate. = TRUE)
     }
     
     # if quantity is missing ----
@@ -1622,13 +1682,18 @@ order_check <- function(penv = NULL, ...) {
       # throw errors if not detected or arguments don't match
       if (type == "limit" && is.null(limit)){ 
         rlang::abort(paste0("Please set limit price."))
-      } else if ((type == "stop" || type == "trailing_stop") && is.null(stop)) {
+      } else if (type == "stop" && is.null(stop)) {
         rlang::abort(paste0("Please set value for `stop` argument when `type = ", type,"`."))
       } else if ((is.null(stop) || is.null(limit)) && type == "stop_limit") {
         rlang::abort(paste0(paste0(unlist(purrr::imap(list(stop = stop, limit = limit), ~{
           if (is.null(.x)) .y else NULL
         })), collapse = ", "), " must be set."))
-      } 
+      } else if (is.null(stop) && type == "trailing_stop") {
+        rlang::abort(paste0("Please set `trail_price` or `trail_percent` when `type = 'trailing_stop'`"))
+        if (stop_price == "trail_percent" && stop < 1) {
+          rlang::abort("`trail_percent` must be an integer greater than one")
+        } 
+      }
     } else if (!is.null(order_class)) {
       # if order class is specified, set required arguments accordingly or throw errors
       # order_class Advanced orders ----
@@ -1649,7 +1714,21 @@ order_check <- function(penv = NULL, ...) {
   } else if (action == "c") {
     if (is.null(ticker_id)) rlang::abort("`ticker_id` is NULL, the order may not have been placed successfully?")
   } 
-  out <- list(ticker_id = ticker_id, action = action, type = type, qty = qty, side = side, time_in_force = time_in_force, limit = limit, stop = stop, extended_hours = extended_hours, client_order_id = client_order_id, order_class = order_class, take_profit = take_profit, stop_loss = stop_loss)
+  out <- list(
+    ticker_id = ticker_id,
+    action = action,
+    type = type,
+    qty = qty,
+    side = side,
+    time_in_force = time_in_force,
+    limit = limit,
+    stop = stop,
+    extended_hours = extended_hours,
+    client_order_id = client_order_id,
+    order_class = order_class,
+    take_profit = take_profit,
+    stop_loss = stop_loss
+  )
 }
 
 
@@ -1663,14 +1742,14 @@ order_check <- function(penv = NULL, ...) {
 #' @return \code{(tibble)} with respective R compliant objects (POSIXct)
 #' @keywords internal
 #' @importFrom dplyr mutate_at vars select everything ends_with
-#' @importFrom magrittr `%>%`
+#' @importFrom dplyr `%>%`
 #' @importFrom rlang abort `%||%` 
 #' @importFrom tibble as_tibble tibble
 #' @importFrom purrr map
 
 wl_transform <- function(wl, action, wl_info = NULL) {
-  `%||%` <- rlang::`%||%`
-  `%>%` <- magrittr::`%>%`
+  
+  
   if (class(wl) == "response") {
     if (length(wl$content) == 0 && grepl("^2", wl$status_code)) {
       message(paste0("Watchlist deleted successfully"))
@@ -1739,7 +1818,7 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 #' @importFrom rlang warn caller_env env_bind env_get is_named `!!!`
 #' @importFrom purrr map
 wl_nm2id <- function(nm, ...) {
-  `!!!` <- rlang::`!!!`
+  
   # if watchlist_id is a name
   # get the list of watchlists
   .vn = list(v = c("integer", "numeric"), .url = c("character", "url"))
@@ -1790,9 +1869,9 @@ wl_nm2id <- function(nm, ...) {
 #' @importFrom tibble tibble as_tibble
 
 poly_transform <- function(resp, ep) {
-  `%||%` <- rlang::`%||%`
-  `!!!` <- rlang::`!!!`
-  `!!` <- rlang::`!!`
+  
+  
+  
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   if ("error" %in% names(.resp)) {
@@ -1968,7 +2047,7 @@ ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
 #' @importFrom rlang caller_env
 #' @importFrom purrr map
 ws_log <- function(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env()) {
-  `!!!` <- rlang::`!!!`
+  
   # add the arguments to the environment ----
   # Thu Apr 30 17:29:18 2020
   .e <- try(list2env(list(penv), environment()), silent = TRUE)
