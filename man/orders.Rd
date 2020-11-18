@@ -14,7 +14,7 @@ orders(
   direction = "desc",
   client_order_id = NULL,
   nested = T,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -27,7 +27,7 @@ get_orders(
   direction = "desc",
   client_order_id = NULL,
   nested = T,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 }

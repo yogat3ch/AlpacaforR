@@ -12,7 +12,7 @@ account_activities(
   direction = "desc",
   page_size = 50,
   page_token = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 }

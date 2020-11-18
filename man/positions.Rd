@@ -6,9 +6,19 @@
 \alias{close_all_positions}
 \title{Get Positions}
 \usage{
-positions(tickers = NULL, action = "get", live = FALSE, v = 2)
+positions(
+  tickers = NULL,
+  action = "get",
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+  v = 2
+)
 
-get_positions(tickers = NULL, action = "get", live = FALSE, v = 2)
+get_positions(
+  tickers = NULL,
+  action = "get",
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
+  v = 2
+)
 
 close_all_positions(live = FALSE)
 }

@@ -9,7 +9,7 @@ account_portfolio(
   timeframe = NULL,
   date_end = NULL,
   extended_hours = FALSE,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 }

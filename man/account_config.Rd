@@ -12,7 +12,7 @@ account_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -22,7 +22,7 @@ get_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -32,7 +32,7 @@ set_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 }

@@ -20,7 +20,9 @@ order_submit(
   order_class = NULL,
   take_profit = NULL,
   stop_loss = NULL,
-  live = FALSE,
+  trail_price,
+  trail_percent,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -38,7 +40,9 @@ submit_orders(
   order_class = NULL,
   take_profit = NULL,
   stop_loss = NULL,
-  live = FALSE,
+  trail_price,
+  trail_percent,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -67,14 +71,16 @@ To expedite the setting of stops and limits for open positions, an Order ID from
 
 \item{side}{\code{(character)} The side of the trade. I.E \code{"buy"/"b"} or \code{"sell"/"s"}. (\emph{required} when \code{action = "submit"}). Assumed to be \code{"buy"} if \code{order_class = "bracket"}.}
 
-\item{type}{\code{(character)} The type of trade order. I.E \code{"market"/"m"},\code{"limit"/"l"},\code{"stop"/"s"},\code{"stop_limit"/"sl"}, etc. Default \code{NULL}. Typically \emph{required} except in certain situations where it can be assumed:
+\item{type}{\code{(character)} The type of trade order. I.E \code{"market"/"m"},\code{"limit"/"l"},\code{"stop"/"s"},\code{"stop_limit"/"sl"}, \code{"trailing_stop"/"ts"} etc. Default \code{NULL}. Typically \emph{required} except in certain situations where the value can be assumed:
 \itemize{
-\item{\code{stop} is set}{ \code{type = "stop"}}
-\item{\code{limit} is set}{ \code{type = "limit"}}
-\item{\code{stop} & \code{limit} are set}{ \code{type = "stop_limit"}}
-\item{\code{order_class = "bracket"}}{ \code{type = "market"}}
-\item{\code{order_class = "oco"}}{ \code{type = "limit"}}
-\item{\code{order_class = "oto"}}{ \code{type = "market"}}
+\item{\code{stop} is set (and \code{type} is unset)}{ \code{type = "stop"/"s"}}
+\item{\code{limit} is set}{ \code{type = "limit"/"l"}}
+\item{\code{stop} & \code{limit} are set}{ \code{type = "stop_limit"/"sl"}}
+\item{\code{order_class = "bracket"}}{ \code{type = "market"/"m"}}
+\item{\code{order_class = "oco"}}{ \code{type = "limit"/"l"}}
+\item{\code{order_class = "oto"}}{ \code{type = "market"/"m"}}
+\item{\code{trail_price} is set}{ \code{type = "trailing_stop"}}
+\item{\code{trail_percent} is set}{ \code{type = "trailing_stop"}}
 }
 See \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{Understand Orders} for details.}
 
@@ -104,6 +110,10 @@ See \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{
 \item{\code{stop_price/s}}{ \code{numeric} \strong{required} for bracket orders}
 \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. \strong{Required} for \code{'bracket'} & \code{'oco'} order classes}
 }}
+
+\item{trail_price}{\code{(numeric)} a dollar value away from the highest water mark (hwm). If you set this to 2.00 for a sell trailing stop, the stop price is always hwm - 2.00}
+
+\item{trail_percent}{\code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 
@@ -181,6 +191,12 @@ sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
 # note that the names of these list items can be partial
 (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
 # side is assumed to be buy, and type is assumed to be market
+# Set a trailing stop by price
+m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
+ts_o <- order_submit(m_o$id, trail_price = 30)
+# Set a trailing stop by percent
+m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
+ts_o <- order_submit(m_o$id, trail_percent = 5)
 }
 # all open orders can be canceled with `action = "cancel_all"`
 order_submit(a = "cancel_all")

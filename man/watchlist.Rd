@@ -12,7 +12,7 @@ watchlist(
   name = NULL,
   tickers = NULL,
   action = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -21,7 +21,7 @@ create_watchlist(
   name = NULL,
   tickers = NULL,
   action = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 
@@ -30,7 +30,7 @@ get_watchlist(
   name = NULL,
   tickers = NULL,
   action = NULL,
-  live = FALSE,
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
   v = 2
 )
 

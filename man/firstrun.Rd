@@ -4,12 +4,14 @@
 \alias{firstrun}
 \title{First Run Credential Setup}
 \usage{
-firstrun(paper, live)
+firstrun(paper_api, live_api, live)
 }
 \arguments{
-\item{paper}{\code{(named character)} of length two: \code{key} and \code{secret} for the Alpaca paper API.}
+\item{paper_api}{\code{(named character)} of length two: \code{key} and \code{secret} for the Alpaca paper API.}
 
-\item{live}{\code{(named chacter)} of length two: \code{key} and \code{secret} for the Alpaca live API.}
+\item{live_api}{\code{(named character)} of length two: \code{key} and \code{secret} for the Alpaca live API.}
+
+\item{live}{\code{(logical)} of length one: the default option for the \code{live} argument in functions that use it.}
 }
 \value{
 Sets environment variables for this session and edits the .Renviron file in R's home directory \code{path.expand("~")} and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
@@ -19,6 +21,6 @@ This function helps edit the .Renviron file to work with \code{AlpacaforR}. It's
 }
 \examples{
 \dontrun{
-firstrun(paper = c(key = "mypaperkey", secret = "mypapersecret"), live = c(key = "mylivekey", secret = "mylivesecret"))
+firstrun(paper_api = c(key = "mypaperkey", secret = "mypapersecret"), live_api = c(key = "mylivekey", secret = "mylivesecret"), live = FALSE)
 }
 }

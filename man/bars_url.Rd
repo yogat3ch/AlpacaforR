@@ -4,14 +4,14 @@
 \alias{bars_url}
 \title{Create URLs for market_data endpoints}
 \usage{
-bars_url(..., limit = NULL)
+bars_url(...)
 }
 \arguments{
-\item{limit}{\emph{v1 only} `See \code{\link[AlpacaforR]{market_data}}, NULL unless explicitly specified.}
-
 \item{ticker}{See \code{\link[AlpacaforR]{market_data}}}
 
 \item{.bounds}{Output from [AlpacaforR]{bars_bounds}. If the output is assigned  to \code{.bounds} in the calling environment this object will be used.}
+
+\item{limit}{\emph{v1 only} `See \code{\link[AlpacaforR]{market_data}}, NULL unless explicitly specified.}
 
 \item{multiplier}{See \code{\link[AlpacaforR]{market_data}}}
 
