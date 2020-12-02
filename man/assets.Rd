@@ -5,14 +5,12 @@
 \alias{get_assets}
 \title{Get Assets}
 \usage{
-assets(ticker_id = NULL, v = 2)
+assets(...)
 
-get_assets(ticker_id = NULL, v = 2)
+get_assets(...)
 }
 \arguments{
-\item{ticker_id}{\code{(character)} of asset symbols or IDs. If NULL (the default), a tibble of all assets is returned.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
+\item{...}{\code{(character)} asset symbols or IDs. If NULL (the default), a tibble of all assets is returned.}
 }
 \value{
 Asset \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/assets/#asset-entity}{Asset} Object or array of Asset objects with the following parameters:
@@ -35,7 +33,7 @@ The assets API serves as the master list of assets available for trade and data 
 \code{get_assets} is deprecated. Use \code{\link[AlpacaforR]{assets}} instead.
 }
 \details{
-This function is vectorized and will accept a \code{(character)} vector for \code{ticker_id}.
+This function is vectorized over all arguments.
 }
 \examples{
 # Get a tibble of all active assets: 
