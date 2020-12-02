@@ -5,7 +5,6 @@
 #'
 #' @description The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account's ability to trade. See the [Account](https://alpaca.markets/docs/api-documentation/api-v2/account/) Endpoint in the API v2 Docs for full details.
 #' @param live \code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @param v \code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.
 #' @return Account \code{(list)} An [Account](https://alpaca.markets/docs/api-documentation/api-v2/account/#account-entity) object list of length 26:
 #' \itemize{
 #'  \item{\code{id}}{ \code{(character)} Account ID}
@@ -24,25 +23,21 @@
 #' @examples 
 #' account()
 #' # With default arguments equivalent to :
-#' account(live = FALSE, v = 2)
+#' account(live = FALSE)
 #' # For access to live accounts, you must submit as live = TRUE
 #' account(live = TRUE)
-#' @importFrom httr GET parse_url build_url
+#' @importFrom httr GET
 #' @importFrom purrr map_if
 #' @importFrom lubridate as_datetime
 #' @export
 account <-
-  function(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+  function(live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
+  
   headers = get_headers(live)
-  .url$path <- list(version = paste0("v", v),
-                    "account")
-  .url <- httr::build_url(.url)
   #Send Request
-  out = httr::GET(url = .url, headers)
+  out = httr::GET(url = get_url("account", live = live), headers)
   out = response_text_clean(out)
   suppressWarnings(
     out <- purrr::map_if(out, .p = ~!is.na(as.numeric(.x)) && !is.logical(.x), .f = as.numeric)
@@ -103,8 +98,7 @@ account_config <-
            pdt_check = NULL,
            suspend_trade = NULL,
            trade_confirm_email = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   #Create body with order details, most common is a named list 
   .def <- ifelse(length(dtbp_check == "default") == 0, F, tolower(substr(dtbp_check,0,1)) == "d")
@@ -115,16 +109,13 @@ account_config <-
   }
   
   #Set URL & Headers
-  url = get_url(live)
   headers = get_headers(live)
-  
-  
   if (length(bodyl) > 0) {
     # if configuration options are set
-    account_config = httr::PATCH(url = paste0(url,"/",paste0("v",v),"/account/configurations"), body = bodyl, encode = "json", headers)
+    account_config = httr::PATCH(url = get_url(c("account", "configurations"), live = live), body = bodyl, encode = "json", headers)
   } else {
     # if no options are set, just return the account config
-    account_config = httr::GET(url = paste0(url,"/",paste0("v",v),"/account/configurations"), headers)
+    account_config = httr::GET(url = get_url(c("account", "configurations"), live = live), headers)
   }
   account_config = response_text_clean(account_config)
   return(account_config)
@@ -237,7 +228,7 @@ set_config <- account_config
 #' }
 #' @examples 
 #' account_activities(activity_type = "FILL")
-#' @importFrom httr GET parse_url build_url
+#' @importFrom httr GET
 #' @importFrom purrr compact map map_lgl
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr mutate_at vars
@@ -253,8 +244,7 @@ account_activities <-
            direction = "desc",
            page_size = 50,
            page_token = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   .dt <- purrr::compact(list(date = date, after = after, until = until))
   if (length(.dt) > 0) {
@@ -267,19 +257,22 @@ account_activities <-
   }
   if (!is.null(activity_type)) activity_type <- toupper(activity_type)
   #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .url$path <- purrr::compact(list(paste0("v",v),
-                                   "account",
-                                   "activities",
-                                   activity_type))
-  .url$query <- list(date = date,
-                     until = until,
-                     after = after,
-                     direction = direction,
-                     page_size = page_size,
-                     page_token = page_token)
-  .url <- httr::build_url(.url)
+  .url <- get_url(
+    c("account",
+      "activities",
+      activity_type),
+    list(
+      date = date,
+      until = until,
+      after = after,
+      direction = direction,
+      page_size = page_size,
+      page_token = page_token
+    ),
+    live = live
+  )
+  
   #Send Request
   aa = httr::GET(url = .url, headers)
   out <- aa_transform(aa)
@@ -318,7 +311,7 @@ account_activities <-
 #' @inheritParams account
 #' @importFrom stringr str_extract str_detect regex
 #' @importFrom lubridate `.__T__-:base` `.__T__+:base` as_date duration weeks days
-#' @importFrom httr parse_url build_url GET
+#' @importFrom httr GET
 #' @importFrom purrr iwalk compact
 #' @export
 
@@ -327,8 +320,7 @@ account_portfolio <-
            timeframe = NULL,
            date_end = NULL,
            extended_hours = FALSE,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   # Fix and detect args
   # check classes ----
@@ -338,8 +330,7 @@ account_portfolio <-
   purrr::iwalk(.vn, ~{
     if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
   })
-  headers <- get_headers(live)
-  .url <- httr::parse_url(get_url(live))
+  
   #  period ----
   # Mon May 18 10:53:29 2020
   if (is.null(period)) {
@@ -444,19 +435,20 @@ account_portfolio <-
   }
   # Send request ----
   # Mon May 18 11:49:14 2020
-  .url$path <- list(
-    paste0("v",v),
+  headers <- get_headers(live)
+  .url <- get_url(c(
     "account",
     "portfolio",
     "history"
-  )
-  .url$query <- purrr::compact(list(
+  ),
+  c(
     period = paste0(.pmultiplier, .period),
     timeframe = paste0(.multiplier, .timeframe[2]),
     date_end = .date,
     extended_hours = extended_hours
-  ))
-  .url <- httr::build_url(.url)
+  ),
+  live = live)
+  
   if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(.url)
   .resp <- httr::GET(.url, headers)
   out <- port_transform(.resp)

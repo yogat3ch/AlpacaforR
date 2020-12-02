@@ -9,8 +9,7 @@ account_portfolio(
   timeframe = NULL,
   date_end = NULL,
   extended_hours = FALSE,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 }
 \arguments{
@@ -29,8 +28,6 @@ If omitted, "\verb{1Min}" for less than 7 days period, "\verb{15Min}" for less t
 \item{extended_hours}{\code{(logical)} \emph{Optional} If true, include extended hours in the result. This is effective only for timeframes less than 1D. Default \code{FALSE}}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 A \href{https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#portfoliohistory-entity}{PortfolioHistory} \code{(tibble)} Object with R amenable data types. \emph{Note} that base value & timeframe can be accessed by calling \code{attr(out, "info")} on the returned tibble.

@@ -12,8 +12,7 @@ account_activities(
   direction = "desc",
   page_size = 50,
   page_token = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 }
 \arguments{
@@ -32,8 +31,6 @@ account_activities(
 \item{page_token}{\code{(character)} The ID of the end of your current page of results to indicate where the next page should start.}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 \code{TradeActivity} \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#tradeactivity-entity}{TradeActivity} Object or  a \href{https://alpaca.markets/docs/api-documentation/api-v2/account-activities/#nontradeactivity-entity}{NonTradeActivity} Object. See Details.

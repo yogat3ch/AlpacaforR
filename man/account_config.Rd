@@ -12,8 +12,7 @@ account_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 
 get_config(
@@ -22,8 +21,7 @@ get_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 
 set_config(
@@ -32,8 +30,7 @@ set_config(
   pdt_check = NULL,
   suspend_trade = NULL,
   trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 }
 \arguments{
@@ -48,8 +45,6 @@ set_config(
 \item{trade_confirm_email}{\code{(character)} all or none. If none, emails for order fills are not sent. Default NULL (no change).}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity}{AccountConfigurations}  object with the following parameters (defaults shown):

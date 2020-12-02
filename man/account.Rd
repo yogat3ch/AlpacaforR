@@ -5,14 +5,12 @@
 \alias{get_account}
 \title{Get Account Details}
 \usage{
-account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)), v = 2)
+account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)))
 
-get_account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)), v = 2)
+get_account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)))
 }
 \arguments{
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 Account \code{(list)} An \href{https://alpaca.markets/docs/api-documentation/api-v2/account/#account-entity}{Account} object list of length 26:
@@ -39,7 +37,7 @@ The accounts API serves important information related to an account, including a
 \examples{
 account()
 # With default arguments equivalent to :
-account(live = FALSE, v = 2)
+account(live = FALSE)
 # For access to live accounts, you must submit as live = TRUE
 account(live = TRUE)
 get_account()
