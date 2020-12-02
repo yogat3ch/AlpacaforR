@@ -7,7 +7,6 @@
 #' @description The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures. See [Calendar](https://alpaca.markets/docs/api-documentation/api-v2/calendar/) Endpoint for details.
 #' @param from `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970. If blank, defaults to today's date.
 #' @param to `(Date/Datetime/POSIXct/character)` in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029. If blank, defaults to today's date.
-#' @inheritParams account
 #' @return Calendar \code{tibble} A [Calendar](https://alpaca.markets/docs/api-documentation/api-v2/calendar/#calendar-entity) Object consisting of the following:
 #' \itemize{
 #'   \item{\code{date}}{ \code{(character)} vector of trading days in the time range}
@@ -35,41 +34,43 @@
 #' @export
 
 
-calendar <- function(from = NULL, to = NULL, v = 2){
-  #Set URL & Headers
-  .url = httr::parse_url(get_url())
-  headers = get_headers()
-  .bounds <- list(from = from, to = to)
+calendar <- function(from = NULL, to = NULL){
+
+  bounds <- list(from = from, to = to)
   #If dates were given, make sure they are in a string format. I add plus 1 to the "to" date, or it will always return one day before the day "to"
   # 2020-03-29T18:25:01 This appears to be fixed, removing the +1
-  .null <- purrr::map_lgl(.bounds, is.null)
+  .null <- purrr::map_lgl(bounds, is.null)
   # Check for null values and warn if NULL
   if (any(.null)){
     message(paste0(paste0("`",names(.null)[.null],"`", collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
-    .bounds <- purrr::map(.bounds, ~{
+    bounds <- purrr::map(bounds, ~{
       if (is.null(.x)) lubridate::today() else try_date(.x)
     })
   }
   # Check for weekend values and warn if weekend
-  purrr::imap(.bounds, ~{
+  purrr::imap(bounds, ~{
     if (lubridate::wday(.x) %in% c(1,7)) {
       message(paste0(.y, " is a ",lubridate::wday(.x, label = TRUE, abbr = FALSE),", Calendar API will return data for the previous Friday or following Monday"))
     }
   })
-  .url$path <- list(
-    version = paste0("v",v),
-    endpoint = "calendar"
-  )
-  .url$query <- list(
-    start = as.character(.bounds[[1]]),
-    end = as.character(.bounds[[2]])
-  )
-  .url <- httr::build_url(.url)
+  headers = get_headers()
+  .url <- get_url("calendar",
+                  list(start = as.character(bounds[[1]]),
+                       end = as.character(bounds[[2]])))
+  
+  
   calendar = httr::GET(url = .url, headers)
   calendar =  response_text_clean(calendar)
   .tz <- "America/New_York"
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = .tz) %>% 
-    dplyr::mutate_at(dplyr::vars(dplyr::starts_with("session")), ~paste0(stringr::str_sub(., start = 1, end = 2),":",stringr::str_sub(.,start = 3, end = 4))) %>% 
+  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = .tz) %>%
+    dplyr::mutate_at(
+      dplyr::vars(dplyr::starts_with("session")),
+      ~ paste0(
+        stringr::str_sub(., start = 1, end = 2),
+        ":",
+        stringr::str_sub(., start = 3, end = 4)
+      )
+    ) %>%
     dplyr::mutate(
       day = lubridate::interval(
         start = lubridate::ymd_hm(paste(date, open), tz = .tz),
@@ -84,13 +85,3 @@ calendar <- function(from = NULL, to = NULL, v = 2){
     dplyr::select(date, everything(), dow, day, session)
   return(calendar)
 }
-#----------------------------------------------------------------------------------------------
-#UPDATED for V2
-#calendar(from = "2019-01-01", to = "2019-04-01", version = "v2")
-#' @family Calendar
-#' @title get_calendar (Deprecated)
-#' @rdname calendar
-#' @description  \code{get_calendar} is Deprecated. Use \code{\link[AlpacaforR]{calendar}} instead.
-#' @examples get_calendar()
-#' @export
-get_calendar <- calendar
