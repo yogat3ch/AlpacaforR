@@ -749,7 +749,7 @@ get_poly_stock_splits <- function(ticker=NULL){
 #' @importFrom purrr compact
 #' @importFrom lubridate is.POSIXct is.POSIXlt
 #' @importFrom dplyr mutate_at rename select_if
-#' @importFrom dplyr `%>%` not
+#' @importFrom dplyr `%>%`
 #' @export
 get_poly_historic_info <- function(ticker = NULL, type = NULL, date = NULL, .ts = NULL, v = 2, limit = 10){
   message(paste0("This function is deprecated, see ?AlpacaforR::polygon"))
