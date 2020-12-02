@@ -2,34 +2,25 @@
 % Please edit documentation in R/Positions.R
 \name{positions}
 \alias{positions}
-\alias{get_positions}
-\alias{close_all_positions}
 \title{Get Positions}
 \usage{
 positions(
   tickers = NULL,
   action = "get",
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
-
-get_positions(
-  tickers = NULL,
-  action = "get",
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-close_all_positions(live = FALSE)
 }
 \arguments{
-\item{tickers}{\code{(character)} Specify which symbol(s) you want to call by inserting ticker symbol(s) as a character vector.}
+\item{tickers}{\code{(character)} Symbol(s) for which Position information will be retrieved.}
 
-\item{action}{\code{(character)} \code{"get"/"g"} to get all positions or those specified by \code{tickers}. \verb{"close","c"} to close positions specified by \code{tickers}. Use \code{"close_all"} to close all positions.}
+\item{action}{\code{(character)}
+\itemize{
+\item{\code{"get"/"g"}}{ \code{GET} all positions or those specified by \code{tickers}}
+\item{\code{"close","c"}}{ Close positions specified by \code{tickers}}
+\item{\code{"close_all"}}{ Close all positions}
+}}
 
-\item{live}{TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
+\item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
 }
 \value{
 Position \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/positions/#position-entity}{Position object} or array of Position objects of length 0 if no positions, otherwise with length of the number of positions, each with the following attributes:
@@ -54,10 +45,6 @@ Position \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api
 }
 \description{
 The positions API provides information about an account's current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See \href{https://alpaca.markets/docs/api-documentation/api-v2/positions/}{Positions} for details.
-
-\code{get_positions} is deprecated, use \code{\link[AlpacaforR]{positions}} instead.
-
-Deprecated. Please use \code{\link[AlpacaforR]{positions}} with `tickers = 'close_all'". The close all positions API liquidates all currently open long and short positions. Character values are returned as a string while integer values are returned as numeric.
 }
 \details{
 \code{position} is vectorized and thus multiple arguments may be provided to \code{tickers} and the function will perform the \code{action} specified for each. \code{action} is not vectorized, and only one action may be performed for a set of tickers at a given time.
@@ -67,23 +54,9 @@ positions(ticker = "AAPL", live = FALSE)
 positions("AAPL", live = TRUE)
 positions() # all paper positions
 positions(live = TRUE) # all live positions
-#close a single position with `action  = "cancel"`
+#close a single position with `action  = "close"`
 positions("aapl", a = "c")
 #cancel all paper positions
-positions(a = "cancel_all")
-get_positions()
-close_all_positions(live = FALSE)
-close_all_positions()
-close_all_positions(live = TRUE)
-}
-\seealso{
-Other Positions: 
-\code{\link{close_position}()}
-
-Other Positions: 
-\code{\link{close_position}()}
-
-Other Positions: 
-\code{\link{close_position}()}
+positions(a = "close_all")
 }
 \concept{Positions}
