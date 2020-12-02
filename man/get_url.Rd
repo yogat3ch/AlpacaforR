@@ -4,12 +4,19 @@
 \alias{get_url}
 \title{Return the Alpaca URL}
 \usage{
-get_url(live = FALSE)
+get_url(path, query, ..., live = FALSE, v = 2)
+}
+\arguments{
+\item{path}{\code{(character)} of values to append to the url path ie  \code{c("p1","p2")} become \code{url/p1/p2}}
+
+\item{query}{\code{(named list)} of values to add as query parameters}
+
+\item{...}{\code{(named arguments)} to be added as query parameters}
 }
 \value{
 The correct URL according to account type (live or paper) that will be sent in the API request.
 }
 \description{
-Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.
+Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.  See \link[httr]{parse_url} & \link[httr]{build_url} for details.
 }
 \keyword{internal}

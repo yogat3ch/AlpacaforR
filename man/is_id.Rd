@@ -2,17 +2,17 @@
 % Please edit documentation in R/internal.R
 \name{is_id}
 \alias{is_id}
-\title{Check if value provided to a ticker_id argument is an ID or a ticker symbol}
+\title{Check if value provided is an Alpaca ID}
 \usage{
-is_id(ticker_id)
+is_id(.)
 }
 \arguments{
-\item{ticker_id}{}
+\item{.}{\code{(character)}}
 }
 \value{
-\code{logical} indicating whether the object is a
+\code{logical} indicating whether the object is an id
 }
 \description{
-for use in functions that accept \code{ticker_id}
+for use in functions that accept \verb{*_id}
 }
 \keyword{internal}
