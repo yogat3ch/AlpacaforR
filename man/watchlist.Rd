@@ -2,9 +2,6 @@
 % Please edit documentation in R/Watchlist.R
 \name{watchlist}
 \alias{watchlist}
-\alias{create_watchlist}
-\alias{get_watchlist}
-\alias{update_watchlist}
 \title{Access all Watchlist Endpoints}
 \usage{
 watchlist(
@@ -12,48 +9,20 @@ watchlist(
   name = NULL,
   tickers = NULL,
   action = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-create_watchlist(
-  watchlist_id = NULL,
-  name = NULL,
-  tickers = NULL,
-  action = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-get_watchlist(
-  watchlist_id = NULL,
-  name = NULL,
-  tickers = NULL,
-  action = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-update_watchlist(
-  watchlist_id = NULL,
-  name = NULL,
-  tickers = NULL,
-  action = "add",
-  live = FALSE,
-  v = 2
+  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
 )
 }
 \arguments{
-\item{watchlist_id}{\code{(character)} Name or ID of watchlist to get or delete,  or if \code{tickers} is non NULL, to add tickers to, delete tickers from, or replace tickers of. If \code{NULL} (Default) the array of all \code{Watchlist} will be returned. If \code{NULL} and \code{name} is specified, \code{action} is assumed to be \code{"create"} and a \code{Watchlist} named \code{name} will be created with any \code{tickers} specified. All other actions to be performed on the provided \code{Watchlist} name or ID must be explicitly specified via \code{action}. See other parameters for details.
+\item{watchlist_id}{\code{(character)} \strong{Name or ID} of watchlist to \code{GET}, \code{PATCH} or \code{DELETE}. If \code{NULL} \strong{(Default)} the array of all saved \code{Watchlist} will be returned. If \code{NULL} and \code{name} is specified, \code{action} is assumed to be \code{"create"} and a \code{Watchlist} named \code{name} will be created with any \code{tickers} specified. All other actions to be performed on the provided \code{Watchlist} name or ID must be explicitly specified via \code{action}. See other parameters for details. The list below describes the behavior of this argument based on the value supplied to \code{action}:
 \itemize{
-\item{\code{NULL}}{ If \code{watchlist_id = NULL} & \code{action = NULL}, and no other arguments specified. An array of all \code{Watchlist} will be returned. If \code{name} is specified, \code{action} is assumed to be \code{create}.}
-\item{\code{"create"}}{ A \code{Watchlist} by this name will be created, unless \code{watchlist_id} is specified, in which case the specified \code{Watchlist} will be renamed preserving existing tickers. To replace tickers, \code{action} must explicitly be \code{"replace"}.}
-\item{\code{"add"}}{If \code{tickers} are specified they will be added to the \code{Watchlist}.}
-\item{\code{"replace"}}{If \code{tickers} are specified they will replace existing tickers or if \code{tickers = NULL}, all tickers will be removed.}
+\item{\code{NULL}}{ If \code{watchlist_id = NULL} & \code{action = NULL}, and no other arguments specified. An array of all \code{Watchlist} will be returned. If \code{name} is specified, a \code{Watchlist} by that name will be created.}
+\item{\code{"create"}}{ A \code{Watchlist} by this name will be created. If \code{watchlist_id} & \code{name} are specified the \code{Watchlist} specified with \code{watchlist_id} will be renamed to \code{name} preserving existing tickers.}
+\item{\code{"add"}}{ If \code{tickers} are specified they will be added to the \code{Watchlist} specified.}
+\item{\code{"replace"}}{ If \code{tickers} are specified they will replace existing tickers or if \code{tickers = NULL}, all tickers will be removed.}
 \item{\code{"delete"}}{ If no tickers are specified, the \code{Watchlist} specified by \code{watchlist_id} will be deleted. If \code{tickers} are specified, the \code{Watchlist} specified by \code{watchlist_id} will have the specified tickers deleted from it.}
 }}
 
-\item{name}{\code{(character)} arbitrary name string, up to 64 characters. Default \code{NULL}. If only this is provided, \code{action} is assumed to be \code{"create"}. If only this & \code{watchlist_id} is provided, \code{action} is assumed to be rename the \code{Watchlist} specified by \code{watchlist_id} and preserve existing tickers. If this argument is specified and \code{action} is:
+\item{name}{\code{(character)} arbitrary name string, up to 64 characters. Default \code{NULL}. If only this is provided, \code{action} is assumed to be \code{"create"}. If only \code{name} & \code{watchlist_id} is provided the \code{Watchlist} specified by \code{watchlist_id} will be renamed to \code{name} preserving existing tickers. If this argument is specified and \code{action} is:
 \itemize{
 \item{\code{"create"/NULL}}{ A \code{Watchlist} by this name will be created, unless \code{watchlist_id} is specified, in which case the specified \code{Watchlist} will be renamed.}
 \item{\code{"add"}}{ The \code{watchlist_id} specified will be renamed to this \code{name}. If \code{tickers} are specified they will be added or existing tickers will be preserved if \code{tickers = NULL}.}
@@ -63,7 +32,7 @@ update_watchlist(
 
 \item{tickers}{\code{(character)} Vector of symbols. Must be specified with a \code{watchlist_id} or \code{name}. Default \code{NULL}. If the \code{action} is:
 \itemize{
-\item{\code{"create"/ NULL}}{If this argument is specified with \code{name} a \code{Watchlist} will be created with these symbols. If \code{NULL} the \code{Watchlist} will be empty.}
+\item{\code{"create"/ NULL}}{ If this argument is specified with \code{name} a \code{Watchlist} will be created with these symbols. If \code{NULL} the \code{Watchlist} will be empty.}
 \item{\code{"add"}}{ If this argument is specified with \code{watchlist_id} the \code{tickers} will be added to the specified \code{Watchlist}. If this argument is specified with \code{watchlist_id} and \code{name} the \code{Watchlist} will be renamed and the \code{tickers} will be added.}
 \item{\code{"replace"}}{ If this argument is specified with \code{watchlist_id} the \code{tickers} will replace those in the specified \code{Watchlist}. If this argument is specified with \code{watchlist_id} and \code{name} the \code{Watchlist} will be renamed and the \code{tickers} will replace the existing ones. If \code{NULL} all tickers will be removed and the \code{Watchlist} will be empty.}
 \item{\code{"delete"}}{ If this argument is specified with \code{watchlist_id}, the \code{tickers} will be deleted from the \code{Watchlist}. If a \code{name} is also specified, the \code{Watchlist} will also be renamed. If \code{tickers} is \code{NULL} the \code{Watchlist} will be deleted.}
@@ -79,8 +48,6 @@ update_watchlist(
 }}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 \code{Watchlist} \code{(tibble)} If \code{action = "create"/NULL} a \href{https://alpaca.markets/docs/api-documentation/api-v2/watchlist/#watchlist-entity}{Watchlist} Object or array of \code{Watchlist} objects. For all others \code{action}s, an \href{https://alpaca.markets/docs/api-documentation/api-v2/assets/#asset-entity}{Asset} Object or array of Asset objects with the \code{Watchlist} stored as an attribute retrieved with \code{attr(Asset, "info")}. A \code{Watchlist} object has the following information:
@@ -94,12 +61,6 @@ update_watchlist(
 }
 \description{
 Access all \href{https://alpaca.markets/docs/api-documentation/api-v2/watchlist}{Watchlist} endpoints. See link for details.
-
-\code{create_watchlist} is deprecated. Use \code{\link[AlpacaforR]{watchlist}} instead.
-
-\code{get_watchlist} is deprecated. Use \code{\link[AlpacaforR]{watchlist}} instead.
-
-\code{update_watchlist} is deprecated. Use \code{\link[AlpacaforR]{watchlist}} instead.
 }
 \examples{
 # get the existing watchlists
@@ -132,27 +93,5 @@ attr(wl, "info")
 attr(wl, "info")
 # remove it (with partial action argument)
 watchlist("FAANG", a = "d")
-create_watchlist(name = "test", tickers = c("AAPL","WMT"), live = FALSE)
-watchlist("test", action = "d")
-get_watchlist()
-}
-\seealso{
-Other Watchlist: 
-\code{\link{add_to_watchlist}()},
-\code{\link{delete_from_watchlist}()},
-\code{\link{delete_watchlist}()},
-\code{\link{watchlist_update}()}
-
-Other Watchlist: 
-\code{\link{add_to_watchlist}()},
-\code{\link{delete_from_watchlist}()},
-\code{\link{delete_watchlist}()},
-\code{\link{watchlist_update}()}
-
-Other Watchlist: 
-\code{\link{add_to_watchlist}()},
-\code{\link{delete_from_watchlist}()},
-\code{\link{delete_watchlist}()},
-\code{\link{watchlist_update}()}
 }
 \concept{Watchlist}
