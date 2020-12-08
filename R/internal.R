@@ -438,9 +438,9 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
       agg_quote = httr::GET(url = .url)
       # Save the query meta-date for appending to the output df
       .quote <- bars_transform(agg_quote, timeframe)
-      
       return(.quote)
     })
+    bars <- stats::setNames(unlist(bars, recursive = FALSE, use.names = FALSE), names(bars))
   }
   
   return(bars)
@@ -532,9 +532,8 @@ bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode =
     })  
   }
   # Transform to tsibble, make symbol class
-  bars <- purrr::map(bars, ~{
-    .ts <- tsibble::as_tsibble(.x, index = "time", regular = TRUE)
-    structure(.ts, class = c(class(.ts), "symbol"), query = .query)
+  bars <- purrr::imap(bars, ~{
+    .ts <- as_tsybble(.x, index = "time", regular = TRUE, query = .query, symbol = .y)
     })
   
   return(bars)
@@ -561,6 +560,8 @@ tf_as_duration <- function(multiplier, timeframe) {
 #' @keywords Internal
 #' @description A wrapper for \code{\link[tsibble]{fill_gaps}}
 #' @inherit tsibble::fill_gaps
+#' @importFrom rlang dots_list
+#' @importFrom purrr map
 
 bars_missing <- function(bars, ...) {
   .dots <- rlang::dots_list(...)
