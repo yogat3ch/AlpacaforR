@@ -24,10 +24,28 @@ as_tsymble <- function(x, index = tsibble::index_var(x), symbol = get_sym(x), qu
             class = c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"))
 }
 
+#' @title Gather and flatten querys
+#' @description Receives multiple tsymble's to be bound together and combines the query's as individual list items
+#' @param . \code{(list)} of tsymbles
+#' @keywords Internal
+
+merge_query <- function(.) {
+  .q <- purrr::map(., get_query) 
+  .ql <- purrr::map_lgl(.q, ~!"ts" %in% names(.x))
+  if (any(.ql)) {
+    .qn <- .q[!.ql]
+    for (i in which(.ql)) {
+      .qn <- append(.qn, purrr::flatten(.q[i]))
+    }
+    .q <- .qn
+  }
+  .q
+}
+
 bind_rows <- function (..., .id = NULL) {
   . <- rlang::dots_list(...)
   .a <- attributes(.[[1]])
-  .a$query <- purrr::map(., get_query)
+  .a$query <- merge_query(.)
   .a$.Data <- dplyr::bind_rows(!!!purrr::map(., tibble::as_tibble), .id = .id) %>% 
     dplyr::distinct(!!rlang::sym(.a$index), .keep_all = TRUE) %>% 
     tsibble::as_tsibble(index = .a$index)
@@ -35,6 +53,16 @@ bind_rows <- function (..., .id = NULL) {
   do.call(structure, .a)
 }
 
+arrange.tsymble <- function(.data, ..., .by_group = FALSE) {
+  .a <- attributes(.data)
+  .a$.Data <- dplyr::arrange(.data, ..., .by_group)
+  do.call(structure, .a)
+}
+
+arrange <- function (.data, ..., .by_group = FALSE) 
+{
+  UseMethod("arrange")
+}
 #' @title Retrieve the ticker symbol
 #' @description \lifecycle{experimental}
 #' Retrieve the ticker symbol from a `tsymble` returned from market_data.

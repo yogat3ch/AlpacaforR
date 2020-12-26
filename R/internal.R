@@ -463,32 +463,16 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
 
 # TODO Test with q/t, all timeframes and v1 & v2
 bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  .query <- list(
-    status_code = agg_quote$status_code
-    ,
-    url = gsub(
-      "(?<=apiKey\\=)[[:alnum:]]+$",
-      "[REDACTED]",
-      agg_quote$url,
-      perl = TRUE
-    ) # redact the apikey
-    ,
-    ts = lubridate::with_tz(
-      lubridate::parse_date_time(agg_quote$headers$date, "a, d b Y T"),
-      tzone = "America/New_York"
-    )
-  )
+  
   
   fetch_vars(evar$.vn[c("v")], ...)
   
   .quote = response_text_clean(agg_quote)
+  .query <- get_query(.quote)
   if (v == 2) {
-    # Add query parameters nested in response to .query
-    .query <- append(.query, .quote[!names(.quote) %in% "results"])
     # Mirror V1 response as list with nested symbol data
-    .quote <- rlang::list2(!!.quote$ticker := .quote$results)
-  }
-  
+    .quote <- rlang::list2(!!.query$ticker := .quote)
+  } 
   if (!timeframe %in% c("q","t")) {
     # only check output if it's a bars request
       purrr::iwalk(.quote, ~{
@@ -639,7 +623,16 @@ bars_missing <- function(x, timeframe, ..., evar = get0("evar", mode = "environm
 max_gap <- function(.data, cal) {
   .int <- tsibble::interval(.data)
   .gap_idx <- which.max(diff(cal$date))
-  lubridate::as.duration(difftime(lubridate::int_start(cal$day[(.gap_idx + 1)]), lubridate::int_end(cal$day[.gap_idx]))) / lubridate::as.duration(.int)
+  if (!rlang::is_empty(.gap_idx)) {
+    out <- lubridate::as.duration(difftime(
+      lubridate::int_end(cal$day[(.gap_idx + 1)]),
+      lubridate::int_start(cal$day[.gap_idx])
+    )) / lubridate::as.duration(.int)
+  } else {
+    # In instances < one day
+    out <- lubridate::as.duration(.int)  
+  }
+  out
 } 
 
 # bars_complete ----
@@ -649,9 +642,10 @@ max_gap <- function(.data, cal) {
 #' @description This function uses the output from bars_missing and fills the missing data. It's arguments are represented in the first object \code{.vn}. 
 #'@details The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, **all params must be named**. 
 #' @param \code{bars} Returned by \code{bars_get}
-#' @param \code{missing} Returned by \code{bars_missing}
+#' @inheritParams market_data
+#' @inheritDotParams market_data
 #' @keywords internal
-bars_complete <- function(bars, missing, bounds, timeframe, multiplier, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   
   .vn <- evar$.vn[c("v", "unadjusted", "limit", "full")]
   fetch_vars(.vn, ...)  
@@ -682,7 +676,7 @@ bars_complete <- function(bars, missing, bounds, timeframe, multiplier, ..., eva
       if (.nd) break
       .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
     }
-    return(dplyr::arrange(ext$out, !!ext$index))
+    return(arrange(ext$out, !!ext$index))
     })
   return(.newbars)
 }
@@ -754,23 +748,45 @@ get_url_poly <- function(){
 # Sun Mar 29 16:02:00 2020
 #' @title Clean API responses
 #' 
-#' @description Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON. 
-#' @param dat The response from our server GET request usually in a json format.
+#' @description Clean the response text (usually in unreadable json) and convert to a readable format using \link[jsonlite]{fromJSON}. 
+#' @param x The response from our server GET request 
 #' @keywords internal
 #' @return The response in a readable format as a list.
-response_text_clean <- function(dat){
-  # If empty, return empty list
-  if (length(dat$content) == 0) {
+response_text_clean <- function(x){
+  if (inherits(x, "response")) {
+    query <- list(
+      status_code = x$status_code,
+      url = gsub(
+        "(?<=apiKey\\=)[[:alnum:]]+$",
+        "[REDACTED]",
+        x$url,
+        perl = TRUE
+      ), # redact the apikey
+      ts = lubridate::with_tz(
+        lubridate::parse_date_time(x$headers$date, "a, d b Y T"),
+        tzone = "America/New_York"
+      )
+    )
+  } 
+  
+  if (length(x$content) == 0) {
+    # If empty, return empty list
     out <- list()
   } else {
-    dat = httr::content(dat, as = "text", encoding = "UTF-8")
+    x = httr::content(x, as = "text", encoding = "UTF-8")
     # if it's just text, return as is, otherwise fromJSON will throw an error.
-    if (!stringr::str_detect(dat, "\\{|\\[")) return(dat)
-    out <- jsonlite::fromJSON(dat)
+    if (!stringr::str_detect(x, "\\{|\\[")) return(x)
+    out <- jsonlite::fromJSON(x)
   }
   
+  if (grepl("aggs", query$url)) {
+    query <- append(query, out[names(out) != "results"])
+    out <- out$results
+  }
+  attr(out, "query") <- query
   return(out)
 }
+
 
 #' @title Check if value provided is an Alpaca ID
 #' @keywords internal
