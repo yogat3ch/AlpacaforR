@@ -230,10 +230,6 @@ set_config <- account_config
 #' account_activities(activity_type = "FILL")
 #' @importFrom httr GET
 #' @importFrom purrr compact map map_lgl
-#' @importFrom tibble as_tibble
-#' @importFrom dplyr mutate_at vars
-#' @importFrom lubridate as_datetime as_date
-#' @importFrom dplyr `%>%`
 #' @importFrom rlang abort warn
 #' @export
 account_activities <-
@@ -325,7 +321,7 @@ account_portfolio <-
   # Fix and detect args
   # check classes ----
   # Mon May 18 11:01:09 2020
-  .vn <- list(period = c("character", "Period", "NULL"), timeframe = c("character", "NULL"), date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"), extended_hours = "logical", live = "logical", v = c("integer", "numeric"))
+  .vn <- list(period = c("character", "Period", "NULL"), timeframe = c("character", "NULL"), date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"), extended_hours = "logical", live = "logical")
   .e <- environment()
   purrr::iwalk(.vn, ~{
     if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
@@ -441,7 +437,7 @@ account_portfolio <-
     "portfolio",
     "history"
   ),
-  c(
+  list(
     period = paste0(.pmultiplier, .period),
     timeframe = paste0(.multiplier, .timeframe[2]),
     date_end = .date,
