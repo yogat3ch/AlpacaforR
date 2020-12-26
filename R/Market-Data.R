@@ -15,7 +15,7 @@
 #'  \item{`'d'`/`'day'`}{ (`multiplier` will be `1`)}
 #' } 
 #' Not case-sensitive.
-#' For the `v2` API, `multiplier` can be any `integer` for any one of the following `timeframe`'s:
+#' For the `v2` API, `multiplier` can be any positive `integer` for any one of the following `timeframe`'s:
 #' \itemize{
 #'  \item{`'m'`/`'min'`/`'minute'`}
 #'  \item{`'h'`/`'hour'`}
@@ -35,7 +35,8 @@
 #' @param limit *`v1` only* \code{(integer)} The amount of bars to return per ticker. This can range from 1 to 1000. Defaults to 1000. *Note:* If \code{full} is set to T, this parameter is ignored and forced to 1000. 
 #' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note:* The `v1` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.
 #' @param unadjusted *v2 only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. Defaults to `FALSE`.
-#' @details All \code{(Date/POSIXlt)} will parse correctly if in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `v2` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `v2`. For the `v2` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively.
+#' @details All \code{(Date/POSIXlt)} will parse correctly if in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `v2` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `v2`. For the `v2` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively. 
+#' For a full overview of how the v2 Polygon.io Aggregates endpoint functions, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
 #' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 #' \itemize{
 #'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
@@ -92,13 +93,32 @@
 # list(m = c("m","min","minute"), h = c("h", "hour"),d = c("d", "day"), w = c("w", "week"), m = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year")) %>% purrr::map(~{paste0("\\item{",paste0(paste0("`'",.x,"'`"), collapse = '/'),"}")}) %>% do.call(c,.) %>% cat(collapse = "\n")
 # For DEBUG
 
+# rlang::env_bind(environment(), ticker = "LOOP", v = 2, timeframe = "minute", multiplier = 5, from = lubridate::floor_date(Sys.Date(), "year"), after = NULL, until = NULL, limit = NULL, to = NULL, full = TRUE, unadjusted = FALSE)
 
-market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE){
+market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE) {
+  evar <- environment()
+  evar$.vn = list(
+    ticker = "character",
+    v = c("integer", "numeric"),
+    timeframe = c("factor", "character"),
+    tf_num = c("integer", "numeric"),
+    tf_order = "factor",
+    multiplier = c("integer", "numeric"),
+    from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    limit = c("integer", "numeric", "NULL"),
+    full = "logical",
+    unadjusted = "logical",
+    bounds = c("Date", "Datetime", "POSIXct"),
+    cal = c("data.frame", "tibble")
+  )
   # Last trade and quote handling  ----
   if (grepl("^(?:lt)$|^t$|(?:trade)|^q$|^(?:lq)$|(?:quote)", timeframe, ignore.case = TRUE)) {
     timeframe <- ifelse(grepl("^lt$|^t$|trade", timeframe, ignore.case = TRUE), "t", "q")
-    .url <- bars_url(timeframe = timeframe)
-    .out <- bars_get(.url)
+    .url <- bars_url(ticker = ticker, timeframe = timeframe)
+    .out <- bars_get(.url, timeframe)
     return(.out)
   }
   # Sun Jun 14 15:58:33 2020
@@ -109,35 +129,39 @@ market_data <- function(ticker, v = 1, timeframe = "day", multiplier = 1, from =
   if (!any(v %in% 1:2)) stop("Version 'v' must be either 1 or 2")
   if (stringr::str_detect(timeframe, "^\\d")) {
     # Account for old argument style to timeframe
-    multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
-    timeframe <- tolower(stringr::str_extract(timeframe, "\\w+"))
+    evar$multiplier <- multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
+    evar$timeframe <- timeframe <- tolower(stringr::str_extract(timeframe, "\\w+"))
   }
   
   # Handle date bounds:  Thu Mar 26 08:40:24 2020 ----
-  .bounds <- bars_bounds(from = from, to = to, after = after, until = until, fc = TRUE)
-  tf_num(timeframe)
+  tf_num(timeframe, multiplier) # returns tf_num & tf_order to environment
+  evar$tf_num <- tf_num 
+  evar$tf_order <- tf_order
+  evar$bounds <- bounds <- bars_bounds(from = from, to = to, after = after, until = until, timeframe = timeframe, multiplier = multiplier, fc = TRUE)
   # Stop if malformed date argument with informative message
-  if (any(purrr::map_lgl(.bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(.bounds, ~{is.null(.x)||is.na(.x)})), "`"))
+  if (any(purrr::map_lgl(bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(bounds, ~{is.null(.x)||is.na(.x)})), "`"))
+  
+  evar$cal <- rlang::exec(calendar, !!!unname(bounds))
   
   if (full) {
     # Form the URL
-    .url <- bars_url(.bounds = .bounds, ticker = ticker)
+    .url <- bars_url(ticker, timeframe, multiplier, bounds)
     # retrieve the data
-    bars <- bars_get(.url)
-    .expected <- bars_expected(bars)
-    .missing <- bars_missing(bars)
-    bars <- bars_complete(bars, .missing = .missing)
+    bars <- bars_get(.url, timeframe)
+    bars <- bars_complete(bars, timeframe = timeframe, multiplier = multiplier)
   } else {
     # Submit request as is for full = F:  Tue Mar 17 21:35:54 2020 ----
     # Coerce to ISO8601 for call
     # build the URL
-    .url <- bars_url(ticker)
+    .url <- bars_url(ticker, timeframe, multiplier, bounds)
     # retrieve the data
-    bars <- bars_get(.url)
+    bars <- bars_get(.url, timeframe)
     # End case where full = F ---- Fri Mar 27 11:19:05 2020
   }
   return(bars)
 }
+
+
 #----------------------------------------------------------------------------------------------
 #market_data(ticker = "DBX")
 
