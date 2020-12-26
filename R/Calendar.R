@@ -28,7 +28,7 @@
 #' @importFrom httr parse_url build_url GET
 #' @importFrom purrr map_lgl map imap
 #' @importFrom lubridate today days as_date wday ymd interval ymd_hm
-#' @importFrom dplyr mutate_at vars starts_with mutate select
+#' @importFrom dplyr starts_with mutate select
 #' @importFrom stringr str_sub
 #' @importFrom dplyr `%>%`
 #' @export
@@ -44,7 +44,7 @@ calendar <- function(from = NULL, to = NULL){
   if (any(.null)){
     message(paste0(paste0("`",names(.null)[.null],"`", collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
     bounds <- purrr::map(bounds, ~{
-      if (is.null(.x)) lubridate::today() else try_date(.x)
+      if (is.null(.x)) lubridate::today() else try_date(.x, timeframe = "day")
     })
   }
   # Check for weekend values and warn if weekend
@@ -57,31 +57,8 @@ calendar <- function(from = NULL, to = NULL){
   .url <- get_url("calendar",
                   list(start = as.character(bounds[[1]]),
                        end = as.character(bounds[[2]])))
+
+  calendar <- cal_transform(httr::GET(url = .url, headers))
   
-  
-  calendar = httr::GET(url = .url, headers)
-  calendar =  response_text_clean(calendar)
-  .tz <- "America/New_York"
-  calendar <- dplyr::mutate_at(calendar, dplyr::vars("date"), lubridate::ymd, tz = .tz) %>%
-    dplyr::mutate_at(
-      dplyr::vars(dplyr::starts_with("session")),
-      ~ paste0(
-        stringr::str_sub(., start = 1, end = 2),
-        ":",
-        stringr::str_sub(., start = 3, end = 4)
-      )
-    ) %>%
-    dplyr::mutate(
-      day = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, open), tz = .tz),
-        end = lubridate::ymd_hm(paste(date, close), tz = .tz)
-      ),
-      session = lubridate::interval(
-        start = lubridate::ymd_hm(paste(date, session_open), tz = .tz),
-        end = lubridate::ymd_hm(paste(date, session_close), tz = .tz)
-      ),
-      dow = lubridate::wday(lubridate::as_date(date), label = T)
-    ) %>%
-    dplyr::select(date, everything(), dow, day, session)
   return(calendar)
 }
