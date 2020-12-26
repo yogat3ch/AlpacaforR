@@ -5,52 +5,62 @@
 #  Re-exports ----
 # Sun Sep 20 11:15:14 2020
 #' @keywords internal
-dplyr::`%>%`
+#' @importFrom dplyr `%>%`
+#' @importFrom rlang `%||%` `!!!` `!!` `%|%`
+#' @import purrr
+#' @import lubridate
+#' @importFrom tsibble yearweek yearmonth yearquarter index interval new_interval index_var count_gaps irregular
+#' @import rlang
+#' @importFrom utils tail URLdecode head object.size memory.size
+#' @importFrom stringr regex str_sub str_replace str_detect str_extract str_replace_all str_remove
+#' @importFrom stats update setNames
+#' @importFrom httr parse_url build_url GET add_headers content
+#' @importFrom tibble as_tibble tibble
+#' @import dplyr
+#' @importFrom tidyselect all_of
+#' @importFrom jsonlite fromJSON
 
-#' @keywords internal
-rlang::`%||%`
 
-#' @keywords internal
-rlang::`!!!`
-
-#' @keywords internal
-rlang::`!!`
-
-#' @keywords internal
-rlang::`%|%`
-
-valid_date <- function(.x, .out) {
-  purrr::walk2(.x, .out, ~{
-    if (is.na(.out) || lubridate::year(.out) < 1792 || lubridate::year(.out) > lubridate::year(Sys.Date()) + 50) {
-      warning(
-        paste(.x,"was parsed to", .out, ". Is this expected?")
-        , immediate. = TRUE
-        , call. = FALSE)
-    }
-  })
+valid_date <- function(x, .out) {
+  if (!inherits(.out, c("numeric"))) {
+    .yout <- lubridate::year(.out)
+  } else {
+    .yout <- .out
+  }
+  tests <- list(
+    isna = is.na(.out),
+    ispast = .yout < 1792,
+    isfuture = .yout > lubridate::year(Sys.Date()) + 50)
+  if (purrr::some(tests, any)) {
+    idx <- purrr::map_dbl(tests, which)
+    warning(
+      paste(x[idx],"was parsed to", .out[idx], ". Is this expected?")
+      , immediate. = TRUE
+      , call. = FALSE)
+  }
 }
 
-try_date.character <- function(.x, tz) {
+try_date.character <- function(x, tz) {
   .orders <- c("Ymd", "mdY", "dmY", "ymd", "mdy", "dmy")
-  if (grepl("\\:", .x)) {
+  if (grepl("\\:", x)) {
     # if a character and datetime
-    .out <- lubridate::parse_date_time(.x, orders = paste(.orders,"R"), tz = tz)
+    .out <- lubridate::parse_date_time(x, orders = paste(.orders,"R"), tz = tz)
   } else {
     # if a date
-    .out <- lubridate::parse_date_time(.x, orders = .orders, tz = tz)
+    .out <- lubridate::parse_date_time(x, orders = .orders, tz = tz)
   }
   return(.out)
 }
 
-try_date.default <- function(.x, tz) {
-  .out <- lubridate::with_tz(.x, tzone = tz)
+try_date.default <- function(x, tz) {
+  .out <- lubridate::with_tz(x, tzone = tz)
 } 
 
-try_date.double <- function(.x, tz) {
-  if (all(.x < 100000)) {
-    .out <- lubridate::as_date(.x, origin = lubridate::origin)
+try_date.double <- function(x, tz) {
+  if (all(x < 100000)) {
+    .out <- lubridate::as_date(x, origin = lubridate::origin)
   } else {
-    .out <- lubridate::as_datetime(signif(.x / 10 ^ ceiling(log10(.x)), 10) * 10 ^ 10, origin = lubridate::origin, tz = tz)
+    .out <- lubridate::as_datetime(signif(x / 10 ^ ceiling(log10(x)), 10) * 10 ^ 10, origin = lubridate::origin, tz = tz)
   }
   return(.out)
 }
@@ -61,13 +71,24 @@ try_date.double <- function(.x, tz) {
 #' @keywords internal
 #' 
 #' @description Attempts to coerce string to a valid date object in stock exchange time zone, or checks to see if it is already. If it fails to coerce to date, returns NA.
-#' @importFrom lubridate as_datetime as_date year origin with_tz parse_date_time
-#' @importFrom tsibble yearweek yearmonth yearquarter
-#' @importFrom rlang exec
 
 
-try_date <- function(.x, timeframe, tz = "UTC") {
-  .fn <- switch(timeframe,
+try_date <- function(.x, timeframe = "day", tz = "UTC") {
+  .o <- list(tz = tz)
+  if (inherits(.x, c("Date", "Datetime", "POSIXct", "POSIXlt"))) {
+    .fn <- try_date.default
+  } else if (inherits(.x, "character")) {
+    .fn <- try_date.character
+  } else if (inherits(.x, c("numeric", "integer"))) {
+    .fn <- try_date.double
+  }
+  .o$x <- .x
+  if (isTRUE(timeframe %in% c("minute","hour"))) {
+    .o$tz <- "America/New_York"
+  } 
+  .out <- suppressWarnings(rlang::exec(.fn, !!!.o))
+  
+  .fn <- switch(as.character(timeframe),
                 minute = lubridate::as_datetime,
                 hour = lubridate::as_datetime,
                 day = lubridate::as_date,
@@ -76,19 +97,10 @@ try_date <- function(.x, timeframe, tz = "UTC") {
                 quarter = tsibble::yearquarter,
                 year = lubridate::year
   )
+  .o$x <- .out
+  .o$tz <- NULL
   
-  if (inherits(.x, c("Date", "Datetime", "POSIXct", "POSIXlt"))) {
-    .out <- try_date.default(.x, tz)
-  } else if (inherits(.x, "character")) {
-    .out <- try_date.character(.x, tz)
-  } else if (inherits(.x, c("numeric", "integer"))) {
-    .out <- try_date.double(.x, tz)
-  }
-  if (timeframe %in% c("minute","hour")) {
-    .o <- list(x = .out, tz = "America/New_York")
-  } else 
-    .o <- list(x = .out)
-  .out <- rlang::exec(.fn, !!!.o)
+  .out <- suppressWarnings(rlang::exec(.fn, !!!.o))
   valid_date(.x, .out)
   return(.out)
 }
@@ -111,17 +123,23 @@ is_inf <- function(.x) {
 #' @param cenv The caller environment, stored automatically
 #' @param penv The parent of the caller environment, also stored automatically
 #' @param sf The system frames for searching if not found in previous two environments.
-#' @importFrom rlang `!!!` `!!` env_bind list2 caller_env dots_list
-#' @importFrom purrr iwalk
 
 
-fetch_vars <- function(.vn, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env(), ifnotfound = new.env()), cenv = rlang::caller_env(), penv = parent.env(rlang::caller_env())) {
+fetch_vars <- function(.vn,
+                       ...,
+                       evar = get0(
+                         "evar",
+                         mode = "environment",
+                         envir = rlang::caller_env(),
+                         ifnotfound = new.env()
+                       ),
+                       cenv = rlang::caller_env()
+) {
   e <- rlang::dots_list(...)
-  .vn <- append(.vn, evar$.vn[names(e)])
-  # remove the variables now in the current environment
+  if (!rlang::is_empty(e)) rlang::env_bind(cenv, !!!e)
   purrr::iwalk(.vn, ~{
     .v <- get0(.y, envir = evar, inherits = FALSE)
-    if (inherits(.v, .x)) rlang::env_bind(cenv, !!!rlang::list2(!!.y := .v), )
+    if (inherits(.v, .x)) rlang::env_bind(cenv, !!!rlang::list2(!!.y := .v))
   })
 }
 
@@ -134,15 +152,19 @@ fetch_vars <- function(.vn, ..., evar = get0("evar", mode = "environment", envir
 #' @param ... additional arguments
 #' @return tf_num & timeframe in calling environment. 
 #' @keywords internal
-#' @importFrom purrr map_chr
-#' @importFrom dplyr `%>%`
-#' @importFrom rlang abort warn caller_env env_bind
-#' @importFrom utils tail
 
 tf_num <- function(timeframe, multiplier, ..., cenv = rlang::caller_env(), evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   fetch_vars(evar$.vn["v"], ...)
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
-  .tf_opts <- list(m = c("m","min","minute"), h = c("h", "hour"), d = c("d", "day"), w = c("w", "week"), M = c("M", "mo", "month"), q = c("q", "quarter"), y = c("y", "year"))
+  .tf_opts <- list(
+    m = c("m", "min", "minute"),
+    h = c("h", "hour"),
+    d = c("d", "day"),
+    w = c("w", "week"),
+    M = c("M", "mo", "month"),
+    q = c("q", "quarter"),
+    y = c("y", "year")
+  )
   # Create ordered factor or timeframe options
   tf_order <- purrr::map_chr(.tf_opts, utils::tail, 1) %>% {factor(., levels = .)}
   
@@ -176,16 +198,11 @@ tf_num <- function(timeframe, multiplier, ..., cenv = rlang::caller_env(), evar 
 #'@param fc Toggle for `first_call` mode that prints all messages to console. 
 #'@return \code{(list)} A list with two Date/Datetime items that are boundaries for the date range necessary to call the API with to retrieve the appropriate data from the specified API. Items will have names corresponding to the non-NULL \code{from/to/after/until} arguments in the calling environment or supplied to the function.
 #'@keywords internal
-#' @importFrom purrr map compact imap keep
-#' @importFrom lubridate force_tz wday interval floor_date ceiling_date days hour as_datetime as_date
-#' @importFrom dplyr `%>%`
-#' @importFrom stats setNames update
 bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, timeframe, multiplier, fc = NULL, evar = get0("evar", mode = "environment", envir = rlang::caller_env()), ...) {
 
   #trickery to get the variables from the calling environment
   fetch_vars(evar$.vn[c("v")], ...)
-  if (!"tf_num" %in% ls(all.names = T)) tf_num(timeframe, multiplier)
-  
+  tf_num(timeframe, multiplier, ...)
   # Set defaults if non specified
   if (is.null(from) && is.null(after)) {
     from <- Sys.Date() - 7
@@ -217,16 +234,13 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, time
   }
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   bounds <- purrr::imap(bounds, ~{
-    .out <- try_date(.x, timeframe)
+    # API only takes day format - all timeframes need to be output in day format to create bounds formatted appropriately for the API request.
+    .out <- try_date(.x, timeframe = "day") 
     
     # Floors or ceilings
-    if (tf_num < 3) {
-      # Case less than day, to include the day requested, the boundary must be the previous day
+    if (timeframe %in% c("minute", "hour")) {
+      #To include at least one full day of data, the boundary must be the previous day
       .unit <- ifelse(v == 2, paste(1, "day"), paste(multiplier, timeframe))
-      .wd <- lubridate::wday(.out, label = TRUE, abbr = FALSE)
-      if (.wd %in% c("Sunday", "Saturday")) {
-        warning(paste0("`",.y, "` is a ", .wd, ". Timeframes less than one week will return no data for weekend days."), call. = FALSE, immediate. = TRUE)
-      }
     }  else {
       .unit <- paste(multiplier, timeframe)
     }
@@ -311,12 +325,6 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, time
 #' @param bounds Output from \code{\link[AlpacaforR]{bars_bounds}}. 
 #' @return \code{(character)} URL to be called with \code{\link[AlpacaforR]{bars_get}}
 #' @keywords internal
-#' @importFrom rlang is_named env_bind current_env caller_env env_get "!!!" is_named
-#' @importFrom purrr map_chr map
-#' @importFrom lubridate as_date
-#' @importFrom stringr str_extract str_sub
-#' @importFrom httr parse_url build_url
-#' @importFrom utils URLdecode
 bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   
   .vn <- evar$.vn[c(
@@ -404,9 +412,6 @@ bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("ev
 #' @param url \code{(character)} the url rendered by \code{\link[AlpacaforR]{bars_url}}
 #' @return \code{(list)} See \code{\link[AlpacaforR]{market_data}} as the output is the same.
 #' @keywords internal
-#' @importFrom purrr imap imap_dfr
-#' @importFrom httr GET
-#' @importFrom lubridate with_tz parse_date_time
 
 
 bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
@@ -414,13 +419,14 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
   
   if (timeframe %in% c("t","q")) {
     headers = get_headers()
-    query <- list()
+    e <- rlang::env(query = list())
     bars <- purrr::imap_dfr(url, ~{
       agg_quote = httr::GET(url = .x, headers)
       .out <- bars_transform(agg_quote, timeframe)
+      e$query <- append(e$query, list(attr(.out, "query")))
       return(.out)
     })
-    attr(bars, "query") <- query
+    attr(bars, "query") <- e$query
   } else if (v == 1) {
     headers = get_headers()
     if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving\n", url))
@@ -454,13 +460,8 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
 #' 
 #' @description Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
-#' @importFrom purrr map imap iwalk
-#' @importFrom dplyr mutate select
-#' @importFrom lubridate with_tz parse_date_time
-#' @importFrom tsibble as_tsibble
-#' @importFrom rlang warn
 
-# TODO Test with q/t and v2
+# TODO Test with q/t, all timeframes and v1 & v2
 bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   .query <- list(
     status_code = agg_quote$status_code
@@ -505,6 +506,7 @@ bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode =
     bars$symbol <- .sym
     bars <- dplyr::select(bars, symbol, dplyr::everything())
     bars <- dplyr::mutate(bars, timestamp = lubridate::as_datetime(timestamp / 1e9, tz = "America/New_York", origin = lubridate::origin))
+    attr(bars, "query") <- .query
   } else {
     bars = purrr::imap(.quote, ~{
       if (!any("data.frame" %in% class(.x))) {
@@ -530,11 +532,11 @@ bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode =
           volume = "v"
         )
     })  
+    # Transform to tsymble, make symbol class
+    bars <- purrr::imap(bars, ~{
+      as_tsymble(.x, index = "time", regular = TRUE, query = .query, symbol = .y)
+      })
   }
-  # Transform to tsibble, make symbol class
-  bars <- purrr::imap(bars, ~{
-    .ts <- as_tsybble(.x, index = "time", regular = TRUE, query = .query, symbol = .y)
-    })
   
   return(bars)
 }
@@ -545,7 +547,6 @@ bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode =
 #' @keywords Internal
 #' @description convert quarter timeframe to duration
 #' @inheritParams market_data
-#' @importFrom lubridate duration
 
 tf_as_duration <- function(multiplier, timeframe) {
   if (timeframe == "quarter") {
@@ -556,19 +557,90 @@ tf_as_duration <- function(multiplier, timeframe) {
   return(.tf_dur)
 }
 
-#' @title bars_missing
-#' @keywords Internal
-#' @description A wrapper for \code{\link[tsibble]{fill_gaps}}
-#' @inherit tsibble::fill_gaps
-#' @importFrom rlang dots_list
-#' @importFrom purrr map
+#' @title Filter a `tsybble` for market hours
+#' @description Filter for specific windows of the day. Useful for returning market hours, or market hours and after hours.
+#' @param x \code{(tsybble)}
+#' @param hours \code{(numeric)} hours of the day to include. *Default* \code{FALSE}
 
-bars_missing <- function(bars, ...) {
-  .dots <- rlang::dots_list(...)
-  purrr::map(bars, tsibble::fill_gaps, !!!.dots)
+market_filter <- function(.x, cal, hours = 9:16) {
+  .ind <- tsibble::index(.x)
+  .int <- tsibble::interval(.x)
+  if (.int < tsibble::new_interval(day = 1)) {
+    out <- dplyr::mutate(.x, 
+                         h = lubridate::hour(!!.ind),
+                         d = lubridate::as_date(!!.ind))
+    out <- dplyr::filter(out,
+                  h %in% hours & d %in% cal$date
+    )
+    out <- dplyr::select(out, - h, - d)
+  } else if (.int < tsibble::new_interval(week = 1)) {
+    out <- dplyr::filter(.x,
+                         !!.ind %in% cal$date)
+  } else {
+    out <- .x
+  }
+  return(out)
 }
 
 
+
+
+
+#' @title bars_missing
+#' @keywords Internal
+#' @description A wrapper for \code{\link[tsibble]{count_gaps}}
+#' @param x \code{(tsymble)}
+#' @inheritParams market_data
+#' @inheritDotParams market_data
+
+bars_missing <- function(x, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  fetch_vars(evar$.vn[c("cal", "v")], ...)
+  # get the index
+  .ind <- tsibble::index_var(x)
+  # get the final expected date relative to the timeframe
+  if (timeframe %in% c("minute", "hour")) {
+    if (v == 1) {
+      .t <- lubridate::int_start(utils::head(cal, 1)$day)
+      .before <- 1
+    } else {
+      .t <- lubridate::int_end(utils::tail(cal, 1)$day)
+      .before <- NULL
+    }
+  } else {
+    if (v == 1) {
+      .t <- utils::head(cal, 1)$date
+      .before <- 1
+    } else {
+      .t <- utils::tail(cal, 1)$date
+      .before <- NULL
+    }
+  }
+  .t <- try_date(.t, timeframe)
+  if (!.t %in% x[[.ind]]) {
+    # add a final row with the last expected timestamp
+    suppressMessages({x <- add_row(x, !!.ind := .t, .before = .before)})
+  }
+  # fill the gaps & filter for market hours
+  .args <- list(.data = x,
+                .full  = if (v == 1)
+                  rlang::expr(start())
+                else
+                  rlang::expr(end()))
+  do.call(tsibble::count_gaps, .args)
+}
+
+
+
+#' @title What's the largest gap in the calendar?
+#' @description Gives the largest gap in the calendar, in interval units of the supplied bars
+#' @param .data \code{(tsibble)} 
+#' @param cal \code{(calendar)} object
+
+max_gap <- function(.data, cal) {
+  .int <- tsibble::interval(.data)
+  .gap_idx <- which.max(diff(cal$date))
+  lubridate::as.duration(difftime(lubridate::int_start(cal$day[(.gap_idx + 1)]), lubridate::int_end(cal$day[.gap_idx]))) / lubridate::as.duration(.int)
+} 
 
 # bars_complete ----
 # Wed Apr 01 17:24:47 2020
@@ -578,143 +650,40 @@ bars_missing <- function(bars, ...) {
 #'@details The arguments for all bars_\* functions  will be called from the environment from which the function is called if not specified explicitly. If params need to be specified explicitly, **all params must be named**. 
 #' @param \code{bars} Returned by \code{bars_get}
 #' @param \code{missing} Returned by \code{bars_missing}
-#' @importFrom purrr map map2 pmap_dfr map2_dfr
-#' @importFrom stringr str_extract str_extract_all
-#' @importFrom dplyr arrange distinct `%>%` 
-#' @importFrom lubridate ymd interval `%within%`
-#' @importFrom rlang env_bind current_env caller_env env_get "!!!" "%|%" "%||%" is_named
 #' @keywords internal
 bars_complete <- function(bars, missing, bounds, timeframe, multiplier, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   
-  
-  
   .vn <- evar$.vn[c("v", "unadjusted", "limit", "full")]
-  fetch_vars(.vn, ...)
-  if (!"tf_num" %in% ls(all.names = T)) tf_num(timeframe, multiplier)
+  fetch_vars(.vn, ...)  
+  
  if (is.data.frame(bars)) bars <- list(bars)
-  .newbars <- purrr::map2(missing, bars, ~{
-    # ticker is passed in as the name of object
-    ticker <- attr(.y, "query")$ticker %||% attr(.y, "query")[[1]]$ticker
-    # If there are no missing data, return the data
-    if (is.null(.x)) return(.y)
-    # if days or hours
-    ext <- new.env()
-    # assign df of missing to .m
-    .m_tib <- .x
-    # grab the initial query
-    ext$.query <- list(attr(.y, "query"))
-    # assign .y to two new objects for comparison
-    ext$.out <- .y
-    .md <- do.call(c, .x$missing)
-    #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
-    while (length(.md) > 0) {
-      # get the new data
-      #browser(expr = is.null(.m_tib))
-      .new <- purrr::pmap_dfr(.m_tib, ~{
-        # Since this will only be a call for a single symbol, we can get the first index as it will be the new data
-        .m_tib_missing <- ..1
-        #.b <- stringr::str_extract_all(..2, "\\d{4}-\\d{2}-\\d{2}")[[1]]
-        .new <- bars_get(..2, timeframe  = timeframe, multiplier = multiplier)[[1]]
-        if (!is.data.frame(.new)) {
-          return(NULL) 
-        }
-        if (exists(".tf_reduce", envir = ext)) {
-          # create an ordered vector of all dates in the final intended data
-          .d <- sort(c(ext$.out$time, .md))
-          # we need intervals that will contain times of the reduced timeframe data from which we can compute aggregates similar to how Polygon computes aggregates to create data for "unreturnable" dates
-          .d_int <- purrr::map(.m_tib_missing, ~{
-            # for each missing data find the interval between the closest prior date and the missing_date
-            
-            if (tf_num %in% 4:6) {
-              # for weeks : quarter, the date returned is either the floor_date or representative of the period for which the aggregates are computed (or at least this appears to the case since using the previous period results in similar numbers to the previous bar data returned by polygon)
-              .b <- bars_bounds(from = .x, to = .x, multiplier = multiplier, timeframe = timeframe)
-              .out <- lubridate::interval(start = .x, end = .b$to)
-            } else if (v == 2) {
-              .s <- .d[which.max(which(.d < .x))]
-              # sometimes there will be none greater and .d_int will be 1 shorter than .m_tib_missing - in these instances use <=
-              if (length(.s) < 1) .s <- .d[which.max(which(.d <= .x))]
-              .out <- lubridate::interval(start = .s, end = .x)
-            } else {
-              .e <- .d[which.min(which(.d > .x))]
-              # sometimes there will be none less and .d_int will be 1 shorter than .m_tib_missing - in these instances use >=
-              if (length(.e) < 1) .e <- .d[which.max(which(.d >= .x))]
-              .out <- lubridate::interval(start = .x, end = .e)
-            }
-            return(.out)
-          }) %>% do.call(c, .)
-            # Compute the aggregates for the times in the interval
-          #browser(expr = length(.d_int) != length(.m_tib_missing))
-          .new <- purrr::map2_dfr(.d_int, .m_tib_missing, ~{
-              .nd <- .new[lubridate::`%within%`(.new$time, .x), ] 
-              # If no data is returned even with reduced timeframe return NA
-              suppressWarnings({
-              .v <- try(sum(.nd$volume, na.rm = T), silent = T)
-              .v <- ifelse(is.infinite(.v), NaN, .v)
-              .h <- try(max(.nd$high, na.rm = T), silent = T)
-              .h <- ifelse(is.infinite(.h), NaN, .h)
-              .l <- try(min(.nd$low, na.rm = T), silent = T)
-              .l <- ifelse(is.infinite(.l), NaN, .l)
-              .c <- ifelse(length(.nd$close[length(.nd$close)]) == 0, NaN, .nd$close[length(.nd$close)])
-              .n <- nrow(.nd) %||% NaN
-              })
-              #construct dataframe from arguments
-              .out <- data.frame(
-                time = .y,
-                volume = .v,
-                # mean approximation
-                open = .nd$open[1],
-                # the first value of open
-                high = .h,
-                # the max of high
-                low = .l,
-                # the min of low
-                close = .c,
-                # The last of close
-                n = .n # the number of datapoints used in the agg
-              )
-              .out
-            })
-        }
-      
-        if (any(.m_tib_missing %in% .new$time)) {
-        # if the call returned any new data, append the query
-        assign(".query", append(ext$.query, list(attr(.new, "query"))), envir = ext)
-        }
-        .new
-      })
-      
-      # determine if there are still missing dates
-      # tryCatch to suppress warning if no data returned
-      .still_md <- .md[!.md %in% tryCatch(.new$time, warning = function(w) NULL, error = function(e) NULL)]
-      if (length(.still_md) < length(.md)) {
-        # if we found some of the missing dates then bind the found dates
-        if (v == 1) .new <- .new[- 7] # remove the n row for the v1 API
-        ext$.out <- dplyr::bind_rows(purrr::keep(list(ext$.out, .new[.new$time %in% .md,]), ~inherits(.x, "data.frame")))
-        # and make the still missing, the .md object
-        if (length(.still_md) > 0) {
-          .m_tib <- bars_missing(ext$.out, bounds = bounds, .tf_reduce = ext$.tf_reduce %||% F, ticker = ticker, timeframe = timeframe, multiplier = multiplier)
-          # ticker must be passed here
-          if (is.null(.m_tib)) break
-        }
-        .md <- .still_md
-      } else if (identical(.still_md, .md)) {
-        # otherwise, if we turned up nothing, reduce the timeframe for the next call
-        ext$.tf_reduce <- TRUE
-        # re-populate the .m_tib object with the remaining missing data
-        .m_tib <- bars_missing(ext$.out, bounds = bounds, .tf_reduce = ext$.tf_reduce, ticker = ticker, timeframe = timeframe, multiplier = multiplier)
-        # and here
-        # add 1 to the count, or if it doesn't exist yes, make it 1
-        .count <- 1 + (get0(".count", inherits = FALSE) %||% 0)
-        if (.count == 2) break # for IPO where there might consistently be missing bars but no new bars will ever return because they don't exist
-      }
-      #browser(expr = get0("dbg", .GlobalEnv, ifnotfound = F) && !exists(".md"))
+  .newbars <- purrr::map(bars, ~{
+    ext <- rlang::env(
+      out = .x,
+      index = tsibble::index(.x),
+      ticker = get_sym(.x)
+    )
+    
+    # Where are the unexpected gaps
+    .max_gap <- max_gap(ext$out, evar$cal)
+    .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
+    
+    while (isTRUE(NROW(.m) == 1)) {
+      .args <- list(
+        bounds = setNames(as.list(.m[c(".from", ".to")]), c("from", "to")),
+        timeframe = timeframe,
+        multiplier = multiplier,
+        ticker = ext$ticker
+      ) 
+      .nd <- bars_get(do.call(bars_url, .args), timeframe = timeframe)
+      .out <- bind_rows(ext$out, .nd[[1]])
+      .nd <- identical(.out[[ext$index]], ext$out[[ext$index]])
+      ext$out <- .out
+      if (.nd) break
+      .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
     }
-  
-    # add the cumulative queries to the object
-    attr(ext$.out, "query") <- ext$.query
-    return(dplyr::arrange(ext$.out, time))
+    return(dplyr::arrange(ext$out, !!ext$index))
     })
-  
   return(.newbars)
 }
 
@@ -726,10 +695,6 @@ bars_complete <- function(bars, missing, bounds, timeframe, multiplier, ..., eva
 #' @keywords internal
 #' @return The correct headers that will be sent in the API request.
 #' @param live TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.
-#' @importFrom httr add_headers
-#' @importFrom purrr iwalk
-#' @importFrom stringr str_replace
-#' @importFrom rlang abort
 get_headers <- function(live=FALSE){
   
   ifelse(live, 
@@ -742,7 +707,8 @@ get_headers <- function(live=FALSE){
   purrr::iwalk(.headers$headers, ~{
     if (nchar(.x) == 0) {
       .ev <- stringr::str_replace(.y, "(?<=APCA)", ifelse(live, "-LIVE", "-PAPER"))
-      rlang::abort(message = paste0(.ev," is unset. Please set your API credentials as environmental variables. See vignette('installation', 'AlpacaforR') for details.")) #TODO if package name change, change this value
+      #TODO if package name change, change this value
+      rlang::abort(message = paste0(.ev," is unset. Please set your API credentials as environmental variables. See vignette('installation', 'AlpacaforR') for details.")) 
     }
   })
   return(.headers)
@@ -792,9 +758,6 @@ get_url_poly <- function(){
 #' @param dat The response from our server GET request usually in a json format.
 #' @keywords internal
 #' @return The response in a readable format as a list.
-#' @importFrom httr content
-#' @importFrom jsonlite fromJSON
-#' @importFrom stringr str_detect
 response_text_clean <- function(dat){
   # If empty, return empty list
   if (length(dat$content) == 0) {
@@ -827,10 +790,6 @@ is_id <- function(.) {
 #' 
 #' @description Cleans arrays of position objects, and position objects
 #' @keywords internal
-#' @importFrom stringr str_extract
-#' @importFrom rlang warn `%||%`
-#' @importFrom purrr pwalk
-#' @importFrom tibble as_tibble
 pos_transform <- function(pos) {
   
   if (class(pos) != "response") {
@@ -902,10 +861,6 @@ pos_transform <- function(pos) {
 #' @description transform account activities
 #' @param resp Reponse from account_activities endpoint
 #' @keywords internal
-#' @importFrom dplyr mutate_at vars `%>%`
-#' @importFrom rlang warn
-#' @importFrom lubridate as_datetime
-#' @importFrom tibble as_tibble
 
 aa_transform <- function(resp) {
   
@@ -934,8 +889,8 @@ aa_transform <- function(resp) {
     # coerce to numeric in positions objects
     suppressMessages({
       out <- .resp %>%
-        dplyr::mutate_at(dplyr::vars("transaction_time"), ~lubridate::as_datetime(., tz = Sys.timezone())) %>% 
-        dplyr::mutate_at(dplyr::vars("price", "qty", "leaves_qty", "cum_qty"), as.numeric)
+        dplyr::mutate(transaction_time = lubridate::as_datetime(transaction_time, tz = Sys.timezone())) %>% 
+        dplyr::mutate(dplyr::across(c("price", "qty", "leaves_qty", "cum_qty"), as.numeric))
     })
     
   }
@@ -947,12 +902,6 @@ aa_transform <- function(resp) {
 #' @param resp `(response)` The response object
 #' @inherit account_portfolio return
 #' @keywords internal
-#' @importFrom tibble as_tibble
-#' @importFrom dplyr `%>%`
-#' @importFrom stringr str_extract
-#' @importFrom rlang warn
-#' @importFrom dplyr mutate_at vars
-#' @importFrom lubridate as_datetime origin
 
 port_transform <- function(resp) {
   
@@ -983,8 +932,8 @@ port_transform <- function(resp) {
     if (nrow(.out) > 0) {
       suppressMessages({
         out <- .out %>%
-          dplyr::mutate_at(dplyr::vars("timestamp"), ~lubridate::as_datetime(., origin = lubridate::origin, tz = Sys.timezone())) %>% 
-          dplyr::mutate_at(dplyr::vars("equity", "profit_loss", "profit_loss_pct"), as.numeric)
+          dplyr::mutate(timestamp = lubridate::as_datetime(timestamp, origin = lubridate::origin, tz = Sys.timezone())) %>% 
+          dplyr::mutate(dplyr::across(c("equity", "profit_loss", "profit_loss_pct"), as.numeric))
       })
     } else {
       out <- .out
@@ -996,13 +945,37 @@ port_transform <- function(resp) {
 }
 
 
+cal_transform <- function(resp, .tz = "America/New_York") {
+  calendar =  response_text_clean(resp)
+  calendar <- dplyr::mutate(calendar, date = lubridate::as_date(date)) %>%
+    dplyr::mutate(
+      dplyr::across(dplyr::starts_with("session"),
+                    ~ paste0(
+                      stringr::str_sub(.x, start = 1, end = 2),
+                      ":",
+                      stringr::str_sub(.x, start = 3, end = 4)
+                    )
+      )) %>%
+    dplyr::mutate(
+      day = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, close), tz = .tz)
+      ),
+      session = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, session_open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = .tz)
+      ),
+      dow = lubridate::wday(date, label = T)
+    ) %>%
+    dplyr::select(date, everything(), dow, day, session)
+}
+
 
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
 #' 
 #' @description remove $ from cash quantity strings and convert to numeric
 #' @keywords internal 
-#' @importFrom stringr str_replace_all
 toNum <- function(x){
   as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
 }
@@ -1011,11 +984,9 @@ toNum <- function(x){
 #' @description Replaces character quantities with numeric and character dates with POSIXct
 #' @param .o An order object
 #' @keywords internal
-#' @importFrom dplyr mutate_at mutate_if vars ends_with 
-#' @importFrom lubridate ymd_hms
 o_transform <- function(.o) {
-  .o <- dplyr::mutate_at(.o, dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone())))
-  out <- dplyr::mutate_if(.o, ~is.character(.) && !is.na(as.numeric(toNum(.))), list(toNum))
+  .o <- dplyr::mutate(.o, dplyr::across(dplyr::ends_with("at"), ~lubridate::ymd_hms(.x, tz = Sys.timezone())))
+  out <- dplyr::mutate(.o, tidyselect::where(~is.character(.x) && !is.na(as.numeric(toNum(.x)))), toNum)
   return(out)
 }
 
@@ -1025,9 +996,6 @@ o_transform <- function(.o) {
 #' @param orders A dataframe returned from any orders_* endpoint
 #' @return \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
 #' @keywords internal
-#' @importFrom tibble as_tibble
-#' @importFrom rlang `%||%` warn
-#' @importFrom purrr map
 
 order_transform <- function(o) {
   if (class(o) == "response") {
@@ -1095,8 +1063,6 @@ order_transform <- function(o) {
 #' @param ... named arguments. Will automatically get arguments from enclosing environment. 
 #' @return \code{(list)} returns list with appropriate arguments, to be merged with parent environment via `list2env`
 #' @keywords internal
-#' @importFrom rlang abort current_env env_bind env_get caller_env `!!!` `%||%`
-#' @importFrom purrr imap_chr map imap
 order_check <- function(penv = NULL, ...) {
   # get rlang fns while testing (so you don't have to manually load the package each time)
   
@@ -1320,11 +1286,6 @@ order_check <- function(penv = NULL, ...) {
 #' @param wl The watchlist object
 #' @return \code{(tibble)} with respective R compliant objects (POSIXct)
 #' @keywords internal
-#' @importFrom dplyr mutate_at vars select everything ends_with
-#' @importFrom dplyr `%>%`
-#' @importFrom rlang abort `%||%` 
-#' @importFrom tibble as_tibble tibble
-#' @importFrom purrr map
 
 wl_transform <- function(wl, action, wl_info = NULL) {
   
@@ -1358,7 +1319,7 @@ wl_transform <- function(wl, action, wl_info = NULL) {
   if (class(wl) == "response" && length(.wl) > 0) {
     wl_info <- suppressMessages({
       suppressWarnings({
-        dplyr::mutate_at(tibble::as_tibble(purrr::map(.wl[1:5], rlang::`%||%`, NA)), dplyr::vars(dplyr::ends_with("at")),list(~lubridate::ymd_hms(., tz = Sys.timezone()))) %>% 
+        dplyr::mutate(tibble::as_tibble(purrr::map(.wl[1:5], rlang::`%||%`, NA)), dplyr::across(tidyselect::ends_with("at")), ~lubridate::ymd_hms(.x, tz = Sys.timezone())) %>% 
           dplyr::select(name, updated_at, dplyr::everything())
       })
     })
@@ -1405,9 +1366,6 @@ wl_transform <- function(wl, action, wl_info = NULL) {
 #' @description Finds the interval of an irregular timeseries
 #' @param x \code{(POSIXct/Date/Datetime)} input for which interval will be computed
 #' @return The appropriate interval via \code{\link[tsibble]{new_interval}}
-#' @importFrom purrr map_lgl map
-#' @importFrom rlang inform exec
-#' @importFrom tsibble new_interval
 
 irregular_interval <- function(x) {
   
@@ -1441,16 +1399,9 @@ irregular_interval <- function(x) {
 #' @param resp The response object from httr
 #' @param ep The endpoint
 #' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
-#' @importFrom rlang warn expr call2 `%||%` is_quosures `!!!` `!!` is_expression
-#' @importFrom lubridate as_date as_datetime origin
-#' @importFrom dplyr vars mutate_at rename
-#' @importFrom purrr map_lgl modify_depth map_int map_if walk2
-#' @importFrom tibble tibble as_tibble
-
+#TODO Simplify with list selection instead of if/else
 poly_transform <- function(resp, ep) {
-  
-  
-  
+
   .code <- resp$status_code
   .resp <- response_text_clean(resp)
   if ("error" %in% names(.resp)) {
@@ -1571,11 +1522,6 @@ poly_transform <- function(resp, ep) {
 #' @keywords internal
 #' 
 #' Used in ws_create to to instantiate and update websocket message objects
-#' @importFrom dplyr bind_rows
-#' @importFrom tibble tibble
-#' @importFrom lubridate now
-#' @importFrom stringr str_remove
-#' @importFrom utils object.size memory.size
 ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
   # Update the last message
   if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
@@ -1623,8 +1569,6 @@ ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
 #' @param log_bars `(logical)` The flag as to whether to log bars on the drive as CSV or not
 #' @return bars `(list)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data as a `tibble` for each polygon subscription channel, each named according to the channel from which it came. Additionally, a CSV named by the Subscription channel if `logbars = T` in the local or specified directory with the same data.
 #' @details The rows of the each of the bars objects are halved if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
-#' @importFrom rlang caller_env
-#' @importFrom purrr map
 ws_log <- function(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env()) {
   
   # add the arguments to the environment ----
