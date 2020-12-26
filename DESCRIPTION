@@ -37,6 +37,18 @@ Suggests: magrittr, testthat, withr, knitr, rmarkdown,
      qpdf, vcr, webmockr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Imports: dplyr, glue, httr, jsonlite, lubridate,
-     purrr, rlang, stats, stringr, tibble,
-     utils, websocket
+Imports: 
+    dplyr,
+    glue,
+    httr,
+    jsonlite,
+    lubridate,
+    purrr,
+    rlang,
+    stats,
+    stringr,
+    tibble,
+    utils,
+    websocket,
+    lifecycle
+RdMacros: lifecycle

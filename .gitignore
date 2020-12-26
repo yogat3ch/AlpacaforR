@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+.deprecated
 
 # Session Data files
 .RData
