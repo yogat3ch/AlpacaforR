@@ -32,7 +32,7 @@ valid_date <- function(x, .out) {
     ispast = .yout < 1792,
     isfuture = .yout > lubridate::year(Sys.Date()) + 50)
   if (purrr::some(tests, any)) {
-    idx <- purrr::map_dbl(tests, which)
+    idx <- unique(do.call(c, purrr::map_if(tests, is.logical, which)))
     warning(
       paste(x[idx],"was parsed to", .out[idx], ". Is this expected?")
       , immediate. = TRUE
@@ -137,6 +137,8 @@ fetch_vars <- function(.vn,
 ) {
   e <- rlang::dots_list(...)
   if (!rlang::is_empty(e)) rlang::env_bind(cenv, !!!e)
+  .vn <- .vn[!names(.vn) %in% c(names(e), ls(cenv))]
+  if (rlang::is_empty(.vn)) return(NULL)
   purrr::iwalk(.vn, ~{
     .v <- get0(.y, envir = evar, inherits = FALSE)
     if (inherits(.v, .x)) rlang::env_bind(cenv, !!!rlang::list2(!!.y := .v))
@@ -461,7 +463,7 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
 #' @description Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
 
-# TODO Test with q/t, all timeframes and v1 & v2
+
 bars_transform <- function(agg_quote, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   
   
@@ -676,6 +678,8 @@ bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", 
       if (.nd) break
       .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
     }
+    # sort added queries
+    attr(ext$out, "query") <- get_query(ext$out) %>% {.[order(purrr::map_dbl(., "ts"))]}
     return(arrange(ext$out, !!ext$index))
     })
   return(.newbars)
