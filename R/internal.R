@@ -679,7 +679,10 @@ bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", 
       .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
     }
     # sort added queries
-    attr(ext$out, "query") <- get_query(ext$out) %>% {.[order(purrr::map_dbl(., "ts"))]}
+    .query <- get_query(ext$out)
+    if (is.null(.query$ts)) .query <- .query[order(purrr::map_dbl(.query, "ts"))]
+    attr(ext$out, "query") <- .query
+    
     return(arrange(ext$out, !!ext$index))
     })
   return(.newbars)
@@ -1006,7 +1009,7 @@ toNum <- function(x){
 #' @keywords internal
 o_transform <- function(.o) {
   .o <- dplyr::mutate(.o, dplyr::across(dplyr::ends_with("at"), ~lubridate::ymd_hms(.x, tz = Sys.timezone())))
-  out <- dplyr::mutate(.o, tidyselect::where(~is.character(.x) && !is.na(as.numeric(toNum(.x)))), toNum)
+  out <- dplyr::mutate(.o, dplyr::across(where(~is.character(.x) && !is.na(as.numeric(toNum(.x)))), toNum))
   return(out)
 }
 
@@ -1182,9 +1185,9 @@ order_check <- function(penv = NULL, ...) {
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      try({
+      .ss <- try({
         .pos <- positions(ticker_id)
-        .ss <- ticker_id[!ticker_id %in% .pos$symbol]
+        ticker_id[!ticker_id %in% .pos$symbol]
       }, silent = TRUE)
       
       if (!rlang::is_empty(.ss)) {
