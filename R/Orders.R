@@ -1,4 +1,8 @@
-
+#' @importFrom httr GET POST PATCH DELETE
+#' @importFrom dplyr filter bind_rows
+#' @importFrom purrr modify_depth compact map map_chr map2 pmap map_if
+#' @importFrom rlang list2 abort warn
+#' @importFrom jsonlite toJSON
 # orders ----
 # Wed Apr 22 20:23:46 2020
 #' @family Orders
@@ -51,9 +55,7 @@
 #' orders(status = "all")
 #' # For a specific ticker:
 #' orders(ticker = "AAPL", status = "all")
-#' @importFrom dplyr filter
-#' @importFrom httr parse_url build_url GET
-#' @importFrom purrr compact
+
 #' @export
 orders <-
   function(ticker_id = NULL,
@@ -64,11 +66,10 @@ orders <-
            direction = "desc",
            client_order_id = NULL,
            nested = T,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
+  
   headers = get_headers(live)
   # set status if abbreviated
   status <- c(o = "open", c = "closed", a = "all")[tolower(substr(status, 0, 1))]
@@ -83,24 +84,21 @@ orders <-
     ticker_id <- toupper(ticker_id)
   }
   if (isTRUE(client_order_id)) {
-    .url$path <- purrr::compact(list(paste0("v", v), "orders:by_client_order_id"))
+    .url <- get_url("orders:by_client_order_id", client_order_id = .o_id, live = live)
   } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
-    .url$path <- purrr::compact(list(paste0("v", v), "orders", .o_id))
+    .url <- get_url(c("orders", .o_id),
+                         list(status = status,
+                              limit = limit,
+                              after = after,
+                              until = until,
+                              direction = direction,
+                              nested = nested),
+                    live = live)
+    
   }
   # yogat3ch: Create Query 2020-01-11 2157
   
-  if (isTRUE(client_order_id)) {
-    .url$query <- list(client_order_id = .o_id)
-  } else {
-    .url$query <- list(status = status,
-                       limit = limit,
-                       after = after,
-                       until = until,
-                       direction = direction,
-                       nested = nested)
-  }
-  # Build the url
-  .url <- httr::build_url(.url)
+  
   if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
   # Query
   out <- httr::GET(.url, headers)
@@ -227,10 +225,6 @@ get_orders <- orders
 #' }
 #' # all open orders can be canceled with `action = "cancel_all"`
 #' order_submit(a = "cancel_all")
-#' @importFrom httr POST PATCH DELETE parse_url build_url
-#' @importFrom rlang abort list2 `!!`
-#' @importFrom purrr modify_depth compact
-#' @importFrom jsonlite toJSON
 #' @export
 
 order_submit <-
@@ -249,12 +243,9 @@ order_submit <-
            stop_loss = NULL,
            trail_price,
            trail_percent,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
-  #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
-  headers = get_headers(live)
+  
   # NOTE: ticker_id is not referenced when action = "cancel_all"
   if (!grepl("cancel_all", action, ignore.case = T)) {
     action <- substr(tolower(action), 0, 1)
@@ -324,14 +315,16 @@ order_submit <-
         ),-2, .f = as.character),
         auto_unbox = TRUE)
   }
-  # create the base url
-  .url$path <- list(paste0("v",v), "orders")
+  
+  #Set URL & Headers
+  headers = get_headers(live)
+  .path <- c("orders")
   if (action %in% c("r","c")) {
     # if replacing or canceling, append the order ID
     if (!.is_id) rlang::abort(paste0("`ticker_id` is not an Order ID."))
-    .url$path <- append(.url$path, ticker_id)
+    .path <- append(.path, ticker_id)
   }
-  .url <- httr::build_url(.url)
+  .url <- get_url(.path, live = live)
   if (action  == "s") {
     out = httr::POST(url = .url, body = bodyl, encode = "raw", headers)
   } else if (action == "r") {
@@ -347,7 +340,7 @@ order_submit <-
 #' @family Orders
 #' @title submit_orders
 #' @rdname order_submit
-#' @description `submit_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} instead.
+#' @description \lifecycle{superseded} `submit_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} instead.
 #' @export
 submit_orders <- order_submit
 
@@ -362,7 +355,7 @@ submit_orders <- order_submit
 #' @family Orders
 #' @title Cancel Order function (Deprecated)
 #' 
-#' @description order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See [Orders: DELETE](https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders) in the Alpaca API V2 documentation for details.
+#' @description \lifecycle{superseded} order_cancel is Deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`. Cancels any open order by order_id or all open orders. Use "cancel_all" as the order_id to cancel all open orders. See [Orders: DELETE](https://alpaca.markets/docs/api-documentation/api-v2/orders#cancel-all-orders) in the Alpaca API V2 documentation for details.
 #' @param ticker_id `(character)` The ticker symbol(s) or order ID(s). Use `"cancel_all"` to cancel all open orders.
 #' @inheritParams account
 #' @return Order `(tibble)` with details about canceled orders. This function places the request to cancel an order. In most cases the order is canceled instantly, but sometimes it's not. Connect to the [Alpaca Streaming API](https://alpaca.markets/docs/api-documentation/api-v2/streaming/) via the websocket functions to receive order updates (See \code{\link[AlpacaforR]{ws_create}}). 
@@ -372,16 +365,11 @@ submit_orders <- order_submit
 #'  \item{`status`}{`(integer)` vector of cancel order statuses}
 #' } 
 #' @inherit orders return
-#' @importFrom httr DELETE parse_url build_url
-#' @importFrom purrr compact pmap map 
-#' @importFrom dplyr bind_rows
 #' @seealso positions
 #' @export
 
-order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
-  #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
-  headers = get_headers(live)
+order_cancel <- function(ticker_id = NULL, live = FALSE){
+  
   message("`cancel_order` & `order_cancel` are deprecated. Please use `order_submit` with `action = 'cancel'/'cancel_all' instead.`")
   return(NULL)
   if (is.null(ticker_id)) stop("order_id is required.")
@@ -415,14 +403,9 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
   } else {
     .calls <- .o_ids
   }
-  .calls <- purrr::map_chr(.calls, ~{
-    .url$path <- purrr::compact(list(
-      paste0("v",v),
-      "orders",
-      .x
-    ))
-    .url <- httr::build_url(.url)
-  })
+  #Set URL & Headers
+  headers = get_headers(live)
+  .calls <- purrr::map_chr(.calls, ~get_url(c("orders",.x), live = live))
   
   .q <- new.env()
   .q$.query <- list()
@@ -452,7 +435,7 @@ order_cancel <- function(ticker_id = NULL, live = FALSE, v = 2){
 #' @family Orders
 #' @rdname order_submit
 #' @title cancel_orders
-#' @description `cancel_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`.
+#' @description \lifecycle{superseded} `cancel_orders` is deprecated. Use \code{\link[AlpacaforR]{order_submit}} with `action = "c"` or `action = "cancel_all"`.
 #' @examples cancel_orders()
 #' @export
 cancel_orders <- order_cancel
@@ -485,16 +468,12 @@ cancel_orders <- order_cancel
 #' # Update that to 10% less than the purchase price
 #' stop_loss2 <- order_replace(stop_loss$id, stop_price = filled_price * .9)
 #' }
-#' @importFrom httr PATCH
-#' @importFrom rlang warn `%||%`
-#' @importFrom purrr map_if
 #' @export
-order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE, v = 2){
+order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_price = NULL, stop_price = NULL, live = FALSE){
   #Set URL & Headers
   message("`replace_order` & `order_replace` are deprecated. Please use `order_submit` with `action = 'replace'`")
   return(NULL)
-  url = get_url(live)
-  headers = get_headers(live)
+  
   
   open_orders = orders(status = "open", live = live)
   .oo <- tryCatch(nrow(open_orders), error = function(e) 0)
@@ -525,7 +504,8 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
   
   #Create body with order details, most common is a named list 
   bodyl <- purrr::map_if(list(qty = .qty, time_in_force = .time_in_force, limit_price = .limit_price, stop_price = .stop_price), is.na, ~{NULL})
-  replace = httr::PATCH(url = paste0(url,"/",paste0("v",v),"/orders/",order_id), body = bodyl, encode = "json", headers)
+  headers = get_headers(live)
+  replace = httr::PATCH(url = get_url(c("orders", order_id), live = live), body = bodyl, encode = "json", headers)
   replace = response_text_clean(replace)
   if(TRUE %in% grepl(pattern = "^4", x = replace$status_code %||% 200)){
     rlang::warn(paste("Order ID", order_id,"for",ticker, "was not replaced.\n Message:", replace$message))
@@ -538,7 +518,7 @@ order_replace <- function(ticker_id, qty = NULL, time_in_force = "day", limit_pr
 #----------------------------------------------------------------------------------------------
 #' @family Orders
 #' @title replace_orders (Deprecated)
-#' @description Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}.
+#' @description \lifecycle{superseded} Use \code{\link[AlpacaforR]{order_submit}} with \code{action = "replace"}.
 #' @rdname order_replace
 #' @examples replace_orders()
 #' @export
