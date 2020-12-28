@@ -42,6 +42,9 @@ merge_query <- function(.) {
   .q
 }
 
+
+#' @rdname dplyr::bind_rows
+
 bind_rows <- function (..., .id = NULL) {
   . <- rlang::dots_list(...)
   .a <- attributes(.[[1]])
@@ -58,6 +61,9 @@ arrange.tsymble <- function(.data, ..., .by_group = FALSE) {
   .a$.Data <- dplyr::arrange(.data, ..., .by_group)
   do.call(structure, .a)
 }
+
+
+#' @rdname dplyr::arrange
 
 arrange <- function (.data, ..., .by_group = FALSE) 
 {
