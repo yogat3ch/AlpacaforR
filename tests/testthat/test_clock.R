@@ -1,7 +1,6 @@
 #' @include internal.R
 #' @include Clock.R
 
-context("Clock functions correctly")
 vcr::use_cassette("clock_returns_the_appropriate_response", {
 test_that("clock returns the appropriate response", {
   .c <- clock()

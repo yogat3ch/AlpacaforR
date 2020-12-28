@@ -1,5 +1,4 @@
 #' @include Assets.R
-context("Test that Assets family of functions works properly")
 
 vcr::use_cassette("assets_returns_a_well_known_ticker_symbol", {
 test_that("assets returns a well-known ticker symbol", {

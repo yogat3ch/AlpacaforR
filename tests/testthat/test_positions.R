@@ -1,8 +1,6 @@
 #' @include  Positions.R
 #' @include internal.R
 
-context("Test that the Positions family of functions works properly")
-
 vcr::use_cassette("Positions_returns_the_appropriate_data", {
 test_that("Positions returns the appropriate data", {
   .p <<- positions()
