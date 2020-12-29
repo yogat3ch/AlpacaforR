@@ -28,22 +28,23 @@ valid_date <- function(x, .out) {
     .yout <- .out
   }
   tests <- list(
-    isna = is.na(.out),
-    ispast = .yout < 1792,
-    isfuture = .yout > lubridate::year(Sys.Date()) + 50)
+    isna = is.na(.out) & !is.na(x),
+    ispast = .yout < 1792 & !is.na(x),
+    isfuture = .yout > lubridate::year(Sys.Date()) + 50 & !is.na(x))
   if (purrr::some(tests, any)) {
     idx <- unique(do.call(c, purrr::map_if(tests, is.logical, which)))
-    warning(
+    stop(
       paste(x[idx],"was parsed to", .out[idx], ". Is this expected?")
-      , immediate. = TRUE
       , call. = FALSE)
   }
 }
 
 try_date.character <- function(x, tz) {
   .orders <- c("Ymd", "mdY", "dmY", "ymd", "mdy", "dmy")
-  if (grepl("\\:", x)) {
+  if (grepl("T", x)) {
     # if a character and datetime
+    .out <- lubridate::parse_date_time(x, orders = c("YmdT", "YmdTz"), tz = tz)
+  } else if (grepl("\\:", x)) {
     .out <- lubridate::parse_date_time(x, orders = paste(.orders,"R"), tz = tz)
   } else {
     # if a date
@@ -74,7 +75,7 @@ try_date.double <- function(x, tz) {
 
 
 try_date <- function(.x, timeframe = "day", tz = "UTC") {
-  .o <- list(tz = tz)
+  .o <- list(tz = if (timeframe %in% c("minute","hour")) "America/New_York" else NULL)
   if (inherits(.x, c("Date", "Datetime", "POSIXct", "POSIXlt"))) {
     .fn <- try_date.default
   } else if (inherits(.x, "character")) {
@@ -83,9 +84,6 @@ try_date <- function(.x, timeframe = "day", tz = "UTC") {
     .fn <- try_date.double
   }
   .o$x <- .x
-  if (isTRUE(timeframe %in% c("minute","hour"))) {
-    .o$tz <- "America/New_York"
-  } 
   .out <- suppressWarnings(rlang::exec(.fn, !!!.o))
   
   .fn <- switch(as.character(timeframe),
@@ -98,7 +96,10 @@ try_date <- function(.x, timeframe = "day", tz = "UTC") {
                 year = lubridate::year
   )
   .o$x <- .out
-  .o$tz <- NULL
+  if (isTRUE(!inherits(.out, "POSIXct"))) {
+    .o$tz <- NULL
+  } 
+  
   
   .out <- suppressWarnings(rlang::exec(.fn, !!!.o))
   valid_date(.x, .out)
@@ -385,9 +386,7 @@ bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("ev
     .url <- utils::URLdecode(httr::build_url(.url))
   } else if (v == 2) {
     .url <- purrr::map_chr(stats::setNames(.ticker, .ticker), ~{
-      .url = httr::parse_url(get_url_poly())
-      .url$path <- list(
-        v = "v2",
+      .url <- get_url(list(
         ep = "aggs",
         "ticker",
         ticker = .x,
@@ -396,10 +395,10 @@ bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("ev
         timeframe = as.character(timeframe),
         from = as.character(lubridate::as_date(bounds[[1]])),
         to = as.character(lubridate::as_date(bounds[[2]]))
-      )
-      .url$query <- list(unadjusted = unadjusted,
+      ),
+      query = list(unadjusted = unadjusted,
                         apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID"))
-      .url <- httr::build_url(.url)
+      , poly = TRUE)
     })
   }
   return(.url)
@@ -725,29 +724,26 @@ get_headers <- function(live=FALSE){
 #' @param ... \code{(named arguments)} to be added as query parameters
 #' @keywords internal
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
-get_url <- function(path, query, ..., live = FALSE, v = 2){
+get_url <- function(path, query, ..., live = FALSE, v = 2, poly = FALSE){
+  if (poly) {
+    .url <- "https://api.polygon.io" 
+  } else {
+    .url <- ifelse(live, 
+                   "https://api.alpaca.markets",
+                   "https://paper-api.alpaca.markets")
+  }
   
-  .url <- ifelse(live, 
-                "https://api.alpaca.markets",
-                "https://paper-api.alpaca.markets")
   .url <- httr::parse_url(.url)
-  if (!missing(path)) .url$path <- c(paste0("v",v), path)
+  if (!missing(path)) {
+    if (!ifelse(is.character(path), grepl("v\\d", path), "v" %in% names(path))) {
+      .url$path <- rlang::list2(v = v, !!.url$path)
+    } else {
+      .url$path <- path
+    }
+  } 
   if (!missing(query)) .url$query <- query
   if (rlang::dots_n(...) > 0) .url$query <- rlang::dots_list(...)
   return(httr::build_url(.url))
-}
-
-# UPDATED for V2 ----
-# get_url_poly Get Polygon URL for Server Request function  ----
-# Sun Mar 29 16:04:24 2020
-#' @title Return the polygon URL
-#' 
-#' @description Get Polygon's URL for the Server Request that is sent to interact with the API.
-#' @keywords internal
-#' @return The correct URL for Polygon's API.
-get_url_poly <- function(){
-  url = "https://api.polygon.io" 
-  return(url)
 }
 
 # Internals:  Sun Jan 12 10:20:31 2020 ----
@@ -1297,6 +1293,7 @@ order_check <- function(penv = NULL, ...) {
     take_profit = take_profit,
     stop_loss = stop_loss
   )
+  rlang::env_bind(penv, !!!out)
 }
 
 
@@ -1423,124 +1420,208 @@ irregular_interval <- function(x) {
 #' @param ep The endpoint
 #' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint
 #TODO Simplify with list selection instead of if/else
-poly_transform <- function(resp, ep) {
-
-  .code <- resp$status_code
-  .resp <- response_text_clean(resp)
-  if ("error" %in% names(.resp)) {
-    .message <- .resp$error
-  } else {
-    .message <- .resp
-  }
-  
+poly_transform <- function(resp, e_p) {
   # check for errors
-  if(any(grepl(pattern = "^4", x = .code))) {
-    rlang::warn(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .message))
-    return(.resp)
+  ep <- names(.ep)[which(purrr::map_chr(.ep, 1) %in% e_p$nm)]
+  .resp <- response_text_clean(resp)
+  if(any(grepl("^4", resp$status_code))) {
+    rlang::abort(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .resp))
   }
   
-  if (ep == "t") {
-    .o <- list(.tbl = .resp$tickers, .vars = c("updated"), .f = lubridate::as_date, .q = .resp[1:4])
-  } else if (ep == "tt") {
-    attr(.resp$results ,"query") <- .resp[1]
-    return(.resp$results)
-  } else if (ep == "td") {
-    .o <- list(.tbl = .resp, .vars = c("updated", "listdate"), .f = try_date)
-  } else if (ep == "tn") {
-    .o <- list(.tbl = .resp, .vars = c("timestamp"), .f = lubridate::as_datetime)
-  } else if (ep %in% c("m", "l")) {
-    .o <- list(.tbl = .resp$results, .q = .resp[1])
-  } else if (ep %in% c("sd","ss")) {
-    .o <- list(.tbl = .resp$results, .vars = dplyr::vars(dplyr::ends_with("Date")), .f = lubridate::as_date, .q = .resp[1:2])
-  } else if (ep == "sf") {
-    .o <- list(.tbl = .resp$results, .vars = c('calendarDate', 'reportPeriod', 'updated', 'dateKey'), .f = lubridate::as_date)
-  } else if (ep == "ms") {
-    suppressMessages({
-      .resp$serverTime <- lubridate::as_datetime(.resp$serverTime, tz = "America/New_York")
-    })
-    return(.resp)
-  } else if (ep == "mh") {
-    .o <- list(.tbl = .resp, .vars = list(c("date"), c("open", "close")), .f = list(lubridate::as_date, lubridate::as_datetime))
-  } else if (ep == "e") {
-    .o <- list(.tbl = .resp)
-  } else if (ep %in% c("ht", "hq")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't'), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .m = .resp$map)
-  } else if (ep %in% c("lt", "lq")) {
-    .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
-    .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
-  } else if (ep == "do") {
-    .o <- list(.tbl = .resp[-1], .vars = "from", .f = rlang::expr(~lubridate::as_datetime(., tz = "America/New_York")), .q = .resp[1])
-  } else if (ep == "cm") {
-    return(tibble::tibble(CM = as.character(.resp)))
-  } else if (ep == "sa") {
-    if (length(.resp$tickers) < 1) {
-      # when market is closed
-      rlang::warn("Snapshot: All Tickers returns no data when market is closed.")
-      .o <- list(.tbl = .resp$tickers, .q = .resp[1:2])
-    } else {
-      .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
-    }
-  } else if (ep == "st") {
-    .o <- list(.tbl = .resp$ticker[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
-  } else if (ep == "sg") {
-    if (length(.resp$tickers) < 1) {
-      # when market is closed
-      rlang::warn("Snapshot: Gainers/Losers returns no data when market is closed.")
-      .o <- list(.tbl = .resp$tickers, .q = .resp[1])
-    } else {
-      .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
-    }
-    
-  } else if (ep %in% c("pc", "gd")) {
-    .o <- list(.tbl = dplyr::rename(.resp$results, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T"), .vars = "time", .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:5])
-  } else {
-    
-  }
+  
+  .tf <- "minute"
+  .o <- switch(ep,
+    t = list(.tbl = "tickers" , .vars = c("updated"), timeframe = .tf),
+    tt = ,
+    m = ,
+    l = list(.tbl = "results"),
+    td = list(.tbl = .resp, .vars = c("updated", "listdate"), timeframe = .tf),
+    tn = list(.tbl = .resp, .vars = c("timestamp"), timeframe = .tf),
+    sd = ,
+    ss = list(.tbl = "results", .vars = rlang::expr(tidyselect::ends_with("Date"))),
+    sf = list(.tbl = "results", .vars = c('calendarDate', 'reportPeriod', 'updated', 'dateKey')),
+    ms = list(.tbl = .resp, .vars = "serverTime", timeframe = .tf),
+    mh = list(.tbl = .resp, .vars = c("date")),
+    e = ,
+    cm = list(.tbl = .resp),
+    ht = ,
+    hq = list(.tbl = rlang::expr(dplyr::rename(.resp$results, time = 't')), .vars = "time", timeframe = .tf, .m = .resp$map),
+    lt = ,
+    lq = list(.tbl = "last", .vars = "timestamp", timeframe = .tf),
+    do = list(.tbl = .resp[-1], .vars = "from", timeframe = .tf),
+    sa = ,
+    st = ,
+    sg = list(.tbl = 
+                rlang::expr({
+                  if (rlang::is_empty(.resp$tickers)) {
+                    rlang::warn(e_p$nm, " returns no data when market is closed.")
+                    .resp
+                  } else {
+                    dplyr::bind_cols(.resp$tickers[-c(1:5)], purrr::imap_dfc(.resp$tickers[1:5], ~{
+                      setNames(.x, paste0(.y,".",names(.x)))
+                    }))
+                  }
+                }),
+              .vars = c("lastQuote.t", "lastTrade.t", "updated")
+              , timeframe = .tf),
+    pc = ,
+    gd = list(.tbl = rlang::expr(dplyr::rename(.resp, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T")), .vars = "time", timeframe = .tf)
+  )
+
+  # if (ep == "t") {
+  #   
+  # } else if (ep == "tt") {
+  #   
+  # } else if (ep == "td") {
+  #    
+  # } else if (ep == "tn") {
+  #   
+  # } else if (ep %in% c("m", "l")) {
+  #   
+  # } else if (ep %in% c("sd","ss")) {
+  #   
+  # } else if (ep == "sf") {
+  #   
+  # } else if (ep == "ms") {
+  #   
+  # } else if (ep == "mh") {
+  #   
+  # } else if (ep == "e") {
+  #   
+  # } else if (ep %in% c("ht", "hq")) {
+  #   
+  # } else if (ep %in% c("lt", "lq")) {
+  #   # .resp$last$timestamp <- lubridate::as_datetime(.resp$last$timestamp / 1e3, origin = lubridate::origin, tz = Sys.timezone())
+  #   # .o <- list(.tbl = .resp$last, .q = .resp[purrr::map_lgl(.resp, ~!is.list(.x))])
+  # } else if (ep == "do") {
+  #   # .o <- list(.tbl = .resp[-1], .vars = "from", .f = rlang::expr(~lubridate::as_datetime(., tz = "America/New_York")), .q = .resp[1])
+  # } else if (ep == "cm") {
+  #   
+  # } else if (ep == "sa") {
+  #   if (length(.resp$tickers) < 1) {
+  #     # when market is closed
+  #     
+  #     .o <- list(.tbl = .resp$tickers, .q = .resp[1:2])
+  #   } else {
+  #     .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1:2])
+  #   }
+  # } else if (ep == "st") {
+  #   .o <- list(.tbl = .resp$ticker[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+  # } else if (ep == "sg") {
+  #   if (length(.resp$tickers) < 1) {
+  #     # when market is closed
+  #     rlang::warn("Snapshot: Gainers/Losers returns no data when market is closed.")
+  #     .o <- list(.tbl = .resp$tickers, .q = .resp[1])
+  #   } else {
+  #     .o <- list(.tbl = .resp$tickers[1:9], .vars = c("lastQuote.t", "lastTrade.t", "updated"), .f = rlang::expr(~lubridate::as_datetime(. / 1e9, tz = "America/New_York", origin = lubridate::origin)), .q = .resp[1])
+  #   }
+  #   
+  # } else if (ep %in% c("pc", "gd")) {
+  #   
+  # } else {
+  #   
+  # }
   # Check for no result
-  if (length(.o$.tbl) == 0) {
+  
+  if (rlang::is_empty(.o$.tbl)) {
     rlang::warn(paste0("Query returned no results. If metadata exists it will be returned"))
     .o$.vars <- NULL
   } else {
-    if (is.data.frame(.o$.tbl$day) || is.list(.o$.tbl$day)) {
-      .t <- unlist(.o$.tbl[1:5], recursive = FALSE)
-      if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
-      .o$.tbl <- dplyr::bind_cols(tibble::as_tibble(.t), .o$.tbl[6:9]) 
-    }
-  .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, .f = ~{
-    .out <- rlang::`%||%`(x = .x, y = NA)
-    if (length(.x) < 1) .out <- NA
-    return(.out)
-    }, .ragged = T)
-  .m <- .mode(purrr::map_int(.o$.tbl, length))
-  .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
-  .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
+     out <- rlang::exec(poly_parse, !!!.o, .resp = .resp, ep = ep)
+  #   
+  #   if (is.data.frame(.o$.tbl$day) || is.list(.o$.tbl$day)) {
+  #     .t <- unlist(.o$.tbl[1:5], recursive = FALSE)
+  #     if (ep == "st") .t <- purrr::map_if(.t, ~length(.x) > 1 || is.null(.x), list)
+  #     .o$.tbl <- dplyr::bind_cols(tibble::as_tibble(.t), .o$.tbl[6:9]) 
+  #   }
+  # .o$.tbl <- purrr::modify_depth(.o$.tbl, .depth = -1, .f = ~{
+  #   .out <- rlang::`%||%`(x = .x, y = NA)
+  #   if (length(.x) < 1) .out <- NA
+  #   return(.out)
+  #   }, .ragged = T)
+  # .m <- .mode(purrr::map_int(.o$.tbl, length))
+  # .o$.tbl <- purrr::map_if(.o$.tbl, ~length(.x) > .m, ~list(.x))
+  # .o$.tbl <- tibble::as_tibble(.o$.tbl, .rows = .m)
   }
-  if (!is.null(.o$.vars)) {
-    # if there are vars to be changed
-    out <- list()
-    # ensure the objects are properly nested
-    if (!is.list(.o$.f)) .fn <- list(.o$.f) else .fn <- .o$.f
-    if (!is.list(.o$.vars) && is.character(.o$.vars)) .v <- list(.o$.vars) else .v <- .o$.vars
-    # map over the lists and apply the transformations
-    if (is.list(.o$.vars) && !rlang::is_quosures(.o$.vars)) {
-      purrr::walk2(.v, .fn, ~{
-        if (is.character(.x)) .x <- dplyr::vars(!!(.x))
-        if (length(out) == 0) .t <- .o$.tbl else .t <- out
-        out <<- do.call(dplyr::mutate_at, args = list(.tbl = .t, .vars = .x, .f = .y))
-      })
-    } else if (is.function(.o$.f)) {
-      out <- do.call(dplyr::mutate_at, args = .o[1:3])
-    } else if(rlang::is_expression(.o$.f)) {
-      out <- eval(rlang::call2(dplyr::mutate_at, !!!(list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f))))
-    }
-    
-  } else {
-    out <- .o$.tbl
-  }
-  if (!is.null(.o$.q)) attr(out, "query") <- .o$.q
+  # if (!is.null(.o$.vars)) {
+  #   # if there are vars to be changed
+  #   out <- list()
+  #   # ensure the objects are properly nested
+  #   if (!is.list(.o$.f)) .fn <- list(.o$.f) else .fn <- .o$.f
+  #   if (!is.list(.o$.vars) && is.character(.o$.vars)) .v <- list(.o$.vars) else .v <- .o$.vars
+  #   # map over the lists and apply the transformations
+  #   if (is.list(.o$.vars) && !rlang::is_quosures(.o$.vars)) {
+  #     purrr::walk2(.v, .fn, ~{
+  #       if (is.character(.x)) .x <- dplyr::vars(!!(.x))
+  #       if (length(out) == 0) .t <- .o$.tbl else .t <- out
+  #       out <<- do.call(dplyr::mutate_at, args = list(.tbl = .t, .vars = .x, .f = .y))
+  #     })
+  #   } else if (is.function(.o$.f)) {
+  #     out <- do.call(dplyr::mutate_at, args = .o[1:3])
+  #   } else if(rlang::is_expression(.o$.f)) {
+  #     out <- eval(rlang::call2(dplyr::mutate_at, !!!(list(.tbl = .o$.tbl, .vars = .o$.vars, .f = .o$.f))))
+  #   }
+  #   
+  # } else {
+  #   out <- .o$.tbl
+  # }
+  
   if (!is.null(.o$.m)) attr(out, "map") <- .o$.m
   return(out)
 }
+
+
+poly_parse <- function(.tbl, .vars, .f, ..., .resp, ep) {
+  if (is.character(.tbl)) 
+    .q <- append(attr(.resp, "query"), .resp[!names(.resp) %in% .tbl])
+  else
+    .q <- attr(.resp, "query")
+  browser(expr = ep == "sf")
+  if (missing(.f)) .f <- try_date
+  
+  if (!missing(.vars)) {
+    .args <- rlang::list2(
+      .data = tbl_parse(.tbl),
+      rlang::expr(dplyr::across(!!.vars, .f = .f, !!!rlang::dots_list(...))) 
+    )
+    out <- rlang::eval_bare(rlang::call2(dplyr::mutate, !!!.args))
+  } else if (is.character(.tbl)) {
+    out <- .resp[[.tbl]]
+  } else {
+    out <- .tbl
+  }
+    
+    
+  
+  attr(out, "query") <- .q
+  out
+}
+tbl_parse <- function(.tbl) {
+  UseMethod("tbl_parse")
+}
+
+tbl_parse.call <- function(.tbl) {
+  out <- rlang::expr(!!.tbl)
+}
+
+tbl_parse.list <- function(.tbl) {
+  out <- rlang::expr(tibble::as_tibble(purrr::modify_if(.tbl, ~length(.x) != 1, list)))
+}
+
+
+
+tbl_parse.data.frame <- tbl_parse.tbl_ts <- function(.tbl) {
+  out <- rlang::expr(.tbl)
+}
+
+tbl_parse.character <- function(.tbl) {
+  out <- rlang::expr(.resp[[.tbl]])
+}
+
+
+
+
+
 #' @title Update Websocket message objects
 #' @keywords internal
 #' 
