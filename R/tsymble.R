@@ -1,8 +1,6 @@
-setClass("tsymble",
-         slots = list(symbol = "character",
-                      query = "list"),
-         contains = "tbl_ts"
-)
+tsibble <- getFromNamespace("tsibble", "tsibble")
+methods::setClass("tsymble", 
+                  contains = c("tbl_df", "tbl_ts"))
 
 #' @title Construct a tsybble
 #' @description \lifecycle{experimental}
@@ -89,9 +87,6 @@ get_query <- function(x) attr(x, "query")
 
 
 
-
-#' @importFrom methods setMethod setOldClass
-methods::setOldClass("tsymble", "tbl_ts")
 
 
 

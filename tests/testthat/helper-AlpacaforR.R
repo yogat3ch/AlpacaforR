@@ -1,11 +1,103 @@
-library("vcr")
-if (basename(getwd()) == "AlpacaforR") {
-  vcr::vcr_log_file("tests/testthat/vcr.log")
-  invisible(vcr::vcr_configure(dir = "tests/testthat/vcr", log = TRUE, log_opts = list(file = "tests/testthat/vcr.log"), write_disk_path = "tests/testthat/vcr"))
-} else {
-  vcr::vcr_log_file("vcr/vcr.log")
-  invisible(vcr::vcr_configure(dir = "vcr", log = TRUE))
-}
+`%>%` <- magrittr::`%>%`
+set.seed(1)
+library(vcr)
+.log_path <- file.path(pkgload::package_file(), "tests/testthat/vcr/vcr.log")
+vcr::vcr_log_file(.log_path)
+.redact <- Sys.getenv() %>% {.[stringr::str_subset(names(.),"APCA")][-1]} %>% as.list()
+vcr::vcr_configure(
+  dir = dirname(.log_path),
+  log_opts = list(file = .log_path, write_disk_path = dirname(.log_path)),
+  filter_sensitive_data = .redact,
+  filter_request_headers = .redact,
+  filter_response_headers = .redact
+)
+# internal.R prep ----
+# Sat Dec 26 08:49:28 2020
+#quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
+evar <- rlang::env(
+.vn = list(
+  ticker = "character",
+  v = c("integer", "numeric"),
+  timeframe = c("factor", "character"),
+  tf_num = c("integer", "numeric"),
+  tf_order = "factor",
+  multiplier = c("integer", "numeric"),
+  from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+  to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+  after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+  until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+  limit = c("integer", "numeric", "NULL"),
+  full = "logical",
+  unadjusted = "logical",
+  bounds = c("Date", "Datetime", "POSIXct"),
+  cal = c("data.frame", "tibble")
+),
+# Create ordered factor or timeframe options
+tf_order = purrr::map_chr(list(
+  m = c("m", "min", "minute"),
+  h = c("h", "hour"),
+  d = c("d", "day"),
+  w = c("w", "week"),
+  M = c("M", "mo", "month"),
+  q = c("q", "quarter"),
+  y = c("y", "year")
+), tail, 1) %>% {factor(., levels = .)},
+# Add appropriate variables to local environment
+ticker = "AMZN",
+v = 2,
+after = NULL,
+until = NULL,
+full = T,
+unadjusted = F
+)
+
+# Create a data.frame with multiple variations of typical calls for testing
+# suppressWarnings({
+#   .test <- data.frame(
+#     multiplier = c(
+#       minute = c(1, 5, 15),
+#       hour = 1,
+#       day = 1,
+#       week = c(1, 2, 4),
+#       month = c(1, 2, 3),
+#       quarter = 1,
+#       1
+#     ),
+#     timeframe = c(
+#       rep("minute", 3),
+#       "hour",
+#       "day",
+#       rep("week", 3),
+#       rep("month", 3),
+#       "quarter",
+#       "year"
+#     ),
+#     to = lubridate::ymd_hm("2020-04-03 13:05")
+#   ) %>%
+#     dplyr::rowwise() %>%
+#     dplyr::mutate(duration = lubridate::duration(
+#       multiplier,
+#       ifelse(
+#         as.character(timeframe) == "quarter",
+#         "month",
+#         as.character(timeframe)
+#       )
+#     )) %>%
+#     dplyr::mutate(
+#       early_bound = to - (4 * duration),
+#       single_bound = to - duration,
+#       late_bound = to - (.5 * duration)
+#     )
+# })
+
+# Load the completed/checked data.frame for comparison
+test_internal <- readRDS(file.path(pkgload::package_file(), "tests/testthat/rds/test_internal.rds"))
+
+
+# market_data ----
+# Sat Dec 26 15:05:40 2020
+test_market_data <- readRDS(file.path(pkgload::package_file(), "tests/testthat/rds/test_market_data.rds"))
+
 
 # get all files that start with "test" in the testthat directory
 # .fn <- list.files("tests/testthat", pattern = "^test", full.names = T)

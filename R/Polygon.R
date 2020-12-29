@@ -517,9 +517,9 @@ poly_transform <- function(resp, e_p) {
       rlang::warn(e_p$nm, " returns no data when market is closed.")
       .resp
     } else {
-      dplyr::bind_cols(.resp[[.t]][-c(1:5)], purrr::imap_dfc(.resp[[.t]][1:5], ~{
+      suppressWarnings(dplyr::bind_cols(.resp[[.t]][-c(1:5)], purrr::imap_dfc(.resp[[.t]][1:5], ~{
         setNames(.x, paste0(.y,".",names(.x)))
-      }))
+      })))
     }
   })
   .tf <- "minute"

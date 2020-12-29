@@ -33,7 +33,7 @@ date_try.character <- function(x, tz) {
 }
 
 date_try.default <- function(x, tz) {
-  .out <- lubridate::with_tz(x, tzone = tz)
+  if (!is.null(tz)) .out <- lubridate::with_tz(x, tzone = tz) else x
 } 
 
 date_try.integer <- date_try.double <- function(x, tz) {
@@ -55,12 +55,12 @@ date_try <- function(x, tz) {
 #' @description Attempts to coerce input to a valid \code{\link[lubridate]{Date} or \link[lubridate]{POSIXct}} object.
 #' @param .x \code{(numeric/character/Date/Datetime)} input vector
 #' @param timeframe \code{(character)} The timeframe of the `.x` vector. See \link[AlpacaforR]{market_data}.
-#' @param tz \code{(character)} Timezone. See \link[base]{OlsonNames} for valid strings. \strong{Default "UTC"}
+#' @param tz \code{(character)} Timezone. See \link[base]{OlsonNames} for valid strings. \strong{Default NULL}
 #' @export
 
-try_date <- function(.x, timeframe = "day", tz = "UTC") {
+try_date <- function(.x, timeframe = "day", tz = NULL) {
   .out <- suppressWarnings(date_try(.x, tz))
-  if (!lubridate::is.POSIXct(.out)) { 
+  if (!timeframe %in% c("minute", "hour")) { 
     .fn <- switch(as.character(timeframe),
                   day = lubridate::as_date,
                   week = tsibble::yearweek,
