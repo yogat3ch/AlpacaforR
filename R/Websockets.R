@@ -1,5 +1,5 @@
 #Websockets:  Wed Mar 25 14:00:19 2020 ----
-
+#' @import websocket
 
 #' @family Websockets
 #' @title ws_create: Create a Websocket to the Alpaca or Polygon API
@@ -43,14 +43,6 @@
 #'  \item{\code{msgs}}{ \code{(tibble)}  object that stores the timestamps `ts` and message content `msg` for all messages received via the websocket.}
 #'  \item{\code{bars}}{ \code{(list)} For Polygon websockets, all channel data are stored in this object as `tibble`s named according to the channel.}
 #' }
-#' @importFrom dplyr bind_rows
-#' @importFrom jsonlite fromJSON toJSON
-#' @importFrom purrr walk accumulate imap_chr
-#' @importFrom tibble tibble
-#' @importFrom stringr str_split str_remove
-#' @importFrom dplyr `%>%`
-#' @importFrom rlang eval_tidy is_expression
-#' @import websocket
 #' @examples 
 #' \dontrun{
 #' # must be run in an interactive session
@@ -104,7 +96,7 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, l
   
   # Create the Websocket
   if (api == "a") {
-    ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url(TRUE)),"/stream"), autoConnect = FALSE)
+    ws <- websocket::WebSocket$new(url = paste0(gsub("^https", "wss", get_url("stream", live = TRUE))), autoConnect = FALSE)
   } else {
     ws <- websocket::WebSocket$new(url = "wss://socket.polygon.io/stocks", autoConnect = FALSE)
   }
@@ -139,7 +131,7 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, l
         } else {
           .vars <- c("s","e")
         }
-        .o <- dplyr::mutate_at(tibble::as_tibble(.o), dplyr::vars(!!.vars), ~lubridate::as_datetime(. / 1e3, tz = "America/New_York", origin = lubridate::origin))
+        .o <- dplyr::mutate(tibble::as_tibble(.o), dplyr::across(.vars, ~ lubridate::as_datetime(.x / 1e3, tz = "America/New_York", origin = lubridate::origin)))
       }
       if (!is.null(.o$status)) {
         if (.o$status == "connected") {
@@ -316,8 +308,6 @@ ws_create <- function(api = c("a", "p")[1], log_msgs = TRUE, log_bars = FALSE, l
 #'   \item{`s`}{ Tick Start Timestamp ( Unix MS )}
 #'   \item{`e`}{ Tick End Timestamp ( Unix MS )}
 #' }
-#' @importFrom jsonlite toJSON
-#' @importFrom purrr map_chr walk
 #' @examples
 #'  \dontrun{
 #'  # must be run in an interactive session
@@ -368,5 +358,82 @@ ws_listen <- function(ws, channel = NULL, unsub = FALSE) {
       ws_o$send(.listen)
     })
   }
+}
+
+
+
+
+#' @title Update Websocket message objects
+#' @keywords internal
+#' 
+#' Used in ws_create to to instantiate and update websocket message objects
+ws_msg <- function(out, msg, .o = NULL, toConsole = T) {
+  # Update the last message
+  if (exists("lastmessage", out$env)) rm(list = "lastmessage", envir = out$env)
+  assign("lastmessage", msg, out$env)
+  if (out$env$toConsole) cat("Message: ", msg, "\n")
+  if (exists("msgs", out$env)) {
+    wsmsg <- get("msgs", out$env)
+    wsmsg <- dplyr::bind_rows(wsmsg, tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = stringr::str_remove(msg, "^\\d{4}\\-\\d{2}\\-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\,\\s")))
+    # if the object has reached 1/3rd of the allowable memory allocation
+    if (utils::object.size(wsmsg) / (utils::memory.size(NA) * 1048567) > .33) {
+      # half it's size by removing the first half
+      wsmsg <- wsmsg[- c(1:(nrow(wsmsg) %/% 2)),]
+    } 
+    assign("msgs", wsmsg, out$env)
+  } else {
+    assign("msgs", tibble::tibble(Timestamp = lubridate::now(tz = Sys.timezone()), Message = msg), out$env)
+  }
+  if (!is.null(.o)) {
+    if (.o$ev %in% c("T", "Q", "A", "AM")) {
+      if (!exists("bars", envir = out$env, inherits = FALSE)) {
+        bars <- list()
+        bars[[paste0(.o$ev,".",.o$sym)]] <- .o
+        assign("bars", bars, out$env)
+      } else {
+        .bars <- get0("bars", out$env, inherits = FALSE)
+        .nm <- paste0(.o$ev,".",.o$sym)
+        .bars[[.nm]] <- dplyr::bind_rows(.bars[[.nm]], .o)
+        if (utils::object.size(.bars) / (utils::memory.size(NA) * 1048567) > .33) {
+          # half it's size by removing the first half
+          .bars <- purrr::map(.bars, ~{
+            .x[- c(1:(nrow(.x) %/% 2)),]
+          })
+        }
+        assign("bars", .bars, out$env)
+      }
+    }
+  }
+}
+
+#' @keywords internal
+#' @title ws_log
+#' @description Performs logging of streaming bars data based on input options to ws_create
+#' @param .o `(list)` The raw message content from the Websocket
+#' @param out `(list)` The ws_create out object
+#' @param log_bars `(logical)` The flag as to whether to log bars on the drive as CSV or not
+#' @return bars `(list)` object in the out$env environment in the object returned from `ws_create` with the previously transmitted data as a `tibble` for each polygon subscription channel, each named according to the channel from which it came. Additionally, a CSV named by the Subscription channel if `logbars = T` in the local or specified directory with the same data.
+#' @details The rows of the each of the bars objects are halved if it's size reaches .33 of the memory allocated to R. Prevents memory overflow and potential freezing. 
+ws_log <- function(out, ..., .o = NULL, msg = NULL, penv = rlang::caller_env()) {
+  
+  # add the arguments to the environment ----
+  # Thu Apr 30 17:29:18 2020
+  .e <- try(list2env(list(penv), environment()), silent = TRUE)
+  .vn <- list(.o = "data.frame", .log = "logical", out = "list", log_bars = "logical", log_msgs = "logical", log_path = "logical", logfile = "character", api = "character")
+  if (!exists(msg, inherits = FALSE)) .vn$.msg <- "character"
+  if (!all(.vn %in% ls(all.names = TRUE))){
+    fetch_vars(.vn, ...)
+    if (!exists("api", inherits = FALSE)) api <- attr(out, "api")
+  }
+  if (!.log) return(NULL) # stop if no logging
+  # If listening to a subscription channel & logging bars
+  if (api == "p" && !is.null(.o)) {
+    if (.o$ev %in% c("T", "Q", "A", "AM") && out$env$log_bars) {
+      # Create the name of the CSV log for Polygon channels
+      .log_ev <- paste0(log_path, paste0(.o$ev,".",.o$sym,".csv"))
+      write(paste0(.o, collapse = ", "), file = .log_ev, append = TRUE)
+    }
+  }
+  if (out$env$log_msgs) write(ifelse(exists(msg, inherits = FALSE), msg, .msg), file = out$env$logfile, append = TRUE)
 }
 

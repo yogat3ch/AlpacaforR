@@ -43,7 +43,7 @@ merge_query <- function(.) {
 }
 
 
-#' @rdname dplyr::bind_rows
+#' @inherit dplyr::bind_rows
 
 bind_rows <- function (..., .id = NULL) {
   . <- rlang::dots_list(...)
@@ -63,7 +63,7 @@ arrange.tsymble <- function(.data, ..., .by_group = FALSE) {
 }
 
 
-#' @rdname dplyr::arrange
+#' @inherit dplyr::arrange
 
 arrange <- function (.data, ..., .by_group = FALSE) 
 {
@@ -95,7 +95,7 @@ methods::setOldClass("tsymble", "tbl_ts")
 
 
 
-#' @rdname tibble::add_row
+#' @inherit tibble::add_row
 add_row <- function(.data, ..., .before = NULL, .after = NULL)  {
   UseMethod("add_row", .data)
 }

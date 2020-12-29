@@ -41,9 +41,6 @@
 #' positions("aapl", a = "c")
 #' #cancel all paper positions
 #' positions(a = "close_all")
-#' @importFrom httr GET DELETE
-#' @importFrom purrr map_dfr
-#' @importFrom tibble as_tibble
 #' @export
 positions <-
   function(tickers = NULL,
@@ -83,3 +80,76 @@ positions <-
   }
   return(out)
 }
+
+
+#' @title transform positions objects
+#' 
+#' @description Cleans arrays of position objects, and position objects
+#' @keywords internal
+pos_transform <- function(pos) {
+  
+  if (class(pos) != "response") {
+    .code <- pos$code
+    .message <- pos$message
+  } else if (class(pos) == "response") {
+    .method <- pos$request$method
+    .sym <- stringr::str_extract(pos$request$url, "\\w+$")
+    .code <- pos$status_code
+    #browser()
+    .pos <- response_text_clean(pos)
+    .message <- .pos$message
+  }
+  
+  # if related orders
+  .held <- !is.null(.pos$body$held_for_orders)
+  if (.held) {
+    # close all orders. As of 2020-05-15, all open related orders must be canceled to close positions
+    # This should properly return orders
+    message("Related orders prevent positions from being closed. Canceling related orders...")
+    .pos <- purrr::pmap(.pos$body, ~{
+      .vars <- list(...)
+      if (is.null(.vars$related_orders)) return(NULL)
+      .e <- new.env()
+      withCallingHandlers(message = function(e) {
+        if (e$message == "Order canceled successfully\n") 
+          rlang::warn(message = paste0("Canceled order ", .vars$related_orders," for ", .vars$symbol)) 
+        else
+          rlang::warn(message = paste0("Could not cancel order ", .vars$related_orders," for ", .vars$symbol, ". Position for ", .vars$symbol, " remains open."))
+      }, {
+        .out <- order_submit(.vars$related_orders, action = "cancel")
+        .out <- positions(.vars$symbol, a = "c")
+      })
+      return(.out)
+    })
+    # order_transform should properly transform orders
+    
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("Position was not",ifelse(grepl("GET", .method, ignore.case = TRUE), "found.", "modified."),"\n Message:", .message))
+    return(.pos)
+  } else if (.sym != "positions" && .sym %in% .pos$symbol && grepl("DELETE", .method, ignore.case = TRUE)) {
+    message(paste0(.sym, " closed successfully."))
+  } else if (grepl("DELETE", .method, ignore.case = TRUE) && any(grepl("^2", .pos$body$code %||% .pos$status))) {
+    message(paste0("All positions closed successfully.\nClosed Position(s): ", paste0(.pos$body$sym[grepl("^2", .pos$body$code %||% .pos$status)], collapse = ", ")))
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.pos) == 0) {
+    message("No positions are open at this time.")
+    out <- .pos
+  } else if(length(.pos) > 1 && !(grepl("DELETE", .method, ignore.case = TRUE) && .sym == "positions")) {
+    out <- order_transform(pos)
+  } else if (.sym == "positions") {
+    # if close_all
+    if (.held) {
+      out <- bind_rows(.pos)
+    } else {
+      out <- order_transform(.pos$body)
+      attr(out, "info") <- .pos[1:2]
+    }
+    
+  }
+  return(out)
+}
+

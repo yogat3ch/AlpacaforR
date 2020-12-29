@@ -305,10 +305,6 @@ account_activities <-
 #' # Get portfolio history when the COVID-19 pandemic overtook the US
 #' account_portfolio("3m", date_end = "2020-05-20")
 #' @inheritParams account
-#' @importFrom stringr str_extract str_detect regex
-#' @importFrom lubridate `.__T__-:base` `.__T__+:base` as_date duration weeks days
-#' @importFrom httr GET
-#' @importFrom purrr iwalk compact
 #' @export
 
 account_portfolio <-
@@ -450,3 +446,92 @@ account_portfolio <-
   out <- port_transform(.resp)
   return(out)
 }
+
+
+#' @title account activities transform
+#' @description transform account activities
+#' @param resp Reponse from account_activities endpoint
+#' @keywords internal
+
+aa_transform <- function(resp) {
+  
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("Activities not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No Activities available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .resp <- tibble::as_tibble(.resp)
+    # coerce to numeric in positions objects
+    suppressMessages({
+      out <- .resp %>%
+        dplyr::mutate(transaction_time = lubridate::as_datetime(transaction_time, tz = Sys.timezone())) %>% 
+        dplyr::mutate(dplyr::across(c("price", "qty", "leaves_qty", "cum_qty"), as.numeric))
+    })
+    
+  }
+  return(out)
+}
+
+#' @title transform portfolio history
+#' @description Transforms a [PortfolioHistory](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#portfoliohistory-entity) response object returned from `account_portfolio`.
+#' @param resp `(response)` The response object
+#' @inherit account_portfolio return
+#' @keywords internal
+
+port_transform <- function(resp) {
+  
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .sym <- stringr::str_extract(resp$request$url, "\\w+$")
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("History not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No History available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .out <- tibble::as_tibble(.resp[1:4])
+    # coerce to numeric in positions objects
+    if (nrow(.out) > 0) {
+      suppressMessages({
+        out <- .out %>%
+          dplyr::mutate(timestamp = lubridate::as_datetime(timestamp, origin = lubridate::origin, tz = Sys.timezone())) %>% 
+          dplyr::mutate(dplyr::across(c("equity", "profit_loss", "profit_loss_pct"), as.numeric))
+      })
+    } else {
+      out <- .out
+    }
+    
+    attr(out, "info") <- .resp[5:6]
+  }
+  return(out)
+}
+

@@ -388,11 +388,6 @@
 #' @param params `(list)` A named list of parameters specific to the endpoint.
 #' @return Response `(tibble/list/data.frame)` depending on the endpoint. The core data of the response will be returned as the object. If query data is returned in addition to the core object, it is stored as a `"query"` attribute and accessed via `attr(object, "query")`. If a map object is returned with the response, it will be stored as a `"map"` attribute and accessed via `attr(object, "map")`.
 #' @details This function is not vectorized. Only a single endpoint may be called at a time. Thus any endpoints with path parameters (parameters denoted in bold) require that a single combination of path parameters be passed for a given call.
-#' @importFrom rlang env_bind current_env `!!!` abort
-#' @importFrom purrr compact map
-#' @importFrom httr GET parse_url build_url
-#' @importFrom stringr str_match str_extract regex str_split
-#' @importFrom glue glue_data glue
 #' @export
 
 polygon <- function(ep = NULL, ..., params = NULL) {
@@ -463,10 +458,10 @@ ep_parse <- function(x, .ref) {
   
   ep <- gsub("[^[:alnum:]\\s]+", "", gsub("\\+","", x), perl = TRUE)
   ep <- strsplit(tolower(ep), "\\s")[[1]]
-  if (any(nchar(ep) > 2) || length(ep) > 1) {
+  .lep <- length(ep)
+  if (any(nchar(ep) > 2) || .lep > 1) {
     
     ep <- ep[nzchar(ep)]
-    .lep <- length(ep)
     ep <- substr(ep, 0, ifelse(.lep > 1, 1, 3))
     # If input is length one and the three letters are one of the reference keywords
     if (isTRUE(ep %in% c("all", "ref", "sto"))) {
@@ -496,4 +491,115 @@ ep_parse <- function(x, .ref) {
   }
   return(out)
 }
+
+
+# poly_transform ----
+# Sun May 03 08:54:26 2020
+#'
+#' @title transform polygon.io reference endpoints
+#' @keywords internal 
+#' @description coerce data objects returned from the various polygon.io endpoints to R compliant objects
+#' @param resp \code{\link[httr]{response}} from `{httr}`
+#' @param e_p \code{(list)} The endpoint description
+#' @return \code{list/data.frame/tibble} Either a list or tibble depending on the endpoint with a query attribute.
+
+poly_transform <- function(resp, e_p) {
+  # check for errors
+  ep <- names(.ep)[which(purrr::map_chr(.ep, 1) %in% e_p$nm)]
+  .resp <- response_text_clean(resp)
+  if(any(grepl("^4", resp$status_code))) {
+    rlang::abort(paste(.ep[[ep]]$nm, "endpoint error.\n Message:", .resp))
+  }
+  
+  .s <- rlang::expr({
+    .t <- grep("ticker", names(.resp))
+    if (rlang::is_empty(.resp[[.t]])) {
+      rlang::warn(e_p$nm, " returns no data when market is closed.")
+      .resp
+    } else {
+      dplyr::bind_cols(.resp[[.t]][-c(1:5)], purrr::imap_dfc(.resp[[.t]][1:5], ~{
+        setNames(.x, paste0(.y,".",names(.x)))
+      }))
+    }
+  })
+  .tf <- "minute"
+  .o <- switch(ep,
+               t = list(.tbl = "tickers" , .vars = c("updated"), timeframe = .tf),
+               tt = ,
+               m = ,
+               l = list(.tbl = "results"),
+               td = list(.tbl = .resp, .vars = c("updated", "listdate"), timeframe = .tf),
+               tn = list(.tbl = .resp, .vars = c("timestamp"), timeframe = .tf),
+               sd = ,
+               ss = list(.tbl = "results", .vars = rlang::expr(tidyselect::ends_with("Date"))),
+               sf = list(.tbl = "results", .vars = c('calendarDate', 'reportPeriod', 'updated', 'dateKey')),
+               ms = list(.tbl = .resp, .vars = "serverTime", timeframe = .tf),
+               mh = list(.tbl = .resp, .vars = c("date")),
+               e = ,
+               cm = list(.tbl = .resp),
+               ht = ,
+               hq = list(.tbl = "results", .vars = "t", timeframe = .tf),
+               lt = ,
+               lq = list(.tbl = "last", .vars = "timestamp", timeframe = .tf),
+               do = list(.tbl = .resp[-1], .vars = "from", timeframe = .tf),
+               sa = ,
+               st = ,
+               sg = list(.tbl = eval(.s),
+                         .vars = c("lastQuote.t", "lastTrade.t", "updated")
+                         , timeframe = .tf),
+               pc = ,
+               gd = list(.tbl = rlang::expr(dplyr::rename(.resp, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T")), .vars = "time", timeframe = .tf)
+  )
+  
+  if (rlang::is_empty(.o$.tbl)) {
+    rlang::warn(paste0("Query returned no results. If metadata exists it will be returned"))
+  } else {
+    out <- rlang::exec(poly_parse, !!!.o, .resp = .resp, ep = ep)
+  }
+  return(out)
+}
+
+
+poly_parse <- function(.tbl, .vars, .f = try_date, ..., .resp, ep) {
+  if (is.character(.tbl)) 
+    .q <- append(attr(.resp, "query"), .resp[!names(.resp) %in% .tbl])
+  else
+    .q <- attr(.resp, "query")
+  #browser(expr = ep %in% c("st", "sa", "sg"))
+  
+  if (!missing(.vars)) {
+    .args <- rlang::list2(
+      .data = tbl_parse(.tbl, .resp),
+      rlang::expr(dplyr::across(!!.vars, .f = .f, !!!rlang::dots_list(...))) 
+    )
+    out <- rlang::eval_bare(rlang::call2(dplyr::mutate, !!!.args))
+  } else if (is.character(.tbl)) {
+    out <- .resp[[.tbl]]
+  } else {
+    out <- .tbl
+  }
+  
+  
+  
+  attr(out, "query") <- .q
+  out
+}
+tbl_parse <- function(.tbl, .resp) {
+  UseMethod("tbl_parse")
+}
+
+
+tbl_parse.list <- function(.tbl, .resp) {
+  out <- tibble::as_tibble(purrr::modify_if(.tbl, ~length(.x) != 1, list))
+}
+
+tbl_parse.default <- function(.tbl, .resp) {
+  out <- eval(.tbl)
+}
+
+tbl_parse.character <- function(.tbl, .resp) {
+  out <- .resp[[.tbl]]
+  if (is.list(out)) out <- tbl_parse(out)
+}
+
 

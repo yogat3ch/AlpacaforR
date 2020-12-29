@@ -25,13 +25,6 @@
 #' # Get specific date range:
 #' calendar(from = "2019-01-01", to = "2019-04-01")
 #' @export
-#' @importFrom httr parse_url build_url GET
-#' @importFrom purrr map_lgl map imap
-#' @importFrom lubridate today days as_date wday ymd interval ymd_hm
-#' @importFrom dplyr starts_with mutate select
-#' @importFrom stringr str_sub
-#' @importFrom dplyr `%>%`
-#' @export
 
 
 calendar <- function(from = NULL, to = NULL){
@@ -48,7 +41,7 @@ calendar <- function(from = NULL, to = NULL){
     })
   }
   # Check for weekend values and warn if weekend
-  purrr::imap(bounds, ~{
+  purrr::iwalk(bounds, ~{
     if (lubridate::wday(.x) %in% c(1,7)) {
       message(paste0(.y, " is a ",lubridate::wday(.x, label = TRUE, abbr = FALSE),", Calendar API will return data for the previous Friday or following Monday"))
     }
@@ -61,4 +54,30 @@ calendar <- function(from = NULL, to = NULL){
   calendar <- cal_transform(httr::GET(url = .url, headers))
   
   return(calendar)
+}
+
+
+cal_transform <- function(resp, .tz = "America/New_York") {
+  calendar =  response_text_clean(resp)
+  calendar <- dplyr::mutate(calendar, date = lubridate::as_date(date)) %>%
+    dplyr::mutate(
+      dplyr::across(dplyr::starts_with("session"),
+                    ~ paste0(
+                      stringr::str_sub(.x, start = 1, end = 2),
+                      ":",
+                      stringr::str_sub(.x, start = 3, end = 4)
+                    )
+      )) %>%
+    dplyr::mutate(
+      day = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, close), tz = .tz)
+      ),
+      session = lubridate::interval(
+        start = lubridate::ymd_hm(paste(date, session_open), tz = .tz),
+        end = lubridate::ymd_hm(paste(date, session_close), tz = .tz)
+      ),
+      dow = lubridate::wday(date, label = T)
+    ) %>%
+    dplyr::select(date, everything(), dow, day, session)
 }

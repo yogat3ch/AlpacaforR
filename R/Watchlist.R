@@ -75,12 +75,6 @@
 #' attr(wl, "info")
 #' # remove it (with partial action argument)
 #' watchlist("FAANG", a = "d")
-#' @importFrom httr GET PUT POST DELETE build_url parse_url
-#' @importFrom purrr map_dfr
-#' @importFrom stringr str_count
-#' @importFrom rlang abort
-#' @importFrom jsonlite toJSON
-#' @importFrom dplyr distinct `%>%`
 #' @export
 watchlist <-
   function(watchlist_id = NULL,
@@ -197,4 +191,72 @@ watchlist <-
   
   out <- wl_transform(out, action = action, wl_info = get0(".wl_info", inherits = FALSE))
   return(out)
+}
+
+
+# wl_transform ----
+# Sun May 03 08:55:01 2020
+#' @title Transform watchlist objects
+#'
+#' @description Replaces timestamps with POSIXct in watchlist info
+#' @param wl The watchlist object
+#' @return \code{(tibble)} with respective R compliant objects (POSIXct)
+#' @keywords internal
+
+wl_transform <- function(wl, action, wl_info = NULL) {
+  
+  
+  if (class(wl) == "response") {
+    if (length(wl$content) == 0 && grepl("^2", wl$status_code)) {
+      message(paste0("Watchlist deleted successfully"))
+      return(tibble::tibble())
+    }
+    .method <- wl$request$method
+    .code <- wl$status_code
+    .wl <- response_text_clean(wl)
+    if ("message" %in% names(.wl))
+      .message <- .wl$message
+    else {
+      .message <- .wl
+    }
+    
+  } else if (class(wl) != "response") {
+    .code <- 200
+    if (length(wl_info) == 0) {
+      wl_info <- attr(wl, "info")
+    }
+    .wl <- wl
+  }
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::abort(paste("Watchlist was not modified.\n Message:", .message))
+    return(.wl)
+  }
+  # Transform the watchlist info object if it exists
+  if (class(wl) == "response" && length(.wl) > 0) {
+    wl_info <- suppressMessages({
+      suppressWarnings({
+        dplyr::mutate(tibble::as_tibble(purrr::map(.wl[1:5], rlang::`%||%`, NA)), dplyr::across(tidyselect::ends_with("at")), ~lubridate::ymd_hms(.x, tz = Sys.timezone())) %>% 
+          dplyr::select(name, updated_at, dplyr::everything())
+      })
+    })
+  } else if (class(wl) == "response") {
+    message(paste0("No watchlists exist."))
+    out <- .wl
+  }
+  
+  if ("assets" %in% names(.wl)) {
+    # If it's a specific watchlist, make the watchlist info an attribute
+    out <- .wl$assets
+    attr(out, "info") <- wl_info
+  } else if (is.data.frame(wl) && length(wl_info) > 0) {
+    out <- wl
+    attr(out, "info") <- wl_info
+  } else if (length(.wl)  == 5) {
+    # if it's an array of watchlists
+    out <- wl_info 
+  } else if (action == "d") {
+    # if empty, return empty tibble
+    out <- tibble::tibble()
+  }
+  out
 }
