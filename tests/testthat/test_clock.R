@@ -1,6 +1,6 @@
 #' @include internal.R
 #' @include Clock.R
-
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "clock"))
 vcr::use_cassette("clock_returns_the_appropriate_response", {
 test_that("clock returns the appropriate response", {
   .c <- clock()

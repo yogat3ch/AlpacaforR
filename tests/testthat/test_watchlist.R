@@ -1,6 +1,6 @@
 #' @include Watchlist.R
 #' @include internal.R
-
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "watchlist"))
 # Remove watchlists with names used herein
 purrr::walk(c("test", "test2", "FAANG", "FABANGG"), ~try(watchlist(.x, action = "d")))
 

@@ -7,9 +7,7 @@ vcr::vcr_log_file(.log_path)
 vcr::vcr_configure(
   dir = dirname(.log_path),
   log_opts = list(file = .log_path, write_disk_path = dirname(.log_path)),
-  filter_sensitive_data = .redact,
-  filter_request_headers = .redact,
-  filter_response_headers = .redact
+  filter_sensitive_data = .redact
 )
 # internal.R prep ----
 # Sat Dec 26 08:49:28 2020

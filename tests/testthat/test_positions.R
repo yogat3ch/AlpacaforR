@@ -1,6 +1,8 @@
 #' @include  Positions.R
 #' @include internal.R
 
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "positions"))
+
 vcr::use_cassette("Positions_returns_the_appropriate_data", {
 test_that("Positions returns the appropriate data", {
   .p <<- positions()

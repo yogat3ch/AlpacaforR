@@ -1,7 +1,7 @@
 #' @include Account.R
 #' @include internal.R
-set.seed(1)
-context("Account family of functions works properly.")
+
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "account"))
 vcr::use_cassette("account_retrieves_account_details_properly", {
 test_that("account retrieves account details properly", {
   .a <- account()
@@ -27,7 +27,7 @@ test_that("account_config properly sets account parameters", {
 vcr::use_cassette("account_config_can_reset_to_default", {
 test_that("account_config can reset to default", {
   .ac <- account_config("default")
-  expect_identical(.ac, list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)[names(.ac)])
+  expect_equal(.ac, list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)[names(.ac)], ignore_attr = TRUE)
 })
 })
 
@@ -60,7 +60,7 @@ test_that("account_activities retrieves date ranges correctly", {
 
 vcr::use_cassette("account_activities_throws_an_error_if_invalid_date_is_entered", {
 test_that("account_activities throws an error if invalid date is entered", {
-  expect_warning(expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument"))
+  expect_error(.aa <- account_activities(after = '20202-2'), regexp = "was parsed to NA")
 })
 })
 
@@ -97,7 +97,7 @@ vcr::use_cassette(.ct, {
         out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)
       }
       browser(expr =  is.null(.res) || is.null(out$out))
-      expect_equivalent(nrow(.res), nrow(out$out))
+      expect_equal(nrow(.res), nrow(out$out), ignore_attr = TRUE)
 })
     })
   })
