@@ -593,7 +593,7 @@ bars_get <- function(url, timeframe, ..., evar = get0("evar", mode = "environmen
     if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving\n", url))
     agg_quote = httr::GET(url = url, headers)
     
-    bars <- bars_transform(agg_quote, timeframe)
+    bars <- bars_transform(agg_quote, timeframe, ...)
     
     
   } else if (v == 2) {

@@ -1,6 +1,6 @@
 tsibble <- getFromNamespace("tsibble", "tsibble")
 methods::setClass("tsymble", 
-                  contains = c("tbl_df", "tbl_ts"))
+                  contains = c("tbl_ts", "tbl_df", "tbl", "data.frame"))
 
 #' @title Construct a tsybble
 #' @description \lifecycle{experimental}

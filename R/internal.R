@@ -4,8 +4,10 @@
 
 #  Re-exports ----
 # Sun Sep 20 11:15:14 2020
-#' @keywords internal
-
+#' @inherit rlang::`%||%`
+#' @importFrom rlang `%||%`
+#' @export
+`%||%` <- rlang::`%||%`
 
 
 is_inf <- function(.x) {

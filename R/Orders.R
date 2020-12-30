@@ -124,7 +124,7 @@ orders <-
 #'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object/ Order ID (*Required* when `action = "cancel"/"replace"`). 
+#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object (single row tibble) (*Required* when `action = "cancel"/"replace"`). 
 #' To expedite the setting of stops and limits for open positions, an Order ID from a `'buy'` order can be provided when `action = "submit"` to place a `'sell'` order with the following parameters such that they do not need to be set manually:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
@@ -158,10 +158,10 @@ orders <-
 #' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
 #' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`.
 #' @param extended_hours \code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with `type = 'limit'` and `time_in_force = 'day'` on the V2 API.
-#' @param client_order_id \code{(character)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
+#' @param client_order_id \code{(character/logical)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
 #' \itemize{
 #'   \item{\code{`action = 'replace'/'submit'`}}{ *Optional* character vector}
-#'  \item{\code{`action = 'submit'`}}{ If an Order ID is provided to `ticker_id`, this can be a \code{(logical)} to indicate whether the `client_order_id` for the sell order should be set as the Order ID provided from the buy order to effectively link the associated buy & sell orders for your records.}
+#'  \item{\code{`action = 'submit'`}}{ If an Order object is provided to `ticker_id`, `TRUE` will set the `client_order_id` for the sell order to Order ID in `ticker_id`. Used to link buy & sell orders for your records.}
 #' } 
 #' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'/'oto'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all advanced order types. 
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
@@ -187,10 +187,10 @@ orders <-
 #' # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
 #' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-#' (so <- order_submit(bo$id, stop = 120, cli = TRUE)) # here the id is used
+#' (so <- order_submit(bo, stop = 120, cli = TRUE)) # here the id is used
 #' so$client_order_id == bo$id
 #' # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
-#' order_submit(so$id, a = "r", stop = 123)
+#' order_submit(so, a = "r", stop = 123)
 #' # Complex orders can be submitted as well
 #' # Here is an example of setting a "bracket" order
 #' # first retrieve the going price
@@ -204,10 +204,10 @@ orders <-
 #' # side is assumed to be buy, and type is assumed to be market
 #' # Set a trailing stop by price
 #' m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
-#' ts_o <- order_submit(m_o$id, trail_price = 30)
+#' ts_o <- order_submit(m_o, trail_price = 30)
 #' # Set a trailing stop by percent
 #' m_o <- order_submit("AMZN", side = "buy", type = "market", qty = 1)
-#' ts_o <- order_submit(m_o$id, trail_percent = 5)
+#' ts_o <- order_submit(m_o, trail_percent = 5)
 #' }
 #' # all open orders can be canceled with `action = "cancel_all"`
 #' order_submit(a = "cancel_all")
@@ -232,15 +232,12 @@ order_submit <-
            live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
     
   
-  # NOTE: ticker_id is not referenced when action = "cancel_all"
-  if (!grepl("cancel_all", action, ignore.case = T)) {
+  
+  .cancel_all <- any(grepl("cancel_all", as.character(match.call()), ignore.case = T))
+  if (!.cancel_all) {
     action <- substr(tolower(action), 0, 1)
     # if the order tbl is supplied directly, extract the id
-    if (!inherits(ticker_id, c("character"))) ticker_id <- ticker_id$id
-    # if vector length 2 and duplicated (complex orders), remove the dupes
-    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
-  } else if (grepl("cancel_all", action, ignore.case = T)) {
-    action <- tolower(action)
+    order_ticker_id(ticker_id, side, action, qty, client_order_id)
   }
     
   # change args in the event of trailing stop
@@ -280,9 +277,9 @@ order_submit <-
             client_order_id = client_order_id,
             order_class = order_class
             )
-        ),-1, .f = as.character),
+        ),-1, .f = as.character, .ragged = TRUE),
         purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
-        stop_loss = stop_loss)), -1, .f = as.character))
+        stop_loss = stop_loss)), -1, .f = as.character, .ragged = TRUE))
     
     bodyl$extended_hours <- extended_hours
     bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
@@ -306,7 +303,6 @@ order_submit <-
   .path <- c("orders")
   if (action %in% c("r","c")) {
     # if replacing or canceling, append the order ID
-    if (!.is_id) rlang::abort(paste0("`ticker_id` is not an Order ID."))
     .path <- append(.path, ticker_id)
   }
   .url <- get_url(.path, live = live)
@@ -314,7 +310,7 @@ order_submit <-
     out = httr::POST(url = .url, body = bodyl, encode = "raw", headers)
   } else if (action == "r") {
     out = httr::PATCH(url = .url, body = bodyl, encode = "raw", headers)
-  } else if (action %in% c("c","cancel_all")) {
+  } else if (action == "c" || .cancel_all) {
     out <- httr::DELETE(url = .url, headers)
   }
   out <- order_transform(out)
@@ -430,27 +426,7 @@ order_check <- function(penv = NULL, ...) {
     fetch_vars(.vn, ...)
   }
   
-  # ticker_id ----
-  # Fri May 01 11:15:39 2020
-  # Check if ticker is id
-  .is_id <- is_id(ticker_id)
-  if (isTRUE(.is_id)) {
-    # if vector length 2 and duplicated (complex orders), remove the dupes
-    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
-    if (action == "s") {
-      #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
-      .oo <- orders(ticker_id)
-      if (.oo$side == "buy") {
-        side <- "sell";message("`side` set to 'sell'")
-        if (is.null(qty)) qty <- .oo$qty;message(paste0("`qty` set to ",qty))
-        ticker_id <- .oo$symbol;message(paste0("`ticker_id` set to ",.oo$symbol))
-        if (isTRUE(client_order_id)) client_order_id <- .oo$id;message(paste0("`client_order_id` set to ", .oo$id))
-      }
-    } 
-  } else if (!isTRUE(.is_id)) {
-    #Convert ticker argument to upper if action is submit
-    ticker_id <- toupper(ticker_id)
-  }
+  
   #  smart detect order_class ----
   # Fri May 15 13:48:32 2020
   if (!is.null(order_class)) {
@@ -500,10 +476,8 @@ order_check <- function(penv = NULL, ...) {
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      .ss <- try({
-        .pos <- positions(ticker_id)
-        ticker_id[!ticker_id %in% .pos$symbol]
-      }, silent = TRUE)
+      .pos <- suppressWarnings(positions(ticker_id))
+      .ss <- ticker_id[!ticker_id %in% .pos[["symbol"]]]
       
       if (!rlang::is_empty(.ss)) {
         warning("No positions exist for ",paste0(.ss, collapse = ", "),". This order will be a short sell.", immediate. = TRUE)
@@ -613,4 +587,48 @@ order_check <- function(penv = NULL, ...) {
     stop_loss = stop_loss
   )
   rlang::env_bind(penv, !!!out)
+}
+
+#' @title retrieve the order id if an order object is supplied
+#' @description Retrieves the order_id from an order object if provided as `ticker_id`, or provides informative error if input order failed.
+#' @inheritParams order_submit
+#' @keywords internal
+
+order_ticker_id <- function(ticker_id, side, action, qty, client_order_id) {
+  # ticker_id ----
+  # Fri May 01 11:15:39 2020
+  # Check if ticker is id
+  if (!inherits(ticker_id, "character")) {
+    if (is_id(ticker_id$id)) {
+      
+      if (action == "s") {
+        if (ticker_id$side == "buy") {
+          # Create message update
+          .m <- purrr::keep(list(
+            side %||% "`side` set to 'sell'",
+            qty %||% paste0("`qty` set to ", ticker_id$qty),
+            paste0("`ticker_id` set to ", ticker_id$symbol,
+            ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", ticker_id$id), 1))
+          ), is.character)
+          
+          if (isTRUE(client_order_id)) client_order_id <- ticker_id$id
+          side <- "sell"
+          #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
+          qty <- ticker_id$qty
+          ticker_id <- ticker_id$symbol
+          message(paste0(.m, collapse = "\n"))
+        }
+      } else if (action %in% c("r","c")) {
+        ticker_id <- unique(ticker_id$id)
+        if (length(ticker_id) > 1) rlang::abort("`ticker_id` must contain a single order")
+      }
+    } else 
+      rlang::abort(paste0("The order object provided as `ticker_id` is invalid.\norder code: ",ticker_id$code,"\nmessage: ", ticker_id$message))
+    
+    
+  } else {
+    ticker_id <- toupper(ticker_id)
+    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
+  }
+  rlang::env_bind(rlang::caller_env(), ticker_id = ticker_id, side = side, action = action, qty = qty, client_order_id = client_order_id)
 }

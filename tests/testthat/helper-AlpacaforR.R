@@ -88,8 +88,7 @@ unadjusted = F
 #     )
 # })
 
-# Load the completed/checked data.frame for comparison
-test_internal <- readRDS(file.path(pkgload::package_file(), "tests/testthat/rds/test_internal.rds"))
+
 
 
 # market_data ----
