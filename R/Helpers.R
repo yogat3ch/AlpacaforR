@@ -59,7 +59,7 @@ date_try <- function(x, tz) {
 #' @export
 
 try_date <- function(.x, timeframe = "day", tz = NULL) {
-  .out <- suppressWarnings(date_try(.x, tz))
+  .out <- withCallingHandlers(date_try(.x, tz), warning = rlang::cnd_muffle, message = rlang::cnd_muffle) 
   if (!timeframe %in% c("minute", "hour")) { 
     .fn <- switch(as.character(timeframe),
                   day = lubridate::as_date,
