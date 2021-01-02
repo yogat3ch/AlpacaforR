@@ -104,9 +104,9 @@ get_headers <- function(live=FALSE){
 #' @param ... \code{(named arguments)} to be added as query parameters
 #' @keywords internal
 #' @return The correct URL according to account type (live or paper) that will be sent in the API request.
-get_url <- function(path, query, ..., live = FALSE, v = 2, poly = FALSE){
-  if (poly) {
-    .url <- "https://api.polygon.io" 
+get_url <- function(path, query, ..., live = FALSE, v = 2, data = FALSE){
+  if (data) {
+    .url <- ifelse(v == 1, "https://data.alpaca.markets", "https://api.polygon.io")  
   } else {
     .url <- ifelse(live, 
                    "https://api.alpaca.markets",
@@ -123,7 +123,7 @@ get_url <- function(path, query, ..., live = FALSE, v = 2, poly = FALSE){
   } 
   if (!missing(query)) .url$query <- query
   if (rlang::dots_n(...) > 0) .url$query <- rlang::dots_list(...)
-  return(httr::build_url(.url))
+  return(utils::URLdecode(httr::build_url(.url)))
 }
 
 # Internals:  Sun Jan 12 10:20:31 2020 ----
