@@ -446,7 +446,8 @@ polygon <- function(ep = NULL, ..., params = NULL) {
   
   .url <- get_url(path = .path,
           query = rlang::list2(!!!params, apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID")),
-          poly = TRUE)
+          data = TRUE,
+          v = 2)
   
   
   .resp <- httr::GET(url = .url)
