@@ -202,35 +202,24 @@ bars_missing <- function(x, timeframe, ..., evar = get0("evar", mode = "environm
   fetch_vars(evar$.vn[c("cal", "v")], ...)
   # get the index
   .ind <- tsibble::index_var(x)
-  # get the final expected date relative to the timeframe
+  # get the expected boundaries relative to the timeframe
   if (timeframe %in% c("minute", "hour")) {
-    if (v == 1) {
-      .t <- lubridate::int_start(utils::head(cal, 1)$day)
-      .before <- 1
-    } else {
-      .t <- lubridate::int_end(utils::tail(cal, 1)$day)
-      .before <- NULL
-    }
+    .begin <- lubridate::int_start(utils::head(cal, 1)$day)
+    .end <- lubridate::int_end(utils::tail(cal, 1)$day)
   } else {
-    if (v == 1) {
-      .t <- utils::head(cal, 1)$date
-      .before <- 1
-    } else {
-      .t <- utils::tail(cal, 1)$date
-      .before <- NULL
-    }
+    .begin <- utils::head(cal, 1)$date
+    .end <- utils::tail(cal, 1)$date
   }
-  .t <- try_date(.t, timeframe)
-  if (!.t %in% x[[.ind]]) {
-    # add a final row with the last expected timestamp
-    suppressMessages({x <- add_row(x, !!.ind := .t, .before = .before)})
-  }
+
+  
+  # add the beginning..
+  x <- suppressMessages(add_row(x, !!.ind := try_date(.begin, timeframe), .before = 1))
+  # and end
+  x <- suppressMessages(add_row(x, !!.ind := try_date(.end, timeframe)))
+  
   # fill the gaps & filter for market hours
   .args <- list(.data = x,
-                .full  = if (v == 1)
-                  rlang::expr(start())
-                else
-                  rlang::expr(end()))
+                .full  = TRUE)
   do.call(tsibble::count_gaps, .args)
 }
 
@@ -256,6 +245,32 @@ max_gap <- function(.data, cal) {
   out
 } 
 
+#' @title Identify and return a gap in the data
+#' @description Identifies the largest gaps in the dataset first, then identifies small gaps nearest the requested dates.
+#' @param x \code{(tsymble)} returned from `bars_get`
+#' @param cal \code{(tibble)}
+#' @inheritDotParams market_data
+#' @inheritParams market_data
+#' @keywords internal
+
+identify_gap <- function(x, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  .max_gap <- max_gap(x, evar$cal)
+  # get the largest gap
+  .missing <- bars_missing(x, timeframe = timeframe)
+  out <- dplyr::slice_max(dplyr::filter(.missing, .n > .max_gap), .n)
+  if (NROW(out) == 0) {
+    evar$count <- evar$count + 1
+    # if no more major gaps, add the tails one at a time
+    if (isTRUE(evar$count == 1)) 
+      out <- .missing[1,]
+    else 
+      out <- .missing[NROW(.missing),]
+  }
+  
+  dplyr::filter(out, !is.na(.from))
+}
+
+
 # bars_complete ----
 # Wed Apr 01 17:24:47 2020
 #' @title Query the API as many times as necessary to fill a market_data query
@@ -280,9 +295,8 @@ bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", 
     )
     
     # Where are the unexpected gaps
-    .max_gap <- max_gap(ext$out, evar$cal)
-    .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
-    
+    evar$count <- 0
+    .m <- identify_gap(ext$out, timeframe)
     while (isTRUE(NROW(.m) == 1)) {
       .args <- list(
         bounds = setNames(as.list(.m[c(".from", ".to")]), c("from", "to")),
@@ -294,8 +308,9 @@ bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", 
       .out <- bind_rows(ext$out, .nd[[1]])
       .nd <- identical(.out[[ext$index]], ext$out[[ext$index]])
       ext$out <- .out
-      if (.nd) break
-      .m <- dplyr::slice_max(dplyr::filter(bars_missing(ext$out, timeframe = timeframe), .n > .max_gap), .n)
+      # this count comes from identify_gap - delays break until tails are added.
+      if (.nd && isTRUE(evar$count > 1)) break
+      .m <- identify_gap(ext$out, timeframe)
     }
     # sort added queries
     .query <- get_query(ext$out)
@@ -306,6 +321,8 @@ bars_complete <- function(bars, timeframe, multiplier, ..., evar = get0("evar", 
   })
   return(.newbars)
 }
+
+
 
 
 #' @title convert timeframe to numeric `tf_num`
@@ -366,39 +383,33 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, time
   #trickery to get the variables from the calling environment
   fetch_vars(evar$.vn[c("v")], ...)
   tf_num(timeframe, multiplier, ...)
-  # Set defaults if non specified
-  if (is.null(from) && is.null(after)) {
-    from <- Sys.Date() - 7
-    message(paste0("`from` argument omitted, setting to ", from))
-  }
-  if (is.null(to) && is.null(until)) {
-    to <- Sys.Date()
-    message(paste0("`to` argument omitted, setting to ", to))
-  }
-  .ls <- ls(all.names = T)
-  if (all(c("from", "to") %in% .ls) || all(c("after", "until") %in% .ls)) {
-    .date_vars <- list(from = from, after = after, to = to, until = until)
-  }
+  
+  .date_vars <- purrr::keep(rlang::call_args(match.call())[c("from","after","to","until")], ~!is.null(eval(.x)))
   # Remove NULL arguments
-  bounds <- purrr::compact(.date_vars)
-  if ((missing(fc) || isFALSE(get0("fc", inherits = FALSE, mode = "logical"))) && length(bounds) > 2) {
-    
-    # in some instances when bars_missing is called, after was supplied by the user, but the from-to arguments are being used. fetch_vars will zap all three arguments, and make bars_bounds inaccurate. To accommodate this case, grab the argument names passed in the call and use those. If only one argument was passed (and values were filled internally), switch is used to add the other argument and sort alphabetically such that the order of the dates will be accurate (since [f]rom <  [t]o & [a]fter < [u]ntil).
-    .b <- purrr::keep(names(match.call()), ~nchar(.x) > 0 && .x %in% c("from", "to", "after", "until"))
-    if (length(.b) != 2) {
-      .b <- sort(c(.b, switch(.b,
-                              from = "to",
-                              to = "from", 
-                              after = "until",
-                              until = "after")))
-      
-    }
-    bounds <- bounds[.b]
+  
+  bounds <- purrr::map(.date_vars, ~{
+    try_date(eval(.x), timeframe)
+  })
+  # check bounds
+  if (length(bounds) != 2) {
+    # add a placeholder
+    bounds <- append(bounds, switch(names(bounds),
+           from = list(to = Sys.Date()),
+           after = list(until = Sys.Date()),
+           to = list(from = bounds$to - lubridate::weeks(1)),
+           until = list(after = bounds$until - lubridate::weeks(1))
+           ))
+    # sort them into order
+    bounds <- bounds[order(names(bounds))]
+    # message
+    .missing_arg <- names(bounds)[!names(bounds) %in% as.character(names(.date_vars))]
+    message("`",.missing_arg, "` omitted. Set to ", bounds[[.missing_arg]])
   }
+  
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   bounds <- purrr::imap(bounds, ~{
     # API only takes day format - all timeframes need to be output in day format to create bounds formatted appropriately for the API request.
-    .out <- try_date(.x, timeframe = "day") 
+    .out <- .x 
     
     # Floors or ceilings
     if (timeframe %in% c("minute", "hour")) {
@@ -418,8 +429,8 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, time
         .out <- rlang::eval_bare(.call)
       }
       
-      if (!identical(.out,.oout) && isTRUE(fc)) {
-        message(paste0("'from'/'after' coerced to ", .out," to retrieve inclusive data."))
+      if (!all.equal(.out,.oout, check.attributes = FALSE) && isTRUE(fc)) {
+        message(paste0("`from/after` coerced to ", .out," to retrieve inclusive data."))
       }
       
     } else {
@@ -433,8 +444,8 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, time
         .out <- rlang::eval_bare(.call)
       }
       
-      if (!identical(.out,.oout) && isTRUE(fc)) {
-        message(paste0("'to'/'until' coerced to ", .out, " to retrieve inclusive data."))
+      if (!all.equal(.out,.oout, check.attributes = FALSE) && isTRUE(fc)) {
+        message(paste0("`to/until` coerced to ", .out, " to retrieve inclusive data."))
       }
     }
     # For requests to the v2 API where aggregates are yearly, the floor date needs to be 12/31
@@ -515,35 +526,34 @@ bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("ev
   # timeframe is quote or trade ----
   # Sun Jun 14 16:08:07 2020
   if (v == 1 && timeframe %in% c("t", "q")) {
-    .url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
+
     .url <- purrr::map_chr(setNames(ticker, ticker), ~{
-      .url$path <- list("v1", ifelse(timeframe == "t", "last","last_quote"), "stocks", .x)
-      .url <- utils::URLdecode(httr::build_url(.url))
+      .url$path <- get_url(list(ifelse(timeframe == "t", "last","last_quote"), "stocks", .x), data = TRUE, v = v)
     })
   } else if (v == 1) {
-    .url = httr::parse_url("https://data.alpaca.markets") #Pricing data uses unique URL, see market data API documentation to learn more
     # multiplier & timeframe ----
     # Fri May 08 21:26:15 2020
-    timeframe <- ifelse(timeframe == "minute", "Min", "day")
-    timeframe <- ifelse(timeframe == "Min", paste0(multiplier, timeframe), timeframe)
+    timeframe <- ifelse(timeframe == "minute", paste0(multiplier, "Min"), "day")
     #full = F Make API requests:  Tue Mar 17 21:37:35 2020 ----
-    .url$path <- list("v1", "bars", as.character(timeframe))
+    
     # Coerce to appropriately formatted character strings
     bounds <- purrr::map(bounds, ~{
-      .x <- format(.x, "%Y-%m-%dT%H:%M:%S%z")
-      paste0(stringr::str_sub(.x, 1, -3),":", stringr::str_sub(.x, -2, nchar(.x)))
+      # V1 has a bug where offset must be -
+      # V1 must have colon in offset
+      stringr::str_replace(format(.x, "%Y-%m-%dT%H:%M:%S%z"), "[\\+\\-](\\d{2})(\\d{2})$", "-\\1:\\2")
+      
     })
-    # NULL Values are automatically dropped, so only the set boundaries will remain
-    .url$query <- list(symbols = .ticker,
-                       limit = limit,
-                       start = bounds$from,
-                       after = bounds$after,
-                       end = bounds$to,
-                       until = bounds$until
-    )
+
     # Build the url
-    
-    .url <- utils::URLdecode(httr::build_url(.url))
+    .url <- get_url(
+      path = list("bars", as.character(timeframe)),
+      query = list(symbols = .ticker,
+                         limit = limit,
+                         start = bounds$from,
+                         after = bounds$after,
+                         end = bounds$to,
+                         until = bounds$until
+    ), data = TRUE, v = v)
   } else if (v == 2) {
     .url <- purrr::map_chr(stats::setNames(.ticker, .ticker), ~{
       .url <- get_url(list(
@@ -558,7 +568,7 @@ bars_url <- function(ticker, timeframe, multiplier, bounds, ..., evar = get0("ev
       ),
       query = list(unadjusted = unadjusted,
                    apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID"))
-      , poly = TRUE)
+      , data = TRUE, v = v)
     })
   }
   return(.url)
