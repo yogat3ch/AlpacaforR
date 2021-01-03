@@ -11,11 +11,14 @@ methods::setClass("tsymble",
 #' @inheritDotParams tsibble::as_tsibble  -index -x
 #' @export
 
-as_tsymble <- function(x, index = tsibble::index_var(x), symbol = get_sym(x), query = get_query(x), ...) {
+as_tsymble <- function(x, index = tsibble::index_var(x), symbol = get_sym(x), query = get_query(x), timeframe, ...) {
   force(symbol)
   force(query)
   # tsibble must have distinct index
   dx <- dplyr::distinct(x, !!rlang::sym(index), .keep_all = TRUE)
+  if (timeframe == "year") {
+    dx <- dplyr::mutate(dx, dplyr::across(index, lubridate::year))
+  }
   structure(tsibble::as_tsibble(dx, index = index, ...),
             symbol = symbol,
             query = query,

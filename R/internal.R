@@ -41,6 +41,8 @@ fetch_vars <- function(.vn,
                        cenv = rlang::caller_env()
 ) {
   e <- rlang::dots_list(...)
+  # only bind named
+  e <- e[nzchar(names(e))]
   if (!rlang::is_empty(e)) rlang::env_bind(cenv, !!!e)
   .vn <- .vn[!names(.vn) %in% c(names(e), ls(cenv))]
   if (rlang::is_empty(.vn)) return(NULL)

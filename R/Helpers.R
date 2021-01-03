@@ -37,7 +37,9 @@ date_try.default <- function(x, tz) {
 } 
 
 date_try.integer <- date_try.double <- function(x, tz) {
-  if (all(x < 100000)) {
+  if (dplyr::between(x, 1792, 3000)) {
+    .out <- lubridate::years(x - 1970) + lubridate::origin
+  } else if (all(x < 100000)) {
     .out <- lubridate::as_date(x, origin = lubridate::origin)
   } else {
     .out <- lubridate::as_datetime(signif(x / 10 ^ ceiling(log10(x)), 10) * 10 ^ 10, origin = lubridate::origin, tz = tz)
@@ -66,7 +68,7 @@ try_date <- function(.x, timeframe = "day", tz = NULL) {
                   week = tsibble::yearweek,
                   month = tsibble::yearmonth,
                   quarter = tsibble::yearquarter,
-                  year = lubridate::year
+                  year = identity
     )
     .out <- suppressWarnings(rlang::exec(.fn, x = .out))
   }
