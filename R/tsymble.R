@@ -1,3 +1,4 @@
+tsymble <- tsibble::new_tsibble(tsibble::build_tsibble(tibble::tibble(time = Sys.Date() + 0:3), index = "time", ordered = TRUE, interval = tsibble::new_interval(day = 1), index2 = "time"), symbol = character(), query = list(), class = "tsymble")
 tsibble <- getFromNamespace("tsibble", "tsibble")
 methods::setClass("tsymble", 
                   contains = c("tbl_ts", "tbl_df", "tbl", "data.frame"))
@@ -11,18 +12,54 @@ methods::setClass("tsymble",
 #' @inheritDotParams tsibble::as_tsibble  -index -x
 #' @export
 
-as_tsymble <- function(x, index = tsibble::index_var(x), symbol = get_sym(x), query = get_query(x), timeframe, ...) {
+as_tsymble <- function(x, index = tsibble::index_var(x), index2 = NULL, symbol = get_sym(x), query = get_query(x), interval = NULL, ordered = NULL, key_data = NULL) {
   force(symbol)
   force(query)
   # tsibble must have distinct index
-  dx <- dplyr::distinct(x, !!rlang::sym(index), .keep_all = TRUE)
-  if (timeframe == "year") {
+  if (NROW(x) > 2) {
+    dx <- dplyr::distinct(x, !!rlang::sym(index), .keep_all = TRUE)
+  } else {
+    dx <- x
+  }
+  if (isTRUE(interval$year > 0)) {
+    # eliminates (can't obtain interval due to the mismatched index class)
     dx <- dplyr::mutate(dx, dplyr::across(index, lubridate::year))
   }
-  structure(tsibble::as_tsibble(dx, index = index, ...),
-            symbol = symbol,
-            query = query,
-            class = c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"))
+  
+  dx <- do.call(tsibble::build_tsibble, list(
+    dx,
+    index = index,
+    if (!missing(index2)) index2 = index2,
+    interval = interval,
+    ordered = ordered,
+    key_data = key_data
+  ))
+  structure(
+    dx,
+    symbol = symbol,
+    query = query,
+    class = c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble")
+  )
+}
+
+#' @title Validate a `tsymble`
+#' @param x \code{(tsymble)}
+
+validate_tsymble <- function(x) {
+  
+  # correct classes
+  if (!all(class(x) %in% c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"))) stop("classes must be: ", paste0(c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"), collapse = ", "), call. = FALSE)
+  # valid index
+  if (!tsibble::index_valid(x[[tsibble::index(x)]])) stop("tsymble must have valid index", call. = FALSE)
+  # query attribute is list
+  if (!is.list(attr(x, "query"))) {
+    stop("query attribute must be a list.", call. = FALSE)
+  }
+  # symbol is character
+  if (!is.character(attr(x, "symbol"))) stop("symbol attribute must be a character", call. = FALSE)
+  # symbol is length 1
+  if (!length(attr(x, "symbol"))) stop("symbol must be length 1", call. = FALSE)
+  
 }
 
 #' @title Gather and flatten querys
