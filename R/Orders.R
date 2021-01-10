@@ -9,14 +9,14 @@
 #' @title Get Orders
 #' 
 #' @description The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See [Orders GET](https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders)for more details.
-#' @param ticker_id \code{(character)} Specify symbol, order ID, or client_order_id (must set `client_order_id = TRUE`).
+#' @param symbol_id \code{(character)} Specify symbol, order ID, or client_order_id (must set `client_order_id = TRUE`).
 #' @param status \code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.
 #' @param limit \code{(integer)} The maximum number of orders in response. Defaults to 50 and max is 500.
 #' @param after \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{after} this date exclusive as a timestamp object.
 #' @param until \code{(Date/character)} Date in YYYY-MM-DD \href{https://www.iso.org/iso-8601-date-and-time-format.html}{(ISO8601 Format)} The response will include only orders submitted \emph{before} this date exclusive as a timestamp object.
 #' @param direction \code{(character)} The chronological order of response based on the submission time. \code{'asc'} or \code{'desc'}. Defaults to \code{desc}.
 #' @param nested \code{(logical)} If true, the result will roll up multi-leg orders under the legs field of primary order. Default `TRUE`.
-#' @param client_order_id \code{(logical)} Whether `ticker_id` is a client_order_id, defaults to `NULL (FALSE)`
+#' @param client_order_id \code{(logical)} Whether `symbol_id` is a client_order_id, defaults to `NULL (FALSE)`
 #' @inheritParams account
 #' @return Order `(tibble)` [Order object](https://alpaca.markets/docs/api-documentation/api-v2/orders/#order-entity) or Array of Order Objects with the following information:
 #' \itemize{
@@ -53,12 +53,12 @@
 #' @examples 
 #' orders(live = FALSE)
 #' orders(status = "all")
-#' # For a specific ticker:
-#' orders(ticker = "AAPL", status = "all")
+#' # For a specific symbol:
+#' orders("AAPL", status = "all")
 
 #' @export
 orders <-
-  function(ticker_id = NULL,
+  function(symbol_id = NULL,
            status = "open",
            limit = NULL,
            after = NULL,
@@ -74,14 +74,14 @@ orders <-
   # set status if abbreviated
   status <- c(o = "open", c = "closed", a = "all")[tolower(substr(status, 0, 1))]
   # check if id
-  .is_id <- is_id(ticker_id)
+  .is_id <- is_id(symbol_id)
   if (.is_id) {
     # if it's an order_id
-    .o_id <- ticker_id
+    .o_id <- symbol_id
   } else {
     # if its a ticker symbol
     .o_id <- NULL
-    ticker_id <- toupper(ticker_id)
+    symbol_id <- toupper(symbol_id)
   }
   if (isTRUE(client_order_id)) {
     .url <- get_url("orders:by_client_order_id", client_order_id = .o_id, live = live)
@@ -106,8 +106,8 @@ orders <-
   out <- order_transform(out)
   
   
-  if (isTRUE(inherits(ticker_id, "character") && nchar(ticker_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
-    out = dplyr::filter(out, symbol %in% ticker_id)
+  if (isTRUE(inherits(symbol_id, "character") && nchar(symbol_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
+    out = dplyr::filter(out, symbol %in% symbol_id)
   }
   return(out)
   }
@@ -121,15 +121,15 @@ orders <-
 #' \itemize{
 #'  \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are *required*.}
 #'  \item{\code{action = 'replace'}}{ `qty`, `time_in_force`, `limit`, `stop`, `client_order_id` are all eligible. Only one is *required*.}
-#'  \item{\code{action = 'cancel'}}{ Only `ticker_id` is *required*.}
+#'  \item{\code{action = 'cancel'}}{ Only `symbol_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param ticker_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object (single row tibble) (*Required* when `action = "cancel"/"replace"`). 
+#' @param symbol_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object (single row tibble) (*Required* when `action = "cancel"/"replace"`). 
 #' To expedite the setting of stops and limits for open positions, an Order ID from a `'buy'` order can be provided when `action = "submit"` to place a `'sell'` order with the following parameters such that they do not need to be set manually:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
 #'   \item{If \code{qty} is not provided, it will be populated from the buy order}
-#'   \item{`ticker_id` will be set to the symbol from the buy order.}
+#'   \item{`symbol_id` will be set to the symbol from the buy order.}
 #'   \item{If `client_order_id = TRUE`, the `client_order_id` will be set to the buy Order ID provided, effectively linking the orders for your records.}
 #'   \item{All other parameters can be specified as usual.}
 #' }
@@ -161,7 +161,7 @@ orders <-
 #' @param client_order_id \code{(character/logical)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
 #' \itemize{
 #'   \item{\code{`action = 'replace'/'submit'`}}{ *Optional* character vector}
-#'  \item{\code{`action = 'submit'`}}{ If an Order object is provided to `ticker_id`, `TRUE` will set the `client_order_id` for the sell order to Order ID in `ticker_id`. Used to link buy & sell orders for your records.}
+#'  \item{\code{`action = 'submit'`}}{ If an Order object is provided to `symbol_id`, `TRUE` will set the `client_order_id` for the sell order to Order ID in `symbol_id`. Used to link buy & sell orders for your records.}
 #' } 
 #' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'/'oto'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all advanced order types. 
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
@@ -184,7 +184,7 @@ orders <-
 #' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
 #' (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
 #' if (.c$is_open) {
-#' # cancel an order with `action = "cancel"`. ticker_id can be either the id of the order to cancel or the order tbl object.
+#' # cancel an order with `action = "cancel"`. symbol_id can be either the id of the order to cancel or the order tbl object.
 #' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
 #' (so <- order_submit(bo, stop = 120, cli = TRUE)) # here the id is used
@@ -214,7 +214,7 @@ orders <-
 #' @export
 
 order_submit <-
-  function(ticker_id,
+  function(symbol_id,
            action = "submit",
            qty = NULL,
            side = NULL,
@@ -237,7 +237,7 @@ order_submit <-
   if (!.cancel_all) {
     action <- substr(tolower(action), 0, 1)
     # if the order tbl is supplied directly, extract the id
-    order_ticker_id(ticker_id, side, action, qty, client_order_id)
+    order_symbol_id(symbol_id, side, action, qty, client_order_id)
   }
     
   # change args in the event of trailing stop
@@ -259,15 +259,15 @@ order_submit <-
     ot <- order_check(environment()) 
   }
   
-  .is_id <- is_id(ticker_id)
-  # detect the argument provided to ticker_id
+  .is_id <- is_id(symbol_id)
+  # detect the argument provided to symbol_id
   if (action == "s") {
   
     #Create body with order details if action is submit or replace
     bodyl <-
         append(purrr::modify_depth(purrr::compact(
           rlang::list2(
-            symbol = ticker_id,
+            symbol = symbol_id,
             qty = qty,
             side = side,
             type = type,
@@ -303,7 +303,7 @@ order_submit <-
   .path <- c("orders")
   if (action %in% c("r","c")) {
     # if replacing or canceling, append the order ID
-    .path <- append(.path, ticker_id)
+    .path <- append(.path, symbol_id)
   }
   .url <- get_url(.path, live = live)
   if (action  == "s") {
@@ -383,7 +383,7 @@ order_transform <- function(o) {
       })})
     
   } else if (length(.o) == 0 && grepl("GET", .method, ignore.case = TRUE)) {
-    message(paste("No orders for the selected query/filter criteria.","\nCheck `ticker_id` or set status = 'all' to see all orders."))
+    message(paste("No orders for the selected query/filter criteria.","\nCheck `symbol_id` or set status = 'all' to see all orders."))
     out <- .o
   } else if (grepl("DELETE", .method, ignore.case = TRUE)) {
     # case when deleting single order
@@ -407,7 +407,7 @@ order_check <- function(penv = NULL, ...) {
   if (class(.o) == "try-error") {
     .vn <-
       list(
-        ticker_id = "character",
+        symbol_id = "character",
         action = "character",
         type = "character",
         qty = c("numeric", "integer"),
@@ -476,8 +476,8 @@ order_check <- function(penv = NULL, ...) {
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      .pos <- suppressWarnings(positions(ticker_id))
-      .ss <- ticker_id[!ticker_id %in% .pos[["symbol"]]]
+      .pos <- suppressWarnings(positions(symbol_id))
+      .ss <- symbol_id[!symbol_id %in% .pos[["symbol"]]]
       
       if (!rlang::is_empty(.ss)) {
         warning("No positions exist for ",paste0(.ss, collapse = ", "),". This order will be a short sell.", immediate. = TRUE)
@@ -569,10 +569,10 @@ order_check <- function(penv = NULL, ...) {
     }
     if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day" || order_class %in% c("oco","oto", "bracket"))) rlang::abort(paste0("Extended hours only supports simple 'limit' orders and `time_in_force = 'day'`"))
   } else if (action == "c") {
-    if (is.null(ticker_id)) rlang::abort("`ticker_id` is NULL, the order may not have been placed successfully?")
+    if (is.null(symbol_id)) rlang::abort("`symbol_id` is NULL, the order may not have been placed successfully?")
   } 
   out <- list(
-    ticker_id = ticker_id,
+    symbol_id = symbol_id,
     action = action,
     type = type,
     qty = qty,
@@ -590,45 +590,45 @@ order_check <- function(penv = NULL, ...) {
 }
 
 #' @title retrieve the order id if an order object is supplied
-#' @description Retrieves the order_id from an order object if provided as `ticker_id`, or provides informative error if input order failed.
+#' @description Retrieves the order_id from an order object if provided as `symbol_id`, or provides informative error if input order failed.
 #' @inheritParams order_submit
 #' @keywords internal
 
-order_ticker_id <- function(ticker_id, side, action, qty, client_order_id) {
-  # ticker_id ----
+order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
+  # symbol_id ----
   # Fri May 01 11:15:39 2020
   # Check if ticker is id
-  if (!inherits(ticker_id, "character")) {
-    if (is_id(ticker_id$id)) {
+  if (!inherits(symbol_id, "character")) {
+    if (is_id(symbol_id$id)) {
       
       if (action == "s") {
-        if (ticker_id$side == "buy") {
+        if (symbol_id$side == "buy") {
           # Create message update
           .m <- purrr::keep(list(
             side %||% "`side` set to 'sell'",
-            qty %||% paste0("`qty` set to ", ticker_id$qty),
-            paste0("`ticker_id` set to ", ticker_id$symbol,
-            ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", ticker_id$id), 1))
+            qty %||% paste0("`qty` set to ", symbol_id$qty),
+            paste0("`symbol_id` set to ", symbol_id$symbol,
+            ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", symbol_id$id), 1))
           ), is.character)
           
-          if (isTRUE(client_order_id)) client_order_id <- ticker_id$id
+          if (isTRUE(client_order_id)) client_order_id <- symbol_id$id
           side <- "sell"
-          #if ticker_id is ID, action is submit and qty is NULL, populate qty from previous order
-          qty <- ticker_id$qty
-          ticker_id <- ticker_id$symbol
+          #if symbol_id is ID, action is submit and qty is NULL, populate qty from previous order
+          qty <- symbol_id$qty
+          symbol_id <- symbol_id$symbol
           message(paste0(.m, collapse = "\n"))
         }
       } else if (action %in% c("r","c")) {
-        ticker_id <- unique(ticker_id$id)
-        if (length(ticker_id) > 1) rlang::abort("`ticker_id` must contain a single order")
+        symbol_id <- unique(symbol_id$id)
+        if (length(symbol_id) > 1) rlang::abort("`symbol_id` must contain a single order")
       }
     } else 
-      rlang::abort(paste0("The order object provided as `ticker_id` is invalid.\norder code: ",ticker_id$code,"\nmessage: ", ticker_id$message))
+      rlang::abort(paste0("The order object provided as `symbol_id` is invalid.\norder code: ",symbol_id$code,"\nmessage: ", symbol_id$message))
     
     
   } else {
-    ticker_id <- toupper(ticker_id)
-    if (any(duplicated(ticker_id))) ticker_id <- ticker_id[!duplicated(ticker_id)]
+    symbol_id <- toupper(symbol_id)
+    if (any(duplicated(symbol_id))) symbol_id <- symbol_id[!duplicated(symbol_id)]
   }
-  rlang::env_bind(rlang::caller_env(), ticker_id = ticker_id, side = side, action = action, qty = qty, client_order_id = client_order_id)
+  rlang::env_bind(rlang::caller_env(), symbol_id = symbol_id, side = side, action = action, qty = qty, client_order_id = client_order_id)
 }

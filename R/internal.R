@@ -9,6 +9,11 @@
 #' @export
 `%||%` <- rlang::`%||%`
 
+#' @inherit rlang::`%|%`
+#' @importFrom rlang `%|%`
+#' @export
+`%|%` <- rlang::`%|%`
+
 
 is_inf <- function(.x) {
   if (is.null(.x)) return(FALSE)
@@ -166,7 +171,7 @@ response_text_clean <- function(x){
   
   if (grepl("aggs", query$url)) {
     query <- append(query, out[names(out) != "results"])
-    out <- out$results
+    out <- suppressWarnings(out$results)
   }
   attr(out, "query") <- query
   return(out)

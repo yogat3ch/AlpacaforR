@@ -36,10 +36,10 @@ calendar <- function(from = NULL, to = NULL){
   # Check for null values and warn if NULL
   if (any(.null)){
     message(paste0(paste0("`",names(.null)[.null],"`", collapse = ", "), " arg(s) is/are NULL, setting from/to to ", lubridate::today()))
-    bounds <- purrr::map(bounds, ~{
-      if (is.null(.x)) lubridate::today() else try_date(.x, timeframe = "day")
-    })
   }
+  bounds <- purrr::map(bounds, ~{
+    if (is.null(.x)) lubridate::today() else try_date(.x, timeframe = "day")
+  })
   # Check for weekend values and warn if weekend
   purrr::iwalk(bounds, ~{
     if (lubridate::wday(.x) %in% c(1,7)) {

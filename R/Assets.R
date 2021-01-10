@@ -31,15 +31,15 @@
 #' @importFrom httr GET
 #' @export
 assets <- function(...){
-  ticker_id <- rlang::dots_list(...)
+  symbol_id <- rlang::dots_list(...)
   headers = get_headers()
-  if (rlang::is_empty(ticker_id)) {
-    ticker_id <- NULL
+  if (rlang::is_empty(symbol_id)) {
+    symbol_id <- NULL
     out = asset_transform(httr::GET(url = get_url(c("assets")), headers))
   } else {
-    .is_id <- is_id(ticker_id)
-    if (!.is_id) ticker_id <- toupper(ticker_id) # caps if ticker
-    out <- purrr::map_dfr(ticker_id, ~{
+    .is_id <- is_id(symbol_id)
+    if (!.is_id) symbol_id <- toupper(symbol_id) # caps if ticker
+    out <- purrr::map_dfr(symbol_id, ~{
       # get response
       asts = asset_transform(httr::GET(url = get_url(c("assets", .x)), headers))
     })
@@ -75,13 +75,3 @@ asset_transform <- function(asts) {
   }
   out
 }
-#----------------------------------------------------------------------------------------------
-#UPDATED for V2
-#assets(ticker = "AAPL",version = "v2")
-#' @family Assets
-#' @title get_assets
-#' @rdname assets
-#' @description `get_assets` is deprecated. Use \code{\link[AlpacaforR]{assets}} instead.
-#' @examples get_assets()
-#' @export
-get_assets <- assets
