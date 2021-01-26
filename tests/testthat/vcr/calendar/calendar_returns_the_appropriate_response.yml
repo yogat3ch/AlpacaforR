@@ -1,0 +1,34 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/calendar?start=2020-03-04&end=2020-04-26
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
+      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-credentials: 'true'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Tue, 29 Dec 2020 16:44:17 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"date":"2020-03-04","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-05","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-06","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-09","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-10","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-11","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-12","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-13","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-16","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-17","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-18","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-19","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-20","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-23","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-24","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-25","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-26","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-27","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-30","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-03-31","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-01","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-02","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-03","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-06","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-07","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-08","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-09","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-13","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-14","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-15","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-16","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-17","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-20","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-21","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-22","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-23","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2020-04-24","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"}]'
+  recorded_at: 2020-12-29 16:44:17 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

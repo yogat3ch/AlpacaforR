@@ -82,6 +82,11 @@ positions <-
   return(out)
 }
 
+pos_recursive <- . %>%
+  {suppressMessages(dplyr::mutate(., dplyr::across(tidyselect::ends_with("at"), lubridate::as_datetime, tz = Sys.timezone())))} %>% 
+  dplyr::mutate(dplyr::across(tidyselect::ends_with(c("qty", "price", "percent")), ~as.numeric(.x %||% NA)))
+
+
 
 #' @title transform positions objects
 #' 
@@ -111,29 +116,36 @@ pos_transform <- function(pos) {
   # if close_all
   .all <- isTRUE(as.logical(.url$query$cancel_orders))
   if (.all) {
-    out <- suppressMessages(dplyr::bind_cols(.pos[!names(.pos) %in% "body"], dplyr::rename(.pos$body, order_status = "status", order_symbol = "symbol")) %>%
-      dplyr::mutate(dplyr::across(tidyselect::ends_with("at"), lubridate::as_datetime, tz = Sys.timezone())))
+    out <- dplyr::bind_cols(.pos[!names(.pos) %in% "body"], dplyr::rename(.pos$body, order_status = "status", order_symbol = "symbol")) 
+    out <- pos_recursive(out)
+    if ("legs" %in% names(out))
+      out$legs <- purrr::map(
+        out$legs,
+        ~ purrr::when(
+          is.null(.x),
+          isTRUE(.) ~ .x, isFALSE(.) ~ pos_recursive(.x)
+        )
+      )
     purrr::pwalk(out, ~{
       .vars <- list(...)
       if (.vars$status == 200) 
         message(paste0(
           .vars$updated_at,
-          ": ",
+          " - ",
+          .vars$id, " for ",
           .vars$symbol,
           " is ",
           .vars$order_status,
-          if (!is.null(.vars$message)) paste0("\nmessage:", .vars$message)
+          if (is.character(.vars$message) && !is.na(.vars$message)) paste0("\nmessage:", .vars$message)
               else
                 NULL
         ))
       else
         rlang::warn(paste0(
-          .vars$updated_at,
-          ": ",
           .vars$symbol,
-          " is ",
-          .vars$order_status,
-          if (!is.null(.vars$message)) paste0("\nmessage:", .vars$message)
+          " has status ",
+          .vars$status,
+          if (!is.na(.vars$message) && is.character(.vars$message)) paste0("\nmessage:", .vars$message)
               else
                 NULL
         ))

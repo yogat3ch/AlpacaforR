@@ -1,0 +1,46 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v1/marketstatus/upcoming?apiKey=AKZLBPUK91U5YCJTVDLP
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Tue, 29 Dec 2020 16:09:00 GMT
+      content-type: application/json
+      content-length: '331'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      access-control-allow-origin: '*'
+      content-encoding: gzip
+      x-request-id: 28eb4a087dc63269aeb3d735afcfe1d1
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"exchange":"NYSE","name":"New Years Day","date":"2021-01-01","status":"closed"},{"exchange":"NASDAQ","name":"New
+        Years Day","date":"2021-01-01","status":"closed"},{"exchange":"OTC","name":"New
+        Year''s Day","date":"2021-01-01","status":"closed"},{"exchange":"NYSE","name":"Martin
+        Luther King, Jr. Day","date":"2021-01-18","status":"closed"},{"exchange":"NASDAQ","name":"Martin
+        Luther King, Jr. Day","date":"2021-01-18","status":"closed"},{"exchange":"NASDAQ","name":"Washington''s
+        Birthday","date":"2021-02-15","status":"closed"},{"exchange":"NYSE","name":"Washington''s
+        Birthday","date":"2021-02-15","status":"closed"},{"exchange":"NASDAQ","name":"Good
+        Friday","date":"2021-04-02","status":"closed"},{"exchange":"NYSE","name":"Good
+        Friday","date":"2021-04-02","status":"closed"},{"exchange":"NASDAQ","name":"Memorial
+        Day","date":"2021-05-31","status":"closed"},{"exchange":"NYSE","name":"Memorial
+        Day","date":"2021-05-31","status":"closed"},{"exchange":"NASDAQ","name":"Independence
+        Day","date":"2021-07-05","status":"closed"},{"exchange":"NYSE","name":"Independence
+        Day","date":"2021-07-05","status":"closed"},{"exchange":"NYSE","name":"Labor
+        Day","date":"2021-09-06","status":"closed"},{"exchange":"NASDAQ","name":"Labor
+        Day","date":"2021-09-06","status":"closed"},{"exchange":"NASDAQ","name":"Thanksgiving","date":"2021-11-25","status":"closed"},{"exchange":"NYSE","name":"Thanksgiving","date":"2021-11-25","status":"closed"},{"exchange":"NYSE","name":"Thanksgiving","date":"2021-11-26","status":"early-close","open":"2021-11-26T14:30:00.000Z","close":"2021-11-26T18:00:00.000Z"},{"exchange":"NASDAQ","name":"Thanksgiving","date":"2021-11-26","status":"early-close","open":"2021-11-26T14:30:00.000Z","close":"2021-11-26T18:00:00.000Z"},{"exchange":"NYSE","name":"Christmas","date":"2021-12-24","status":"closed"},{"exchange":"NASDAQ","name":"Christmas","date":"2021-12-24","status":"closed"}]'
+  recorded_at: 2020-12-29 16:09:00 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

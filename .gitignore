@@ -35,6 +35,7 @@ vignettes/*.pdf
 /*_cache/
 /cache/
 check/
+check.R
 *.log
 *.csv
 *reprex.R

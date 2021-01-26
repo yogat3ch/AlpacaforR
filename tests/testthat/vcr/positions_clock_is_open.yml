@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: 
-      APCA-API-SECRET-KEY: 
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
   response:
     status:
       status_code: 200
@@ -17,14 +17,15 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx/1.16.1
-      date: Thu, 18 Jun 2020 20:38:20 GMT
+      date: Tue, 26 Jan 2021 16:02:41 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '148'
+      content-length: '147'
       connection: keep-alive
+      access-control-allow-credentials: 'true'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
-      string: '{"timestamp":"2020-06-18T16:38:20.867647122-04:00","is_open":false,"next_open":"2020-06-19T09:30:00-04:00","next_close":"2020-06-19T16:00:00-04:00"}'
-  recorded_at: 2020-06-18 20:38:20 GMT
-  recorded_with: vcr/0.5.4.93, webmockr/0.6.2
+      string: '{"timestamp":"2021-01-26T11:02:41.448987686-05:00","is_open":true,"next_open":"2021-01-27T09:30:00-05:00","next_close":"2021-01-26T16:00:00-05:00"}'
+  recorded_at: 2021-01-26 16:02:41 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

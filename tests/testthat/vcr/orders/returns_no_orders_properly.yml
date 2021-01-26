@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/orders?status=open&direction=desc&nested=TRUE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:19:47 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '2'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[]'
+  recorded_at: 2021-01-19 15:19:46 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

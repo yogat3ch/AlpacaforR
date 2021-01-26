@@ -1,0 +1,291 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v1/meta/symbols/BYND/news?perpage=50&page=1&apiKey=AKZLBPUK91U5YCJTVDLP
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Tue, 29 Dec 2020 16:31:16 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      content-encoding: gzip
+      x-request-id: 1cac1d96c369071a3717dec256cf8f90
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: "[{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-29T02:55:00.000Z\",\"title\":\"SHAREHOLDER
+        ALERT: Pomerantz Law Firm Reminds Shareholders with Losses on their Investmetn
+        in Beyond Meat, Inc. of Class Action Lawsuit and Upcoming Deadline - BYND\",\"url\":\"https://finance.yahoo.com/news/shareholder-alert-pomerantz-law-firm-025500992.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"NEW YORK, NY / ACCESSWIRE / March 28, 2020 / Pomerantz
+        LLP announces that a class action lawsuit has been filed against Beyond Meat,
+        Inc. (\\\"Beyond Meat\\\" or the \\\"Company\\\") (BYND) and certain of its
+        officers.  The class action, filed in United States District Court for the
+        Central District\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-27T19:35:00.000Z\",\"title\":\"IMPORTANT
+        INVESTOR NOTICE: The Schall Law Firm Announces the Filing of a Class Action
+        Lawsuit Against Beyond Meat, Inc. and Encourages Investors with Losses in
+        Excess of $100,000 to Contact the Firm\",\"url\":\"https://finance.yahoo.com/news/important-investor-notice-schall-law-193500292.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"LOS ANGELES, CA / ACCESSWIRE / March 27, 2020 / The
+        Schall Law Firm, a national shareholder rights litigation firm, announces
+        the filing of a class action lawsuit against Beyond Meat, Inc. (\\\"Beyond
+        Meat\\\" or \\\"the Company\\\") (NASDAQ:BYND) for violations of §§10(b)
+        and 20(a) of the Securities\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/QhvjN2oEcCpERLm2lcXX_g--~B/aD02ODt3PTI5MjtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/it/api/res/1.2/zBI9DMcawbvxUmnXOluesQ--~A/YXBwaWQ9eW5ld3M7c209MTt3PTgwMDtpbD1wbGFuZQ--/https://www.accesswire.com/users/newswire/images/549354/shaw%20law%20logo.png.cf.jpg\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-27T19:00:00.000Z\",\"title\":\"BYND
+        INVESTOR ALERT - Bronstein, Gewirtz & Grossman, LLC Notifies Beyond Meat,
+        Inc. Shareholders With Losses Exceeding $100K of Class Action and Lead Deadline:
+        March 30, 2020\",\"url\":\"https://finance.yahoo.com/news/bynd-investor-alert-bronstein-gewirtz-190000693.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Attorney Advertising -- Bronstein, Gewirtz & Grossman,
+        LLC notifies investors that a class action lawsuit has been filed against
+        Beyond Meat, Inc. (\\\"Beyond Meat\\\" or the Company\\\") (NASDAQ: BYND)
+        and certain of its officers, on behalf of shareholders who purchased Beyond
+        Meat securities\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/sSeldAy2XhSDx6ZHY1YWXg--~B/aD0xMTM7dz00MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/prnewswire.com/83cee9739f041f80db286dc962dfb14a\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-27T17:45:00.000Z\",\"title\":\"SHAREHOLDER
+        ALERT: BYND AAN XP: The Law Offices of Vincent Wong Reminds Investors of Important
+        Class Action Deadlines\",\"url\":\"https://finance.yahoo.com/news/shareholder-alert-bynd-aan-xp-174500230.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"NEW YORK, NY / ACCESSWIRE / March 27, 2020 / The Law
+        Offices of Vincent Wong announce that class actions have commenced on behalf
+        of certain shareholders in the following companies. If you suffered a loss
+        ...\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-27T17:10:00.000Z\",\"title\":\"BYND
+        FINAL DEADLINE: ROSEN, GLOBAL INVESTOR COUNSEL, Reminds Beyond Meat, Inc.
+        Investors of Important March 30 Deadline in Securities Class Action; Investors
+        with Losses Over $100K Should Contact Firm - BYND\",\"url\":\"https://finance.yahoo.com/news/bynd-final-deadline-rosen-global-171000172.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"NEW YORK, NY / ACCESSWIRE / March 27, 2020 / Rosen Law
+        Firm, a global investor rights law firm, reminds purchasers of the securities
+        of Beyond Meat, Inc. (NASDAQ:BYND) between May 2, 2019 and January 27, ...\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-27T14:13:00.000Z\",\"title\":\"BYND
+        SHAREHOLDER ALERT - Bronstein, Gewirtz & Grossman, LLC Notifies Beyond Meat,
+        Inc. Shareholders With Losses Exceeding $100K of Class Action and Lead Deadline:
+        March 30, 2020\",\"url\":\"https://finance.yahoo.com/news/bynd-shareholder-alert-bronstein-gewirtz-141300831.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"This class action seeks to recover damages against Defendants
+        for alleged violations of the federal securities laws under the Securities
+        Exchange Act of 1934.  The complaint alleges that throughout the Class Period,
+        defendants made false and/or misleading statements and/or failed to disclose
+        that: (1\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-26T18:25:00.000Z\",\"title\":\"Trading
+        Beyond Meat After Goldman Assigns $39 Price Target\",\"url\":\"https://www.thestreet.com/investing/beyond-meat-stock-goldman-downgrade?puc=yahoo&cm_ven=YAHOO&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat falls after analysts at Goldman Sachs downgrade
+        the stock to a sell. Here's what the charts look like now for the stock.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/ERwkhSgUn1yUyQjxgyTcnQ--~B/aD04MTE7dz05MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/thestreet.com/9be417bf4091536922d8327a37550514\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-03-25T22:12:01.000Z\",\"title\":\"SHAREHOLDER
+        ALERT: Pomerantz Law Firm Reminds Shareholders with Losses on their Investment
+        in Beyond Meat, Inc. of Class Action Lawsuit and Upcoming Deadline – BYND\",\"url\":\"https://finance.yahoo.com/news/shareholder-alert-pomerantz-law-firm-221201104.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Pomerantz LLP announces that a class action lawsuit
+        has been filed against Beyond Meat, Inc. (“Beyond Meat�\x9D or the “Company�\x9D)
+        (BYND) and certain of its officers.  The class action, filed in United States
+        District Court for the Central District of California, and indexed under 20-cv-00963,
+        is on behalf\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/sJHa1iovGW.cero.gLPPiw--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=Nzg3NDY2OSMzNDExNTQyIzIwMTc2NDQ=\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-24T06:20:56.000Z\",\"title\":\"Cargill
+        to challenge Beyond Meat, Impossible Foods with new plant-based burger\",\"url\":\"https://www.yahoo.com/entertainment/cargill-challenge-beyond-meat-impossible-062056263.html\",\"source\":\"yahoo\",\"summary\":\"Cargill
+        Inc [CARG.UL] will launch plant-based hamburger patties and ground \\\"fake
+        meat\\\" products in April, the company said on Monday, challenging Beyond
+        Meat and Impossible Foods for sales in grocery stores, cafeterias and restaurants.
+        \ The entry of Cargill, one the world's largest privately\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/7nEU93oi.PTsRdTM8QCk2A--~B/aD01MzY7dz04MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-US/reuters.com/f41db2412cf10c2009a45e1082654d7c\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-22T03:04:00.000Z\",\"title\":\"ROSEN,
+        A TOP RANKED LAW FIRM, Reminds Beyond Meat, Inc. Investors of Important Deadline
+        in Securities Class Action - BYND\",\"url\":\"https://finance.yahoo.com/news/rosen-top-ranked-law-firm-030400621.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Rosen Law Firm, a global investor rights law firm, reminds
+        purchasers of the securities of Beyond Meat, Inc. (NASDAQ: BYND) between May
+        2, 2019 and January 27, 2020, inclusive (the \\\"Class Period\\\") of the
+        important March 30, 2020 lead plaintiff deadline in securities class action.
+        The lawsuit\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/F9G.IEWoT2gcxSQkcD.Spg--~B/aD0xOTM7dz00MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/prnewswire.com/d39b8884b3523488772eec5366530f83\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-21T23:03:42.000Z\",\"title\":\"BYND
+        DEADLINE: Zhang Investor Law Reminds Investors of Deadline in Securities Class
+        Action Lawsuit Against Beyond Meat, Inc. – BYND\",\"url\":\"https://finance.yahoo.com/news/bynd-deadline-zhang-investor-law-230342754.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Zhang Investor Law announces a securities class action
+        lawsuit on behalf of shareholders who bought shares of Beyond Meat, Inc. (BYND)
+        between May 2, 2019 and January 27, 2020, inclusive (the “Class Period�\x9D).
+        \ If you wish to serve as lead plaintiff, you must move the Court no later
+        than March 30, 2020\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/Rz6FyvOzUT9pnFakQgXE4A--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=NzgxODgyMSMzMzM5NDE5IzUwMDA1MzY0MQ==\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-21T20:23:40.000Z\",\"title\":\"Can
+        Beyond Meat (BYND) Stock Keep Surging Higher? Analysts Remain Skeptical\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-bynd-stock-keep-202340136.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"If volatility was a vegan patty, the Beyond Meat (BYND)
+        offering would be selling by the truckload. Shares of the meat industry disruptor
+        are up by 54% year-to-date. The wild ride continues last year’s action-packed
+        performance; following its public listing in May, the stock surged by more
+        than 420%\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/kyQ3KqudXAXTmhfndOvtTw--~B/aD00MDY7dz0xMDI0O3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en-US/tipranks_452/f2ad7aa0630c393bb61de4dad726a7f1\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-21T13:49:01.000Z\",\"title\":\"Implied
+        Volatility Surging for Beyond Meat (BYND) Stock Options\",\"url\":\"https://finance.yahoo.com/news/implied-volatility-surging-beyond-meat-134901685.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Investors need to pay close attention to Beyond Meat
+        (BYND) stock based on the movements in the options market lately.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/gfhjHzomFoxAvfE7NzE.jQ--~B/aD00MDA7dz02MzU7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-us/zacks.com/ba672e2dca79c9c90b93f5cb3e5e340a\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-20T22:08:00.000Z\",\"title\":\"SHAREHOLDER
+        ALERT: Pomerantz Law Firm Reminds Shareholders with Losses on their Investment
+        in Beyond Meat, Inc. of Class Action Lawsuit and Upcoming Deadline - BYND\",\"url\":\"https://finance.yahoo.com/news/shareholder-alert-pomerantz-law-firm-220800449.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Pomerantz LLP announces that a class action lawsuit
+        has been filed against Beyond Meat, Inc. (\\\"Beyond Meat\\\" or the \\\"Company\\\")
+        (NASDAQ: BYND) and certain of its officers. The class action, filed in United
+        States District Court for the Central District of California, and indexed
+        under\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/_bjQ1NJynjz.w9BrUu2gHA--~B/aD0xNjt3PTE2O3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/prnewswire.com/54063df34f1d594d3d3c5e167abb82f0\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-20T02:00:10.000Z\",\"title\":\"ROSEN,
+        NATIONAL TRIAL LAWYERS, Continues to Investigate Securities Claims Against
+        Beyond Meat, Inc. – BYND\",\"url\":\"https://finance.yahoo.com/news/rosen-national-trial-lawyers-continues-020010106.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"NEW YORK, Feb. 19, 2020 -- Rosen Law Firm, a global
+        investor rights law firm, continues to investigate potential securities claims
+        on behalf of shareholders of Beyond Meat,.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/hKluLsA1YZKAWGsSPTNl3Q--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=NzgxNzU5NCMzMzM2MjUwIzIwMjA0MTE=\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-19T21:47:29.000Z\",\"title\":\"BYND
+        DEADLINE NOTICE: Pawar Law Group Reminds Investors of Deadline in Securities
+        Class Action Lawsuit Against Beyond Meat, Inc.– BYND\",\"url\":\"https://finance.yahoo.com/news/bynd-deadline-notice-pawar-law-214729738.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Pawar Law Group announces that a class action lawsuit
+        on behalf of shareholders who purchased shares of  Beyond Meat, Inc. (BYND)
+        from May 2, 2019 through January 27, 2020, inclusive (the “Class Period�\x9D).
+        \ The lawsuit seeks to recover damages for Beyond Meat, Inc. investors under
+        the federal securities\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/RDv38bsbMYzv__9OmofbYg--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=NzgxNzQwNiMzMzM1ODMxIzIwODMxNDk=\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-18T23:21:21.000Z\",\"title\":\"SHAREHOLDER
+        ALERT: Pomerantz Law Firm Reminds Shareholders with Losses on their Investment
+        in Beyond Meat, Inc. of Class Action Lawsuit and Upcoming Deadline – BYND\",\"url\":\"https://finance.yahoo.com/news/shareholder-alert-pomerantz-law-firm-232121713.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Pomerantz LLP announces that a class action lawsuit
+        has been filed against Beyond Meat, Inc. (“Beyond Meat�\x9D or the “Company�\x9D)
+        (BYND) and certain of its officers.  The class action, filed in United States
+        District Court for the Central District of California, and indexed under 20-cv-00963,
+        is on behalf\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/vIqqMGN.5OpQc2A00W_erA--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=NzgxNjc0MyMzMzM0MDI1IzIwMTc2NDQ=\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-18T15:00:10.000Z\",\"title\":\"INVESTOR
+        ALERT - Beyond Meat, Inc. (BYND) - Bronstein, Gewirtz & Grossman, LLC Notifies
+        Shareholders With Losses Exceeding $100K of Class Action and Lead Plaintiff
+        Deadline: March 30, 2020\",\"url\":\"https://finance.yahoo.com/news/investor-alert-beyond-meat-inc-150010010.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"This class action seeks to recover damages against Defendants
+        for alleged violations of the federal securities laws under the Securities
+        Exchange Act of 1934.  The complaint alleges that throughout the Class Period,
+        defendants made false and/or misleading statements and/or failed to disclose
+        that: (1\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/bFMYLqMUaJp6E3FXoDSKjQ--~B/aD0xO3c9MTtzbT0xO2FwcGlkPXl0YWNoeW9u/http://globalfinance.zenfs.com/en_us/Finance/US_AFTP_GlobeNewsWire_EmailNotif_LIVE/ti?nf=NzgxMDcyOCMzMzE3OTE1IzIwMTc2OTA=\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-02-14T14:00:00.000Z\",\"title\":\"Notice
+        of Lead Plaintiff Deadline for Shareholders in the Beyond Meat, Inc. Securities
+        Class Action Lawsuit\",\"url\":\"https://finance.yahoo.com/news/notice-lead-plaintiff-deadline-shareholders-140000086.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Robbins Geller Rudman & Dowd LLP announces that a securities
+        class action lawsuit has been filed in the Central District of California
+        on behalf of purchasers of Beyond Meat, Inc. (NASDAQ:BYND) securities between
+        May 2, 2019 and January 27, 2020 (the \\\"Class Period\\\"). The case is captioned
+        Tran\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/EtzNVXPB9kW8rEfYVtBErA--~B/aD00OTt3PTEyMDtzbT0xO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/business-wire.com/58597953902077d71bdcccfa182711b9\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-22T20:02:07.000Z\",\"title\":\"Bay
+        Area food startup lands $161 million as alternative 'meat' race heats up\",\"url\":\"https://www.bizjournals.com/sanfrancisco/news/2020/01/22/bay-area-food-startup-lands-161-million-as.html?ana=yahoo&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"The company's largest funding round to date included
+        participation from Richard Branson, Bill Gates and Kimbal Musk, the brother
+        of the Tesla CEO.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/OqClS6vRp7DUOzGIC2f_6Q--~B/aD05NjA7dz0xNDQwO3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en-us/bizjournals.com/9b0a7c47bb2debb52d8ea08c4e2d5c31\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-22T14:25:19.000Z\",\"title\":\"4
+        ETFs You Won't Believe Hold Beyond Meat Stock\",\"url\":\"https://finance.yahoo.com/news/4-etfs-wont-believe-hold-142519553.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"It can be said that value is in the eye of the beholder,
+        but there probably isn't a practical universe in which Beyond Meat (NASDAQ:
+        BYND ) stock is considered value fare. Value stocks typically don't ...\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-17T22:45:10.000Z\",\"title\":\"Beyond
+        Meat (BYND) Stock Sinks As Market Gains: What You Should Know\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-bynd-stock-sinks-224510563.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat (BYND) closed the most recent trading day
+        at $109.12, moving -1.16% from the previous trading session.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/b2yvUJ4BDafIW0MOeiTClA--~B/aD02MDA7dz05MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-us/zacks.com/e8e4b0344809eaac6d73c9fd25fd180a\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-17T22:40:16.000Z\",\"title\":\"Where
+        the plant-based food market is headed this year\",\"url\":\"https://finance.yahoo.com/video/where-plant-based-food-market-224016468.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"2019 brought the fake meat trade front and center. What's
+        next in the food space? AccelFoods is an early-stage venture fund investing
+        in consumer products, including, high-quality food and beverage companies. Jordan
+        Gaspar, Managing Partner at AccelFoods, joined The Final Round to discuss.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/sql7gFw__LE6PIGe.6pmVQ--~B/aD0zMzM1O3c9NDk3NjtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/os/creatr-images/2020-01/1bebc110-397a-11ea-9ffb-63be981f72a1\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-17T19:40:58.000Z\",\"title\":\"This
+        plant-based seafood brand is backed by General Mills\",\"url\":\"https://finance.yahoo.com/video/company-makes-plant-based-seafood-194058308.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Good Catch creates products that mimic tuna and just
+        raised over $32 million in its series b funding round, with backing from
+        301 Inc., the venture arm of General Mills. Gathered Foods CEO & Co-Founder
+        Chris Kerr, joins Yahoo Finance's Zack Guzman and Brian Cheung along with
+        Former Netflix CEO and Co-founder, Marc Randolph, to discuss the brand and
+        the future of alternative protein.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/G1.d4UjQp4CrFb_ZLALSXQ--~B/aD0yMjUwO3c9MzMwMDtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/os/creatr-uploaded-images/2020-01/3f4aa950-3961-11ea-bb5f-c00d2ca1ccee\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-16T10:29:00.000Z\",\"title\":\"A
+        42% Jump for Beyond Meat in 2020, and Two More Numbers to Know\",\"url\":\"https://www.barrons.com/articles/beyond-meat-stock-goes-higher-on-plt-news-51579170584?siteid=yhoof2&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"—to cover potential fines and legal settlements.  The
+        expense chipped 13% off Goldman’s net income for 2019, which it released
+        on Wednesday morning.  On Tuesday, JPMorgan had announced a blockbuster 2019—the
+        bank hit new records on both revenue and net income.\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-15T16:15:55.000Z\",\"title\":\"PreMarket
+        Prep Recap: Goldman Sachs Rallies Off Q4 Report, Target Retreats And More
+        Beyond\",\"url\":\"https://finance.yahoo.com/news/premarket-prep-recap-goldman-sachs-161555405.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Earning expectations were high for Goldman Sachs (NYSE:
+        GS) after JPMorgan Chase's blowout report on Tuesday.  Also, the revelation
+        that the company is unsure when a settlement will be reached in the 1MDB saga
+        added further uncertainty to an accurate interpretation of the report.  Before
+        the opening\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2020-01-15T14:35:28.000Z\",\"title\":\"Bernstein
+        Says Beyond Meat's Stock Has Moved Too High, Too Fast\",\"url\":\"https://finance.yahoo.com/news/bernstein-says-beyond-meats-stock-143528759.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Bernstein upgraded plant-food maker Beyond Meat Inc
+        (NASDAQ: BYND ) back in November , but is moving back to the sidelines due
+        to valuation concerns. The Analyst Alexia Howard downgraded Beyond Meat from
+        ...\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-19T16:03:41.000Z\",\"title\":\"FDA:
+        Soy Leghemoglobin Is Safe In Plant Burgers\",\"url\":\"https://finance.yahoo.com/news/fda-soy-leghemoglobin-safe-plant-160341263.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Would you like some soy leghemoglobin with your Impossible
+        Burger?  Impossible Burger, a rival to Beyond Meat Inc (NASDAQ: BYND), includes
+        soy leghemoglobin in its plant-based food to mimic the \\\"bleeding\\\" characteristic
+        of a beef burger.  The ingredient is \\\"controversial\\\" because\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-18T22:45:10.000Z\",\"title\":\"Beyond
+        Meat (BYND) Gains As Market Dips: What You Should Know\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-bynd-gains-market-224510795.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat (BYND) closed the most recent trading day
+        at $77.30, moving +1.27% from the previous trading session.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/wG83KQZR2EtZvVMhyJanlg--~B/aD03Mjg7dz05MDA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-us/zacks.com/b9775f315e7b6c4ada6e36d0048a929a\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-18T15:05:00.000Z\",\"title\":\"Carl’s
+        Jr.® and Hardee’s® Introduce New Beyond Meat® All-day Menu Items Nationwide\",\"url\":\"https://finance.yahoo.com/news/carl-jr-hardee-introduce-beyond-150500471.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"CKE, the parent company of Carl’s Jr. and Hardee’s,
+        today announced that the company will expand its partnership with Beyond Meat.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/ekFmzDgxl31IyfqgTfOvtw--~B/aD0zNjt3PTcyO3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/business-wire.com/07a78b05abc6a231f9350c3595f5e875\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-17T16:09:38.000Z\",\"title\":\"Beyond
+        Meat Could Be Set To Lay This Golden Egg After Successful KFC Test\",\"url\":\"https://www.investors.com/news/beyond-meat-stock-firm-lay-golden-egg-successful-kfc-test/?src=A00220&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"There have been slim pickings for Beyond Meat stock
+        bulls of late; and it's trading below both its 50- and 200-day lines.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/dzw7g1kIm5DKmNJRSZumLQ--~B/aD02MDA7dz0xMDY1O3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/ibd.com/4873fe3969dc5e176f2678b881a0569d\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-16T20:35:45.000Z\",\"title\":\"Beyond
+        Meat CEO Ethan Brown Hints at ‘Poultry’ News In 2020\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-ceo-ethan-brown-203545083.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"(Bloomberg) -- Beyond Meat Inc. is pushing further past
+        its plant-based beef and pork into poultry, and Chief Executive Officer Ethan
+        Brown says that product line will finally get more attention in 2020.“You’ll
+        see some exciting things from us in the poultry space in 2020,�\x9D Brown
+        said in an interview\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-11T22:45:10.000Z\",\"title\":\"Beyond
+        Meat (BYND) Outpaces Stock Market Gains: What You Should Know\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-bynd-outpaces-stock-224510310.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat (BYND) closed at $75.90 in the latest trading
+        session, marking a +1.67% move from the prior day.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/n8VNo1bLtx32sfczRY..tQ--~B/aD03NTQ7dz0xMDAwO3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en-us/zacks.com/d7dcbe11345e3f8e5e71e6827fe3c4c9\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-11T21:10:54.000Z\",\"title\":\"Hedge
+        Funds Have Never Been This Bullish On Beyond Meat, Inc. (BYND)\",\"url\":\"https://finance.yahoo.com/news/hedge-funds-never-bullish-beyond-211054350.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Hedge Funds and other institutional investors have just
+        completed filing their 13Fs with the Securities and Exchange Commission, revealing
+        their equity portfolios as of the end of June. At Insider Monkey, we follow
+        nearly 750 active hedge funds and notable investors and by analyzing their
+        13F filings\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/eywElp6fcvOcureCeu3EFA--~B/aD00MjI7dz03NTA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-us/insidermonkey.com/39b6c722038df9eb5cafa1eb0a91bffd\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-11T13:50:14.000Z\",\"title\":\"Beyond
+        Meat Expands Presence In Canada With Beyond Beef\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-expands-presence-canada-135014237.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Plant-based meat alternative food maker Beyond Meat
+        Inc (NASDAQ: BYND ) announced Wednesday its Beyond Beef product will be available
+        to Canadian consumers . What To Know About Beyond Beef Canadian consumers
+        ...\",\"image\":\"https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-11T11:00:00.000Z\",\"title\":\"Beyond
+        Meat® Serves Canada a Second Helping with National Launch of Beyond Beef®\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-serves-canada-second-110000522.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Starting today, Canadians can now enjoy even more options
+        at their local grocer’s fresh meat counter with the launch of Beyond Beef.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/P.3PaLTDlptK4hxWnPFm0g--~B/aD00ODt3PTcyO3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/business-wire.com/0ea7684daa0f889481bb1c9d95c14a17\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-12-10T21:04:46.000Z\",\"title\":\"Beyond
+        Meat Revenue Expected To Explode — But It Depends On This\",\"url\":\"https://www.investors.com/news/beyond-meat-stock-revenue-expected-explode/?src=A00220&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"UBS analyst Steven Strycula has predicted Beyond Meat
+        will reach $1.8 billion in revenue by 2025, up from an estimated $275 million
+        in 2019.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/WDAh.nE8Mex3fAg5ilV4Fg--~B/aD02MDA7dz0xMDY1O3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/ibd.com/3a5629025bef1057b563441772935d07\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-10T11:50:14.000Z\",\"title\":\"Taco
+        Bell opens luxury, theme hotel as business booms\",\"url\":\"https://finance.yahoo.com/news/taco-bell-luxury-theme-hotel-palm-springs-sales-growth-leaps-115014197.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Taco Bell's pop-up hotel \\\"The Bell\\\" is redefining
+        how the fast food chain appeals to younger customers\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/BxWIPEvWXnUHwK709kerfQ--~B/aD0zODgwO3c9NTkwNDtzbT0xO2FwcGlkPXl0YWNoeW9u/https://media-mbst-pub-ue1.s3.amazonaws.com/creatr-images/2019-08/e3587660-bb64-11e9-bf7e-8d000a6f231b\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T21:42:03.000Z\",\"title\":\"Beyond
+        Meat Reportedly Takes Japan Expansion Plans Off Fake Meat Menu\",\"url\":\"https://www.investors.com/news/beyond-meat-stock-japan-expansion-now-off-fake-meat-menu/?src=A00220&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat reportedly has called off plans to expand
+        its fake meat products to Japan. Beyond Meat stock is holding support amid
+        several headwinds.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/hj75MSEHAHmG27fXf0WA1w--~B/aD02MDA7dz0xMDY1O3NtPTE7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/ibd.com/4cf6cb990305181f899c4b1f8a1dada7\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T21:13:00.000Z\",\"title\":\"Tim
+        Horton's Adds More Meat Substitutes to Its Menu\",\"url\":\"https://finance.yahoo.com/news/tim-horton-apos-adds-more-211300042.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"The coffee chain says it may add more plant-based alternatives
+        in the future too.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/DFUiqKf9IFOE54NDdEQ06Q--~B/aD0zNjY7dz03MDA7c209MTthcHBpZD15dGFjaHlvbg--/http://media.zenfs.com/en-US/homerun/motleyfool.com/e523b60809e1f113d260140fe7ecd17d\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T20:20:21.000Z\",\"title\":\"Getting
+        Technical: Trading Chewy (CHWY) and Beyond Meat (BYND)\",\"url\":\"https://finance.yahoo.com/video/getting-technical-trading-chewy-chwy-202021145.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Alissa Coram, Multimedia Content Editor at Investor's
+        Business Daily joins Yahoo Finance's Myles Udland to break down the price
+        action in two 2019 IPOs.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/kq7n1CBfrJ_RjFlyUmL4qQ--~B/aD0xMDA3O3c9MTc4NTtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/os/creatr-uploaded-images/2019-08/111ee250-bae3-11e9-9b66-bfbe038d6654\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T13:04:49.000Z\",\"title\":\"Beyond
+        Meat Won't Be Entering The Japanese Market Yet\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-wont-entering-japanese-130449194.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat (NASDAQ: BYND ) no longer has plans to enter
+        the Japanese market and will focus more on the U.S. market instead, according
+        to a Reuters report . The Japanese trading house Mitsui & Co Ltd, ...\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T09:49:00.000Z\",\"title\":\"[video]Beyond
+        Meat Shelves Entering Japanese Market - Report\",\"url\":\"https://www.thestreet.com/investing/beyond-meat-shelves-entering-japanese-market-report-15051896?puc=yahoo&cm_ven=YAHOO&yptr=yahoo\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat shelves plans to enter the Japanese consumer
+        market, focusing more on the U.S. where it recently initiated another round
+        of financing to continue its expansion into the faux-meat marketplace.\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-09T06:53:47.000Z\",\"title\":\"Beyond
+        Meat shelves plans for Japan push, Mitsui says\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-shelves-plans-japan-065347298.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Beyond Meat Inc  has shelved plans to enter Japan, according
+        to a Japan-based investor, focusing more on the U.S. market where it recently
+        bolstered funding to fuel an expansion and beat out emerging faux-meat rivals.
+        \ Japanese trading house Mitsui & Co Ltd , which bought a small stake in Beyond
+        Meat\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/Nn_lNzC5Ijb5.KDlwWwpYg--~B/aD0zMDA7dz00NTA7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-US/reuters-finance.com/0cc2cc25e1ad1c1141f200a7c46bd4ed\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-08T23:46:09.000Z\",\"title\":\"Roku
+        price target raised to $120 at Oppenheimer\",\"url\":\"https://finance.yahoo.com/video/roku-price-target-raised-120-234609145.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Analysts over at Oppenheimer raising its price target
+        for Roku after the company's Q2 earnings results. Yahoo Finance's Myles Udland,
+        Akiko Fujita and Rick Newman discuss.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/caaPqD983.nMbf5UAurEig--~B/aD0yNTgyO3c9Mzg3MjtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/os/creatr-images/2019-08/01546820-ba36-11e9-a777-91278a0d4a65\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-08T19:59:50.000Z\",\"title\":\"Beyond
+        Meat’s New Conquest Is a Subway Meatball Sub\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-restaurant-conquest-subway-121005101.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"(Bloomberg) -- Beyond Meat Inc., the faux meat maker
+        whose stock has surged since its May public offering, is partnering with the
+        Subway chain to create plant-based meatballs.Subway, with its more than 28,000
+        locations in North America, would represent Beyond Meat’s biggest restaurant
+        customer yet as\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/3aoQAlbWSbpG3U_caiw4Qg--~B/aD0xMzM0O3c9MjAwMDtzbT0xO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/bloomberg_markets_842/710e7aafd89584804e640192e4e5a73d\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-08T16:59:41.000Z\",\"title\":\"Dr.
+        Praeger's introduces 'the perfect burger'\",\"url\":\"https://finance.yahoo.com/video/dr-praegers-introduces-perfect-burger-165941770.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Yahoo Finance’s Adam Shapiro, Julie Hyman, and Dan
+        Roberts join Direxion Managing Director & Head of Product Dave Mazza and
+        Dr. Praeger’s CEO Larry Praeger.\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/MGxSHuY2Wk4PucsHbkM7iQ--~B/aD0zNDQxO3c9NTE2MjtzbT0xO2FwcGlkPXl0YWNoeW9u/https://s.yimg.com/os/creatr-images/2018-12/e54f7ac0-febf-11e8-bcfa-39074d55fd9f\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-08T11:27:57.000Z\",\"title\":\"Don’t
+        Buy Beyond Meat Stock Above $150\",\"url\":\"https://finance.yahoo.com/news/don-t-buy-beyond-meat-112757472.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"Life as a public company has amounted to nothing short
+        of a wild roller coaster ride for Beyond Meat (NASDAQ:BYND). The plant-based-meat
+        leader went public in early May at $25 per share. Within a month, BYND stock
+        was above $100. Within two months, it was above $150. Within three months,
+        it was above\",\"image\":\"https://s.yimg.com/uu/api/res/1.2/YrUWxZEyUjrltY6iqQVPBA--~B/aD00MDA7dz03Mjg7c209MTthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en-US/investorplace_417/f2e79f71638f2916ce4e8a79d88fc5fe\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-08-08T03:15:16.000Z\",\"title\":\"Beyond
+        Meat Inc (BYND) CFO & Treasurer Mark Joseph Nelson Sold $10.3 million of Shares\",\"url\":\"https://finance.yahoo.com/news/beyond-meat-inc-bynd-cfo-031516242.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"CFO & Treasurer of Beyond Meat Inc (30-Year Financial,
+        Insider Trades) Mark Joseph Nelson (insider trades) sold 64,452 shares of
+        BYND on 08/05/2019 at an average price of $160 a share. Continue reading...\",\"keywords\":[\"bynd\"]},{\"symbols\":[\"BYND\"],\"timestamp\":\"2019-07-22T12:13:31.000Z\",\"title\":\"Lousy
+        Hotels Inspire Married Consultants to $600 Million Fortune\",\"url\":\"https://finance.yahoo.com/news/lousy-hotels-inspire-married-consultants-121331058.html\",\"source\":\"finance
+        yahoo\",\"summary\":\"(Bloomberg) -- Amy Pressman and Borge Hald’s billion-dollar
+        business idea sprung from lousy hotel stays.While living the grueling road
+        warrior lifestyle of a management consultant, Pressman was often frustrated
+        by the dearth of non-smoking rooms at the hotel where she spent most nights
+        of the week. Despite\",\"keywords\":[\"bynd\"]}]"
+  recorded_at: 2020-12-29 16:31:17 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

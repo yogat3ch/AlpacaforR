@@ -322,6 +322,8 @@ order_submit <-
 #' @param .o An order object
 #' @keywords internal
 o_transform <- function(.o) {
+  if ("cost_basis" %in% names(.o))
+    .o <- dplyr::mutate(.o, dplyr::across(.fns = ~ifelse(!is.na(as.numeric(.x)), as.numeric(.x), .x)))
   .o <- dplyr::mutate(.o, dplyr::across(dplyr::ends_with("at"), ~lubridate::ymd_hms(.x, tz = Sys.timezone())))
   out <- dplyr::mutate(.o, dplyr::across(where(~is.character(.x) && !is.na(as.numeric(toNum(.x)))), toNum))
   return(out)

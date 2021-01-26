@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/ticks/stocks/nbbo/MSFT/2008-04-15?limit=5&apiKey=AKZLBPUK91U5YCJTVDLP
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Tue, 29 Dec 2020 16:09:01 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: 880b2cf6cc8fdb40cbe12af024d73afc
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"results":[{"t":1208246852800000000,"q":1076,"c":[2],"z":3,"p":20,"s":1,"x":11,"P":0,"S":0,"X":0},{"t":1208246875777000000,"q":1078,"c":[2],"z":3,"p":10,"s":1,"x":11,"P":0,"S":0,"X":0},{"t":1208246877527000000,"q":1079,"c":[2],"z":3,"p":10,"s":2,"x":11,"P":0,"S":0,"X":0},{"t":1208247302040000000,"q":1230,"c":[2],"z":3,"p":0,"s":0,"x":0,"P":29,"S":1,"X":11},{"t":1208247302040000000,"q":1235,"c":[2],"z":3,"p":0,"s":0,"x":0,"P":29,"S":2,"X":11}],"success":true,"map":{"S":{"name":"ask_size","type":"int"},"z":{"name":"tape","type":"int"},"q":{"name":"sequence_number","type":"int"},"c":{"name":"conditions","type":"[]int"},"i":{"name":"indicators","type":"[]int"},"p":{"name":"bid_price","type":"float64"},"P":{"name":"ask_price","type":"float64"},"X":{"name":"ask_exchange","type":"int"},"t":{"name":"sip_timestamp","type":"int64"},"y":{"name":"participant_timestamp","type":"int64"},"f":{"name":"trf_timestamp","type":"int64"},"s":{"name":"bid_size","type":"int"},"x":{"name":"bid_exchange","type":"int"}},"ticker":"MSFT","results_count":5,"db_latency":16}'
+  recorded_at: 2020-12-29 16:09:05 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

@@ -1,0 +1,133 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/TWTR
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Mon, 18 Jan 2021 15:23:47 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '227'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: |
+        {
+          "status": "success",
+          "symbol": "TWTR",
+          "last": {
+            "askprice": 45.36,
+            "asksize": 1,
+            "askexchange": 17,
+            "bidprice": 45.2,
+            "bidsize": 1,
+            "bidexchange": 15,
+            "timestamp": 1610745288721000000
+          }
+        }
+  recorded_at: 2021-01-18 15:23:47 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/BYND
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Mon, 18 Jan 2021 15:23:47 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '228'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: |
+        {
+          "status": "success",
+          "symbol": "BYND",
+          "last": {
+            "askprice": 141.74,
+            "asksize": 1,
+            "askexchange": 2,
+            "bidprice": 139.84,
+            "bidsize": 2,
+            "bidexchange": 9,
+            "timestamp": 1610744401796000000
+          }
+        }
+  recorded_at: 2021-01-18 15:23:47 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last_quote/stocks/AAPL
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Mon, 18 Jan 2021 15:23:47 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '226'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: |
+        {
+          "status": "success",
+          "symbol": "AAPL",
+          "last": {
+            "askprice": 127.17,
+            "asksize": 2,
+            "askexchange": 9,
+            "bidprice": 125,
+            "bidsize": 1,
+            "bidexchange": 17,
+            "timestamp": 1610748000031000000
+          }
+        }
+  recorded_at: 2021-01-18 15:23:47 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

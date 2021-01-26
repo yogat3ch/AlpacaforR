@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://postman-echo.com/get?foo1=bar1&foo2=bar2
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Tue, 29 Dec 2020 16:44:19 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '393'
+      connection: keep-alive
+      etag: W/"189-5rh4GdOIY3txyBN3zNYpccr95V0"
+      vary: Accept-Encoding
+      set-cookie: sails.sid=s%3AgheepWiBp-9OLsAeJ2PwA4mMDOwU6KrQ.Jdk%2BEgk7i9PBVlUFmK9B9tBzeeKc7Mh7%2F6yvZfKXwng;
+        Path=/; HttpOnly
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"args":{"foo1":"bar1","foo2":"bar2"},"headers":{"x-forwarded-proto":"https","x-forwarded-port":"443","host":"postman-echo.com","x-amzn-trace-id":"Root=1-5feb5ce3-70bd92fe10724d647a48d25d","user-agent":"libcurl/7.64.1
+        r-curl/4.3 httr/1.4.2","accept-encoding":"deflate, gzip","accept":"application/json,
+        text/xml, application/xml, */*"},"url":"https://postman-echo.com/get?foo1=bar1&foo2=bar2"}'
+  recorded_at: 2020-12-29 16:44:19 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

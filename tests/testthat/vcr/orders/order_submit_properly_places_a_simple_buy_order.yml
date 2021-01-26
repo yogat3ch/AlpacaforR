@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"AMZN","qty":"2","side":"buy","type":"market","time_in_force":"day"}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:19:47 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '734'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"fd1d6cca-1290-4f43-abd1-5a14075f48e6","client_order_id":"d688f768-14a5-4509-8184-3037fc06f3ae","created_at":"2021-01-19T15:19:47.742021Z","updated_at":"2021-01-19T15:19:47.742021Z","submitted_at":"2021-01-19T15:19:47.735602Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","qty":"2","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"market","type":"market","side":"buy","time_in_force":"day","limit_price":null,"stop_price":null,"status":"accepted","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":null,"hwm":null}'
+  recorded_at: 2021-01-19 15:19:47 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

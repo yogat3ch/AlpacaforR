@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/ticks/stocks/trades/AAPL/2018-02-02?limit=5&apiKey=AKZLBPUK91U5YCJTVDLP
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Tue, 29 Dec 2020 16:09:01 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: bf4e15c9cc97913dc77b5d1feeefc981
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"results":[{"t":1517562000016036581,"y":1517562000015577088,"q":1063,"i":"1","x":11,"s":100,"c":[12,41],"p":171.55,"z":3},{"t":1517562000016038175,"y":1517562000015577600,"q":1064,"i":"2","x":11,"s":100,"c":[12,41],"p":171.55,"z":3},{"t":1517562000016048051,"y":1517562000015578112,"q":1065,"i":"3","x":11,"s":21,"c":[12,37],"p":171.55,"z":3},{"t":1517562000016057916,"y":1517562000015583232,"q":1066,"i":"4","x":11,"s":60,"c":[12,37],"p":171.55,"z":3},{"t":1517562000016068695,"y":1517562000015583744,"q":1067,"i":"5","x":11,"s":1,"c":[12,37],"p":171.55,"z":3}],"success":true,"map":{"y":{"name":"participant_timestamp","type":"int64"},"f":{"name":"trf_timestamp","type":"int64"},"c":{"name":"conditions","type":"[]int"},"I":{"name":"orig_id","type":"string"},"x":{"name":"exchange","type":"int"},"s":{"name":"size","type":"int"},"z":{"name":"tape","type":"int"},"t":{"name":"sip_timestamp","type":"int64"},"q":{"name":"sequence_number","type":"int"},"i":{"name":"id","type":"string"},"e":{"name":"correction","type":"int"},"r":{"name":"trf_id","type":"int"},"p":{"name":"price","type":"float64"}},"ticker":"AAPL","results_count":5,"db_latency":9}'
+  recorded_at: 2020-12-29 16:09:01 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

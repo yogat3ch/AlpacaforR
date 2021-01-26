@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/configurations
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
+      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 29 Dec 2020 16:43:51 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '112'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"dtbp_check":"entry","no_shorting":false,"pdt_check":"entry","suspend_trade":false,"trade_confirm_email":"all"}'
+  recorded_at: 2020-12-29 16:43:51 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

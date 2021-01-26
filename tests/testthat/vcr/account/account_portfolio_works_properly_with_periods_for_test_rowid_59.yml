@@ -1,0 +1,61 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
+      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 29 Dec 2020 16:44:13 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '704'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"325355.448","regt_buying_power":"139604.72","daytrading_buying_power":"325355.448","cash":"39783.95","portfolio_value":"99820.77","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"99820.77","last_equity":"99148.11","long_market_value":"60036.82","short_market_value":"0","initial_margin":"30018.41","maintenance_margin":"18011.046","last_maintenance_margin":"17809.248","sma":"0","daytrade_count":2}'
+  recorded_at: 2020-12-29 16:44:14 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/portfolio/history?period=1D&timeframe=1D&date_end=2020-06-08&extended_hours=TRUE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
+      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 29 Dec 2020 16:44:14 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '125'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"timestamp":[1591623000],"equity":[96928.45],"profit_loss":[0],"profit_loss_pct":[0],"base_value":96928.45,"timeframe":"1D"}'
+  recorded_at: 2020-12-29 16:44:14 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

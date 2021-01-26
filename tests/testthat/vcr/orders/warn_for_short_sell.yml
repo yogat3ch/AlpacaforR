@@ -1,0 +1,123 @@
+http_interactions:
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/orders/bea633b6-f720-4d4e-9c06-633585ee450b
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 204
+      category: Success
+      reason: No Content
+      message: 'Success: (204) No Content'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:20:02 GMT
+      content-type: application/json; charset=UTF-8
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: ''
+  recorded_at: 2021-01-19 15:20:03 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/positions/LSF
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 404
+      category: Client error
+      reason: Not Found
+      message: 'Client error: (404) Not Found'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:20:03 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '53'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"code":40410000,"message":"position does not exist"}'
+  recorded_at: 2021-01-19 15:20:03 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/positions/LSF
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 404
+      category: Client error
+      reason: Not Found
+      message: 'Client error: (404) Not Found'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:20:03 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '53'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"code":40410000,"message":"position does not exist"}'
+  recorded_at: 2021-01-19 15:20:03 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"LSF","qty":"1","side":"sell","type":"trailing_stop","time_in_force":"day","trail_price":"5"}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Tue, 19 Jan 2021 15:20:03 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '740'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"5e8bb249-e84b-4afd-9566-392ba5c0f082","client_order_id":"101614cd-bbb1-4b53-a2a1-4bde17ac95c3","created_at":"2021-01-19T15:20:03.908925Z","updated_at":"2021-01-19T15:20:03.91174Z","submitted_at":"2021-01-19T15:20:03.90248Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"90d56464-95e4-4d1e-849f-7520864df60f","symbol":"LSF","asset_class":"us_equity","qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"trailing_stop","type":"trailing_stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"39","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":"5","hwm":"44"}'
+  recorded_at: 2021-01-19 15:20:03 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

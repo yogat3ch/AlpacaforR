@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/4/week/2020-03-16/2020-03-30?unadjusted=FALSE&apiKey=APCA-LIVE-API-KEY-ID
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Mon, 18 Jan 2021 15:17:12 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: 7b51063f41ce75adb0aa80596fb001c8
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":19,"resultsCount":1,"adjusted":true,"results":[{"v":1.25425599e+08,"vw":1893.208,"o":1641.51,"c":2042.76,"h":2053,"l":1626.0318,"t":1584302400000,"n":3802798}],"status":"OK","request_id":"7b51063f41ce75adb0aa80596fb001c8","count":1}'
+  recorded_at: 2021-01-18 15:17:12 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

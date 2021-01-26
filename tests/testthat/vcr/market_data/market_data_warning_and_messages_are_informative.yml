@@ -1,0 +1,65 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/calendar?start=2021-01-17&end=2021-01-18
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.16.1
+      date: Mon, 18 Jan 2021 15:16:33 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '99'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"date":"2021-01-19","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"}]'
+  recorded_at: 2021-01-18 15:16:34 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/bars/day?symbols=BYND&limit=1000&start=2021-01-17T07:00:00-05:00&end=2021-01-18T19:00:00-05:00
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Mon, 18 Jan 2021 15:16:34 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '17'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: |
+        {
+          "BYND": []
+        }
+  recorded_at: 2021-01-18 15:16:34 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

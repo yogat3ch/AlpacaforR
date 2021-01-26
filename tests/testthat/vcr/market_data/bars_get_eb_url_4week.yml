@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/4/week/2019-12-09/2020-03-30?unadjusted=FALSE&apiKey=APCA-LIVE-API-KEY-ID
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Mon, 18 Jan 2021 15:16:52 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: e4b5f779765889ed6e8cf3a2799d3048
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":95,"resultsCount":6,"adjusted":true,"results":[{"v":6.0170014e+07,"vw":1813.5094,"o":1750.66,"c":1874.97,"h":1901.4,"l":1735,"t":1575838800000,"n":1414739},{"v":7.7024501e+07,"vw":1916.1836,"o":1860,"c":2008.72,"h":2055.72,"l":1815.34,"t":1578258000000,"n":2033828},{"v":9.2428028e+07,"vw":2040.886,"o":2010.6,"c":1883.75,"h":2185.95,"l":1811.129,"t":1580677200000,"n":2734507},{"v":2.9074773e+07,"vw":1925.6378,"o":1906.49,"c":1901.09,"h":1996.33,"l":1869.5,"t":1583096400000,"n":849206},{"v":1.23334874e+08,"vw":1829.246,"o":1773.86,"c":1900.1,"h":1957,"l":1626.0318,"t":1583092800000,"n":3746573},{"v":1.10839596e+08,"vw":2192.9611,"o":1922.83,"c":2410.22,"h":2460.9981,"l":1889.15,"t":1585512000000,"n":3582645}],"status":"OK","request_id":"e4b5f779765889ed6e8cf3a2799d3048","count":6}'
+  recorded_at: 2021-01-18 15:16:51 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

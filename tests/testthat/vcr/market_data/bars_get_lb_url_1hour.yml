@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/hour/2020-04-03/2020-04-04?unadjusted=FALSE&apiKey=APCA-LIVE-API-KEY-ID
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Mon, 18 Jan 2021 15:17:10 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: 2e68a7a499e0cfab77c0a7a3369a8283
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":484,"resultsCount":14,"adjusted":true,"results":[{"v":768,"vw":1909.1359,"o":1909.95,"c":1909.95,"h":1909.95,"l":1909.95,"t":1585908000000,"n":17},{"v":8851,"vw":1911.2966,"o":1908.99,"c":1919,"h":1919,"l":1906.12,"t":1585911600000,"n":271},{"v":11588,"vw":1914.7126,"o":1909.8,"c":1917,"h":1921.45,"l":1909.8,"t":1585915200000,"n":388},{"v":436175,"vw":1918.8456,"o":1918,"c":1920,"h":1926.33,"l":1910.1211,"t":1585918800000,"n":12417},{"v":432882,"vw":1912.8413,"o":1920,"c":1905.35,"h":1924.46,"l":1904.11,"t":1585922400000,"n":16372},{"v":422830,"vw":1904.4222,"o":1905.45,"c":1901.83,"h":1910.29,"l":1898.27,"t":1585926000000,"n":14545},{"v":336390,"vw":1898.6485,"o":1902.4,"c":1897.39,"h":1903.68,"l":1895.1,"t":1585929600000,"n":13570},{"v":388026,"vw":1894.8331,"o":1897.26,"c":1892.56,"h":1899.9983,"l":1889.69,"t":1585933200000,"n":15778},{"v":385503,"vw":1894.1468,"o":1893.07,"c":1898.4793,"h":1899.24,"l":1889.15,"t":1585936800000,"n":13928},{"v":737204,"vw":1898.8105,"o":1898.9,"c":1906.6,"h":1906.95,"l":1891.01,"t":1585940400000,"n":23473},{"v":129166,"vw":1906.344,"o":1906.59,"c":1904.21,"h":1908,"l":1903.5,"t":1585944000000,"n":724},{"v":2682,"vw":1904.6633,"o":1904,"c":1904.5,"h":1905.75,"l":1904,"t":1585947600000,"n":51},{"v":2945,"vw":1902.1669,"o":1903.21,"c":1901,"h":1903.21,"l":1901,"t":1585951200000,"n":61},{"v":2891,"vw":1902.0279,"o":1902.12,"c":1902,"h":1903.44,"l":1901,"t":1585954800000,"n":62}],"status":"OK","request_id":"2e68a7a499e0cfab77c0a7a3369a8283","count":14}'
+  recorded_at: 2021-01-18 15:17:09 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4

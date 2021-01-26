@@ -1,0 +1,80 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/watchlists:by_name?name=FANG
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-credentials: 'true'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Tue, 19 Jan 2021 15:20:52 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"f4d840bb-d221-414f-b785-6bbcd8914c69","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-01-19T15:20:49.219193Z","updated_at":"2021-01-19T15:20:52.000483Z","name":"FANG","assets":[{"id":"fc6a5dcd-4a70-4b8d-b64f-d83a6dae9ba4","class":"us_equity","exchange":"NASDAQ","symbol":"FB","name":"Facebook,
+        Inc. Class A Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"bb2a26c0-4c77-4801-8afc-82e8142ac7b8","class":"us_equity","exchange":"NASDAQ","symbol":"NFLX","name":"Netflix,
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"f30d734c-2806-4d0d-b145-f9fade61432b","class":"us_equity","exchange":"NASDAQ","symbol":"GOOG","name":"Alphabet
+        Inc. Class C Capital Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true}]}'
+  recorded_at: 2021-01-19 15:20:52 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+- request:
+    method: put
+    uri: https://paper-api.alpaca.markets/v2/watchlists:by_name?name=FANG
+    body:
+      encoding: ''
+      string: |-
+        {
+          "name": "_FANG",
+          "symbols": ["FB", "AAPL", "NFLX", "GOOG"]
+        }
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
+      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-credentials: 'true'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Tue, 19 Jan 2021 15:20:52 GMT
+      server: nginx/1.16.1
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"f4d840bb-d221-414f-b785-6bbcd8914c69","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-01-19T15:20:49.219193Z","updated_at":"2021-01-19T15:20:52.720305Z","name":"_FANG","assets":[{"id":"fc6a5dcd-4a70-4b8d-b64f-d83a6dae9ba4","class":"us_equity","exchange":"NASDAQ","symbol":"FB","name":"Facebook,
+        Inc. Class A Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"bb2a26c0-4c77-4801-8afc-82e8142ac7b8","class":"us_equity","exchange":"NASDAQ","symbol":"NFLX","name":"Netflix,
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true},{"id":"f30d734c-2806-4d0d-b145-f9fade61432b","class":"us_equity","exchange":"NASDAQ","symbol":"GOOG","name":"Alphabet
+        Inc. Class C Capital Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true}]}'
+  recorded_at: 2021-01-19 15:20:52 GMT
+  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
