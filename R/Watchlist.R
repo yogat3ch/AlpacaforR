@@ -7,7 +7,7 @@
 #' @param watchlist_id `(character)` **Watchlist Name or ID**. If `NULL` **Default**, the array of all saved `Watchlist` will be returned. All other actions to be performed on the provided `Watchlist` name or ID must be explicitly specified via `action`. See below for description of the behavior of this argument based on the value supplied to `action`.
 #' @param symbols `(character)` Vector of symbols. Must be specified with a `watchlist_id`. If the `action` is:
 #' \itemize{
-#'   \item{\code{"get"\"g" **Default**}}{ `action` assumed to be add and `symbols` will be added.}
+#'   \item{\code{"get" **Default**}}{ `action` assumed to be add and `symbols` will be added.}
 #'   \item{\code{"create"}}{ A `Watchlist` cakked `watchlist_id` will be created with `symbols`. If symbols are missing the new `Watchlist` will be empty.}
 #'  \item{\code{"add"}}{ The `symbols` will be added to the specified `watchlist_id`. If this argument is specified with `watchlist_id` and `new_name` the `Watchlist` will be renamed to `new_name` and the `symbols` will be added. Set `action = "update"` explicitly to replace existing symbols with `symbols` when renaming.}
 #'  \item{\code{"update"}}{ The `symbols` will replace those in `watchlist_id`.}
@@ -15,7 +15,7 @@
 #' }
 #' @param action `(character)` The action to take. See other parameters for detailed descriptions of how this argument determines the action when combinations of parameters are specified. This argument can be abbreviated with a single non-case-sensitive letter. One of:
 #' \itemize{
-#'  \item{\code{"get"}}{ **Default** If no `watchlist_id` is specified, an array of all `Watchlist` will be returned, otherwise a the watchlist specified by `watchlist_id` will be returned. If `symbols` are specified, the symbols will be added to the `watchlist_id`.}
+#'  \item{\code{"get"/"g"}}{ **Default** If no `watchlist_id` is specified, an array of all `Watchlist` will be returned, otherwise a the watchlist specified by `watchlist_id` will be returned. If `symbols` are specified, the symbols will be added to the `watchlist_id`.}
 #'   \item{\code{"create"/"c"}}{ A `Watchlist` will be created named according to `watchlist_id` with any `symbols` provided.}
 #'  \item{\code{"add"/"a"}}{ the `watchlist_id` will have `symbols` added. If `new_name` is also specified, `symbols` will be added (unless `action = "update"`)}
 #'  \item{\code{"update"/"u"}}{ `watchlist_id` is *required* and will have it's symbols replaced by those provided to `symbols`. If `new_name` and `symbols` are provided the `Watchlist` will be renamed and the `symbols` will *replace* the existing ones. If the `symbols` are meant to be added, do not set action, or set as `"add"`.}
@@ -74,6 +74,7 @@ watchlist <-
     {
       rlang::exec(get_url,!!!., live = live)
     }
+  
   headers = get_headers(live)
   # logical indicating if new_name is present
   .nn <- !missing(new_name)
