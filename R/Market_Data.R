@@ -124,15 +124,9 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
   
   
   
-  # Bind important variables:  Thu Mar 26 08:40:24 2020 ----
-  evar_bind(timeframe, multiplier) 
-  evar$bounds <- bounds <- bars_bounds(from = from, to = to, after = after, until = until, fc = TRUE)
-  if (timeframe %in% c("minute", "hour", "day")) {
-    # calendar is only necessary when timeframe is less than week
-    evar$cal <- rlang::exec(calendar, !!!unname(bounds))
-  }
-  # Stop if malformed date argument with informative message
-  if (any(purrr::map_lgl(bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(bounds, ~{is.null(.x)||is.na(.x)})), "`"))
+  # Process & Bind important variables:  Thu Mar 26 08:40:24 2020 ----
+  evar_bind() 
+  
   
   
   
@@ -159,15 +153,14 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
 #' @title Create API amenable boundaries based on user input for market_data
 
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
-#' @inheritParams market_data
-#'@param fc Toggle for `first_call` mode that prints all messages to console. 
+#' @inheritDotParams market_data
 #' @param evar An environment that holds variable constants necessary for sub-functions.
 #'@return \code{(list)} A list with two Date/Datetime items that are boundaries for the date range necessary to call the API with to retrieve the appropriate data from the specified API. Items will have names corresponding to the non-NULL \code{from/to/after/until} arguments in the calling environment or supplied to the function.
 #'@keywords internal
-bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, fc = NULL, evar = get0("evar", mode = "environment", envir = rlang::caller_env()), ...) {
+bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   
   #trickery to get the variables from the calling environment
-  fetch_vars(evar$.vn[c("v", "timeframe", "multiplier")], ...)
+  fetch_vars(evar$.vn[c("v", "from", "to", "after", "until", "timeframe", "multiplier")], ...)
   
   .date_vars <- purrr::keep(list(from = from, after = after, to = to, until = until), ~!is.null(.x))
   # Remove NULL arguments
@@ -229,7 +222,7 @@ bars_bounds <- function(from = NULL, after = NULL, to = NULL, until = NULL, fc =
    
     
     
-    if (!identical(.x,.out) && isTRUE(fc)) {
+    if (!identical(.x,.out)) {
       message(paste0("`",.y,"` coerced to ", .out," to retrieve inclusive data."))
     }
     # # For requests to the v2 API where aggregates are yearly, the floor date needs to be 12/31
@@ -309,7 +302,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
   if (v == 1 && timeframe %in% c("t", "q")) {
 
     .url <- purrr::map_chr(setNames(symbol, symbol), ~{
-      .url$path <- get_url(list(ifelse(timeframe == "t", "last","last_quote"), "stocks", .x), data = TRUE, v = v)
+      .url <- get_url(list(ifelse(timeframe == "t", "last","last_quote"), "stocks", .x), data = TRUE, v = v)
     })
   } else if (v == 1) {
     # multiplier & timeframe ----
@@ -395,7 +388,7 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
       #Send Request
       agg_quote = httr::GET(url = .url)
       # Save the query meta-date for appending to the output df
-      .quote <- bars_transform(agg_quote, timeframe = timeframe, multiplier = multiplier) # timeframe must be passed explicitly since ... does not carry into the purrr function from bars_get
+      .quote <- bars_transform(agg_quote) # timeframe must be passed explicitly since ... does not carry into the purrr function from bars_get
       return(.quote)
     })
     bars <- stats::setNames(unlist(bars, recursive = FALSE, use.names = FALSE), names(bars))
@@ -683,17 +676,8 @@ gap_identify <- function(ext, timeframe, ..., evar = get0("evar", mode = "enviro
       .expected
     }
     
-    # get the average number of intervals encompassed by an API call. Only computed once
+    # get the mean duration encompassed by an API call. Only computed once
     ext$span_duration <- ext$span_duration %||% {if (!is.null(ext$span)) mean(ext$span) else ext$span} 
-    # remove the large gaps in the expected data (data we already filled)
-    # ext$gaps <- ext$gaps %||% (tsibble::count_gaps(tsibble::build_tsibble(tibble::tibble(!!.idx := .expected), index = as.character(.idx), interval = tsibble::interval(x))) %>% 
-    #   dplyr::mutate(runs = group_by_rle(.n)) %>%
-    #   dplyr::filter(runs >= 1) %>% 
-    #   dplyr::group_nest(runs) %>%
-    #   {purrr::map(.$data, ~{
-    #     (bounds = c(min(.x$.from), max(.x$.to)))
-    #   })} %>% 
-    #   {do.call(c,.)})
     
     # determine the range of missing expected values that can be filled with another order
     .within <- lubridate::`%within%`(ext$expected, lubridate::interval(ext$expected[1], ext$expected[1] + ext$span_duration))
@@ -709,12 +693,18 @@ gap_identify <- function(ext, timeframe, ..., evar = get0("evar", mode = "enviro
     
     # remove those values from the gaps
     ext$expected <- ext$expected[!.within]
+    # when an attempt has been made to fill each gap
+    if (rlang::is_empty(ext$expected)) {
+      # reset expected (such that it will be generated again)
+      ext$expected <- NULL
+      # Once we advance, add a counter to small_gap search (3 full revolutions will complete)
+      ext$small_cycle <- (ext$small_cycle %||% 0) + 1
+    }
   }
    
   
+  if ((ext$small_cycle %||% 0) > 2) ext$small_gap <- FALSE 
   .advance <- gap_check(out, ext)
-  # Once we advance, invalidate small_gap search
-  if (.advance) ext$small_gap <- FALSE  
   # advance
   if (.advance && isTRUE(NROW(ext$missing) > 0) && ext$begin %||% TRUE) {
     out <- ext$missing[1,]
@@ -789,7 +779,7 @@ bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", e
       multiplier = multiplier,
       symbol = ext$symbol
     ) 
-    .nd <- suppressMessages(bars_get(do.call(bars_url, .args), timeframe = timeframe, ...))
+    .nd <- suppressMessages(bars_get(do.call(bars_url, .args), timeframe = timeframe, multiplier = multiplier, ...))
     bars_span(.nd[[1]], ext, timeframe)
     ext$out <- bind_rows(ext$out, .nd[[1]])
     
@@ -809,16 +799,16 @@ bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", e
 
 
 
-#' @title bind global market_data variables to the evar environment for availability in internal functions
-#' @description \lifecycle(stable)
-#' @inheritParams market_data
+#' @title Construct environment that stores top-level user-supplied variables for `market_data` 
+#' @description \lifecycle{stable} bind top-level user-supplied and derived variables in `evar` environment for availability in internal functions
+#' @inheritDotParams market_data
+#' @param ... additional arguments to assign
 #' @param cenv Calling environment in which to assign variables
-#' @param ... additional arguments
-#' @return tf_num & timeframe in calling environment. 
 #' @keywords internal
 
-evar_bind <- function(timeframe, multiplier, ..., cenv = rlang::caller_env(), evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  fetch_vars(evar$.vn["v"], ...)
+evar_bind <- function(..., cenv = rlang::caller_env(), evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  .vars <- rlang::dots_list(...)
+  fetch_vars(evar$.vn, ...)
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
   .tf_opts <- list(
     m = c("m", "min", "minute"),
@@ -853,6 +843,19 @@ evar_bind <- function(timeframe, multiplier, ..., cenv = rlang::caller_env(), ev
   }
   # Get the timeframe as a numeric
   tf_num <- which(tf_order %in% timeframe)
-  rlang::env_bind(cenv, timeframe = timeframe, multiplier = multiplier)
   rlang::env_bind(evar, timeframe = timeframe, multiplier = multiplier, tf_num = tf_num, tf_order = tf_order)
+  if (!"bounds" %in% names(.vars)) {
+    bounds <- bars_bounds(from = from, to = to, after = after, until = until)
+  }
+  
+  
+  
+  if (timeframe %in% c("minute", "hour", "day") && !"cal" %in% names(.vars)) {
+    # calendar is only necessary when timeframe is less than week
+    cal <- rlang::exec(calendar, !!!unname(bounds))
+  }
+  # Stop if malformed date argument with informative message
+  if (any(purrr::map_lgl(bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(bounds, ~{is.null(.x)||is.na(.x)})), "`"))
+  
+  rlang::env_bind(evar, bounds = bounds, cal = cal)
 }

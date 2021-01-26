@@ -3,7 +3,7 @@ set.seed(1)
 library(vcr)
 .log_path <- file.path(pkgload::package_file(), "tests/testthat/vcr/vcr.log")
 vcr::vcr_log_file(.log_path)
-.redact <- Sys.getenv() %>% {.[stringr::str_subset(names(.),"APCA")][-1]} %>% as.list()
+.redact <- Sys.getenv() %>% {.[stringr::str_subset(names(.),"APCA(?!\\-LIVE$)")]} %>% as.list()
 vcr::vcr_configure(
   dir = dirname(.log_path),
   log_opts = list(file = .log_path, write_disk_path = dirname(.log_path)),
@@ -14,7 +14,7 @@ vcr::vcr_configure(
 #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
 evar <- rlang::env(
 .vn = list(
-  ticker = "character",
+  symbol = "character",
   v = c("integer", "numeric"),
   timeframe = c("factor", "character"),
   tf_num = c("integer", "numeric"),
@@ -27,69 +27,126 @@ evar <- rlang::env(
   limit = c("integer", "numeric", "NULL"),
   full = "logical",
   unadjusted = "logical",
-  bounds = c("Date", "Datetime", "POSIXct"),
+  bounds = "list",
   cal = c("data.frame", "tibble")
 ),
-# Create ordered factor or timeframe options
-tf_order = purrr::map_chr(list(
-  m = c("m", "min", "minute"),
-  h = c("h", "hour"),
-  d = c("d", "day"),
-  w = c("w", "week"),
-  M = c("M", "mo", "month"),
-  q = c("q", "quarter"),
-  y = c("y", "year")
-), tail, 1) %>% {factor(., levels = .)},
 # Add appropriate variables to local environment
-ticker = "AMZN",
+symbol = "AMZN",
 v = 2,
 after = NULL,
 until = NULL,
 full = T,
 unadjusted = F
 )
-
-# Create a data.frame with multiple variations of typical calls for testing
-# suppressWarnings({
-#   .test <- data.frame(
-#     multiplier = c(
-#       minute = c(1, 5, 15),
-#       hour = 1,
-#       day = 1,
-#       week = c(1, 2, 4),
-#       month = c(1, 2, 3),
-#       quarter = 1,
-#       1
-#     ),
-#     timeframe = c(
-#       rep("minute", 3),
-#       "hour",
-#       "day",
-#       rep("week", 3),
-#       rep("month", 3),
-#       "quarter",
-#       "year"
-#     ),
-#     to = lubridate::ymd_hm("2020-04-03 13:05")
-#   ) %>%
-#     dplyr::rowwise() %>%
-#     dplyr::mutate(duration = lubridate::duration(
-#       multiplier,
-#       ifelse(
-#         as.character(timeframe) == "quarter",
-#         "month",
-#         as.character(timeframe)
-#       )
-#     )) %>%
-#     dplyr::mutate(
-#       early_bound = to - (4 * duration),
-#       single_bound = to - duration,
-#       late_bound = to - (.5 * duration)
-#     )
-# })
-
-
-
+.pre <- c(eb = "eb", sb = "sb", lb = "lb")
+if (FALSE) {
+  
+  # Create a data.frame with multiple variations of typical calls for testing
+  .test <- suppressWarnings({
+    data.frame(
+      multiplier = c(
+        minute = c(1, 5, 15),
+        hour = 1,
+        day = 1,
+        week = c(1, 2, 4),
+        month = c(1, 2, 3),
+        quarter = 1,
+        1
+      ),
+      timeframe = c(
+        rep("minute", 3),
+        "hour",
+        "day",
+        rep("week", 3),
+        rep("month", 3),
+        "quarter",
+        "year"
+      ),
+      to = lubridate::ymd_hm("2020-04-03 16:30")
+    ) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(duration = lubridate::duration(
+        multiplier,
+        ifelse(
+          as.character(timeframe) == "quarter",
+          "month",
+          as.character(timeframe)
+        )
+      )) %>%
+      dplyr::mutate(
+        eb = to - (4 * duration),
+        sb = to - duration,
+        lb = to - (.5 * duration)
+      )
+  })
+  
+  
+  .bounds <- purrr::map(stats::setNames(.pre, paste0(.pre,"_bounds")), ~{
+    .pre <- .x
+    .bound <- purrr::pmap(.test, ~{
+      # FINALLY figured out how to call arguments by name in pmap
+      .vars <- rlang::dots_list(...)
+      rlang::exec(evar_bind, !!!.vars, from = .vars[[.pre]])
+      # Bounds are created inside of evar_bind
+      list(bounds = evar$bounds,
+           cal = evar$cal)
+    })
+    
+  }) %>%
+    tibble::as_tibble()
+  .bounds <- dplyr::bind_cols(
+  tibble::as_tibble(purrr::map_depth(setNames(.bounds, paste0(.pre, "_bounds")), 2, ~ {
+    .x$bounds
+  })),
+  tibble::as_tibble(purrr::map_depth(setNames(.bounds, paste0(.pre, "_cal")), 2, ~ {
+    .x$cal
+  }))
+  )
+  
+  
+  
+  .test2 <- dplyr::bind_cols(.test, .bounds)
+  
+  .url <- purrr::imap(stats::setNames(.pre, paste0(.pre,"_url")), ~{
+    .pre <- .x
+    .urls <- purrr::pmap(.test2, ~{
+      .vars <- rlang::dots_list(...)
+      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]])
+      .url <- bars_url(symbol = "AMZN", evar = evar)
+      
+    })
+  }) %>% 
+    tibble::as_tibble()
+  
+  
+  .data <- purrr::map(stats::setNames(.pre, paste0(.pre,"_data")), ~{
+    .pre <- .x
+    .data <- purrr::pmap(dplyr::bind_cols(.test2, .url), ~{
+      # FINALLY figured out how to call arguments by name in pmap
+      .vars <- rlang::dots_list(...)
+      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]])
+      .object <- bars_get(url = .vars[[paste0(.pre,"_url")]], v = 2)
+    })
+  }) %>% 
+    tibble::as_tibble()
+  
+  .test3 <- dplyr::bind_cols(.test2, .data)
+  
+  .complete <- purrr::imap(stats::setNames(.pre, paste0(.pre,"_complete")), ~ {
+    .pre <- .x
+    .complete <- purrr::pmap(.test3, ~ {
+      .vars <- rlang::dots_list(...)
+      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]])
+      .object <- bars_complete(bars = .vars[[paste0(.pre, "_data")]], evar = evar)
+    })
+  }) %>%  
+    tibble::as_tibble()
+  test_market_data <- list(bars = dplyr::bind_cols(.test3, .complete))
+  test_market_data$v2 <- market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
+  test_market_data$v1 <-  market_data(c("BYND"), v = 1, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
+  
+  saveRDS(test_market_data, file.path(pkgload::package_file(), "tests/testthat/rds/test_market_data.rds"))
+}
 
 # market_data ----
 # Sat Dec 26 15:05:40 2020

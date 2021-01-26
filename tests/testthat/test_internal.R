@@ -62,7 +62,8 @@ test_that("get_headers returns headers and errors as intended", {
 test_that("get_url works", {
   expect_identical(get_url(live = T),"https://api.alpaca.markets/")
   expect_identical(get_url(live = F),"https://paper-api.alpaca.markets/")
-  expect_identical(get_url(poly = TRUE, query = list(a = 1), "blah"), "https://api.polygon.io/v2/blah?a=1")
+  expect_identical(get_url(data = TRUE, query = list(a = 1), "blah"), "https://api.polygon.io/v2/blah?a=1")
+  expect_identical(get_url(data = TRUE, path = "2020-04-02", v = 1), "https://data.alpaca.markets/v1/2020-04-02")
 })
 
 

@@ -1,7 +1,10 @@
 tsymble <- tsibble::new_tsibble(tsibble::build_tsibble(tibble::tibble(time = Sys.Date() + 0:3), index = "time", ordered = TRUE, interval = tsibble::new_interval(day = 1), index2 = "time"), symbol = character(), query = list(), class = "tsymble")
-tsibble <- getFromNamespace("tsibble", "tsibble")
-methods::setClass("tsymble", 
-                  contains = c("tbl_ts", "tbl_df", "tbl", "data.frame"))
+
+
+
+
+
+
 
 #' @title Construct a tsybble
 #' @description \lifecycle{experimental}
@@ -148,8 +151,6 @@ add_row.tsymble <- function(.data, ..., .before = NULL, .after = NULL) {
   structure(tibble::add_row(.data, ..., .before = .before, .after = .after), class = .c)
 }
 
-
-setMethod("add_row", "tsymble", add_row.tsymble)
 
 
 as.list.interval <- function(x, ...) {

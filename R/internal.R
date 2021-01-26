@@ -122,7 +122,7 @@ get_url <- function(path, query, ..., live = FALSE, v = 2, data = FALSE){
   
   .url <- httr::parse_url(.url)
   if (!missing(path)) {
-    if (!ifelse(is.character(path), grepl("v\\d", path), "v" %in% names(path))) {
+    if (!ifelse(is.character(path), grepl("v\\d", path), "v" %in% names(path)) && !is.null(v)) {
       .url$path <- rlang::list2(v = paste0("v",v), !!!path)
     } else {
       .url$path <- path
