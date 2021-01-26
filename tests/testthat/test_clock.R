@@ -4,9 +4,7 @@ vcr::vcr_configure(dir = file.path(dirname(.log_path), "clock"))
 vcr::use_cassette("clock_returns_the_appropriate_response", {
 test_that("clock returns the appropriate response", {
   .c <- clock()
-  if (lubridate::wday(lubridate::today(), week_start = 7) %in% c(1,7)) {
-    expect_false(.c$is_open)
-  } 
+  expect_type(.c$is_open, "logical")
   expect_s3_class(do.call(c, .c[c(1,3:4)]), "POSIXct")
   expect_true(is.list(.c))
   expect_length(.c, 4)

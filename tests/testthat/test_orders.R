@@ -56,7 +56,7 @@ if (.open) {
     test_that("orders returns no orders properly.", {
       #assumes no open orders
       expect_type(expect_message(orders(), regexp = "No orders for the selected query/filter criteria. 
-Check `ticker_id` or set status = 'all' to see all orders."),"list")
+Check `symbol_id` or set status = 'all' to see all orders."),"list")
     })
   })
   
@@ -83,14 +83,14 @@ Check `ticker_id` or set status = 'all' to see all orders."),"list")
   if (isTRUE(suppressWarnings(positions(.o$symbol)$qty) < .o$qty)){
     vcr::use_cassette("An_expedited_stop_warns_if_insufficient_quantity_available", {
       test_that("An expedited stop warns if insufficient quantity available", {
-        expect_warning(expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type"), regexp = "insufficient qty available for order")
+        expect_warning(expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|symbol_id|client_order_id|type"), regexp = "insufficient qty available for order")
       })
     })
   }
   
   vcr::use_cassette("An_expedited_stop_can_be_placed_with_appropriate_messages", {
     test_that("An_expedited_stop_can_be_placed_with_appropriate_messages", {
-      expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client_order_id = T)}, regexp = "side|qty|ticker_id|client_order_id|type")
+      expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client_order_id = T)}, regexp = "side|qty|symbol_id|client_order_id|type")
       expect_identical(.so$client_order_id, .o$id)
     })
   })
@@ -195,14 +195,14 @@ Check `ticker_id` or set status = 'all' to see all orders."),"list")
 } else if (!.open){
   vcr::use_cassette("market_closed_expedited_stop", {
     test_that("market is closed and expedited stop is warns properly", {
-      expect_warning(expect_warning(expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|ticker_id|client_order_id|type"), "cannot open a short sell while a long buy order is open"), regexp = "short sell")
+      expect_warning(expect_warning(expect_message({.so <<- order_submit(.o, stop = .lq$askprice * .95, client = T)}, regexp = "side|qty|symbol_id|client_order_id|type"), "cannot open a short sell while a long buy order is open"), regexp = "short sell")
     })
   })
   
   if (!is.null(get0(".so", envir = .GlobalEnv, ifnotfound = list(id = NULL))$id)) {
     vcr::use_cassette("order_submit_errors_if_outside_of_market_hours", {
       test_that("order_submit errors if outside of market hours", {
-        .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)|(?:Not Found)|(?:`ticker_id` is not an Order ID.)"
+        .m <- "(?:unable to replace order, order is not open)|(?:unable to replace order, order isn't sent to exchange yet)|(?:Not Found)|(?:`symbol_id` is not an Order ID.)"
         expect_warning({.r <<- order_submit(.so, action = "r", qty = 1, stop = .lq$askprice * .95)}, regexp = .m)
         expect_true(stringr::str_detect(.r, .m))
       })
