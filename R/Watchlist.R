@@ -8,7 +8,7 @@
 #' @param symbols `(character)` Vector of symbols. Must be specified with a `watchlist_id`. If the `action` is:
 #' \itemize{
 #'   \item{\code{"get" **Default**}}{ `action` assumed to be add and `symbols` will be added.}
-#'   \item{\code{"create"}}{ A `Watchlist` cakked `watchlist_id` will be created with `symbols`. If symbols are missing the new `Watchlist` will be empty.}
+#'   \item{\code{"create"}}{ A `Watchlist` called `watchlist_id` will be created with `symbols`. If symbols are missing the new `Watchlist` will be empty.}
 #'  \item{\code{"add"}}{ The `symbols` will be added to the specified `watchlist_id`. If this argument is specified with `watchlist_id` and `new_name` the `Watchlist` will be renamed to `new_name` and the `symbols` will be added. Set `action = "update"` explicitly to replace existing symbols with `symbols` when renaming.}
 #'  \item{\code{"update"}}{ The `symbols` will replace those in `watchlist_id`.}
 #'  \item{\code{"delete"}}{ If this argument is specified with `watchlist_id`, the `symbols` will be deleted from the `Watchlist`. If `symbols` is missing the `Watchlist` will be deleted.}
@@ -60,7 +60,7 @@ watchlist <-
            symbols = NULL,
            action = "get",
            new_name,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
   
   
   action <- tolower(substr(action,0,1))
@@ -84,10 +84,7 @@ watchlist <-
   # if new_name is present, and action != "update", assume action = "add" (non-destructive rename)
               . && action != "u" ~ "a",
               ~ action)
-  # if assumed action = add combine the specified symbols,
-  symbols <- purrr::when(.action, 
-                         . == "a" ~ unique(c(watchlist(watchlist_id)$symbol, symbols)),
-                         ~ symbols)
+  
   # convenience action assumption
   action <- purrr::when(action,
   # If symbols are present, new_name is absent & action = get (default)  assume action = "add"
@@ -145,7 +142,6 @@ wl_transform <- function(resp, action) {
   
   stopifnot(inherits(resp, "response"))
   .wl <- response_text_clean(resp)
-  if(!grepl(pattern = "^2", x = resp$status_code)) rlang::abort(paste("code:",resp$status_code,"\nmessage:", .wl$message))
   
   .q <- get_query(.wl)
   # Handle info
@@ -174,14 +170,15 @@ wl_transform <- function(resp, action) {
   as_watchlist(out)
 }
 
-# TODO Create print methods, declare class
+
 as_watchlist <- function(x) {
-  if ("symbol" %in% names(x)) {
-    .a <- purrr::list_merge(attributes(x), class = "watchlist")
-  } else {
-    .a <- attributes(x)
-  }
+  .a <- attributes(x)
   
-  rlang::exec(structure, .Data = tibble::as_tibble(x), !!!.a)
+  if ("symbol" %in% names(x))
+    x <- dplyr::select(x, symbol, everything())
+  else if ("name" %in% names(x))
+    x <- dplyr::select(tibble::as_tibble(x), name, updated_at, everything())
+
+  out <- rlang::exec(structure, .Data = tibble::as_tibble(x), !!!.a[!names(.a) %in% "names"])
 }
 

@@ -66,7 +66,7 @@ orders <-
            direction = "desc",
            client_order_id = NULL,
            nested = T,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
     
   #Set URL & Headers
   
@@ -174,7 +174,7 @@ orders <-
 #'   \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. **Required** for `'bracket'` & `'oco'` order classes}
 #' }
 #' @param trail_price \code{(numeric)} a dollar value away from the highest water mark (hwm). If you set this to 2.00 for a sell trailing stop, the stop price is always hwm - 2.00
-#' @param trail_percent \code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99
+#' @param trail_percent \code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99. Values less than 1 are assumed to be percentages, ie .07 = 7%, values must be less than 100.
 #' @inheritParams account
 #' @inherit orders return
 #' @examples 
@@ -194,7 +194,7 @@ orders <-
 #' # Complex orders can be submitted as well
 #' # Here is an example of setting a "bracket" order
 #' # first retrieve the going price
-#' (.lq <- polygon("lq", symbol = "AMZN"))
+#' (.lq <- market_data("lq", symbol = "AMZN"))
 #' # sell if the price moves up 3% by setting `take_profit`
 #' tp <- list(l = .lq$askprice * 1.03)
 #' # hedge risk by setting a stop if it loses 5% and limit if it loses 6% with `stop_loss`
@@ -229,7 +229,7 @@ order_submit <-
            stop_loss = NULL,
            trail_price,
            trail_percent,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
     
   
   
@@ -247,7 +247,7 @@ order_submit <-
   if (isTRUE(type == "trailing_stop")) {
     .mc <- match.call()
     stop_price <- grep("^trail", names(.mc), value = TRUE)
-    stop <- .mc[[stop_price]]
+    stop <- round(eval(.mc[[stop_price]]), 2)
   } else {
     stop_price <- "stop_price"
   }
@@ -462,7 +462,7 @@ order_check <- function(penv = NULL, ...) {
     }
     
     if (!is.null(side)) {
-      side <- try(c(b = "buy", s = "sell")[tolower(substr(side, 0, 1))])
+      side <- match_letters(side, "buy", "sell")
       if (class(side) == "try-error") rlang::abort("Invalid value for `side`")
     } else if (is.null(side)) {
       if ((order_class %||% "none") %in% c("bracket", "oto")) {
@@ -478,7 +478,7 @@ order_check <- function(penv = NULL, ...) {
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      .pos <- suppressWarnings(positions(symbol_id))
+      .pos <- suppressWarnings(positions(symbol_id, live = live))
       .ss <- symbol_id[!symbol_id %in% .pos[["symbol"]]]
       
       if (!rlang::is_empty(.ss)) {
@@ -549,10 +549,11 @@ order_check <- function(penv = NULL, ...) {
         })), collapse = ", "), " must be set."))
       } else if (is.null(stop) && type == "trailing_stop") {
         rlang::abort(paste0("Please set `trail_price` or `trail_percent` when `type = 'trailing_stop'`"))
-        if (stop_price == "trail_percent" && stop < 1) {
-          rlang::abort("`trail_percent` must be an integer greater than one")
-        } 
-      }
+      } else if (stop_price == "trail_percent" && stop < 1) {
+        stop <- stop * 100
+      } else if (stop_price == "trail_percent" && stop > 100) {
+        rlang::abort("`trail_percent` must be < 100")
+      } 
     } else if (!is.null(order_class)) {
       # if order class is specified, set required arguments accordingly or throw errors
       # order_class Advanced orders ----
@@ -599,8 +600,11 @@ order_check <- function(penv = NULL, ...) {
 order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
   # symbol_id ----
   # Fri May 01 11:15:39 2020
-  # Check if ticker is id
-  if (!inherits(symbol_id, "character")) {
+  # Check if ticker is an id or order tbl
+  if (is_id(symbol_id))
+    symbol_id <- orders(symbol_id)
+  
+  if (inherits(symbol_id, "data.frame")) {
     if (is_id(symbol_id$id)) {
       
       if (action == "s") {
@@ -609,8 +613,8 @@ order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
           .m <- purrr::keep(list(
             side %||% "`side` set to 'sell'",
             qty %||% paste0("`qty` set to ", symbol_id$qty),
-            paste0("`symbol_id` set to ", symbol_id$symbol,
-            ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", symbol_id$id), 1))
+            paste0("`symbol_id` set to ", symbol_id$symbol),
+            ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", symbol_id$id), 1)
           ), is.character)
           
           if (isTRUE(client_order_id)) client_order_id <- symbol_id$id

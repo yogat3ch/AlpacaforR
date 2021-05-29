@@ -77,7 +77,7 @@ Check `symbol_id` or set status = 'all' to see all orders."),"list")
   })
   
   vcr::use_cassette("polygon_last_quote", match_requests_on = "uri", {
-    .lq <<- polygon("lq", symbol = "AMZN")
+    .lq <<- market_data("lq", symbol = "AMZN")
   })
   
   if (isTRUE(suppressWarnings(positions(.o$symbol)$qty) < .o$qty)){
@@ -180,7 +180,7 @@ Check `symbol_id` or set status = 'all' to see all orders."),"list")
   
   
   vcr::use_cassette("lq_bynd", match_requests_on = "path", {
-    .lq <<- polygon("lq", symbol = "BYND")
+    .lq <<- market_data("lq", symbol = "BYND")
   })
   vcr::use_cassette("order_submit_properly_places_an_oto_order_class", {
     test_that("order_submit properly places an oto order_class", {

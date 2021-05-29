@@ -13,17 +13,13 @@ test_that("response_text_clean returns appropriate object", {
 })
 })
 
-vcr::use_cassette("get_headers_returns_headers_and_errors_as_intended", {
+
 test_that("get_headers returns headers and errors as intended", {
   # Set environment variables
-  # .env_var <- Sys.getenv(c("APCA-LIVE-API-KEY-ID", 
-  #            "APCA-LIVE-API-SECRET-KEY",
-  #            "APCA-PAPER-API-KEY-ID",
-  #            "APCA-PAPER-API-SECRET-KEY"))
-  withr::with_envvar(c("APCA-LIVE-API-KEY-ID" = "LIVEKEY", 
-                       "APCA-LIVE-API-SECRET-KEY" = "LIVESECRET",
-                       "APCA-PAPER-API-KEY-ID" = "PAPERKEY",
-                       "APCA-PAPER-API-SECRET-KEY" = "PAPERSECRET"), 
+  withr::with_envvar(c("APCA-LIVE-KEY" = "LIVEKEY", 
+                       "APCA-LIVE-SECRET" = "LIVESECRET",
+                       "APCA-PAPER-KEY" = "PAPERKEY",
+                       "APCA-PAPER-SECRET" = "PAPERSECRET"), 
                      {
                        headers <- list()
                        headers$live <- get_headers(live = T)
@@ -40,29 +36,24 @@ test_that("get_headers returns headers and errors as intended", {
                        expect_identical(
                          headers$paper$headers,
                          c(
-                           "APCA-API-KEY-ID" = "PAPERKEY",
-                           "APCA-API-SECRET-KEY" = "PAPERSECRET"
+                           "APCA-KEY-ID" = "PAPERKEY",
+                           "APCA-SECRET-KEY" = "PAPERSECRET"
                          )
                        )
-                       Sys.unsetenv("APCA-PAPER-API-KEY-ID")
+                       Sys.unsetenv("APCA-PAPER-KEY")
                        expect_error(get_headers(), regexp = "APCA-PAPER", class = c("rlang_error"))
-                       Sys.unsetenv("APCA-LIVE-API-SECRET-KEY")
+                       Sys.unsetenv("APCA-LIVE-SECRET")
                        expect_error(get_headers(T), regexp = "APCA-LIVE", class = c("rlang_error"))
                      }
   )
-  
-  # purrr::iwalk(.env_var, ~{
-  #   .y <- sym(.y)
-  #   eval(rlang::call2("Sys.setenv", !!rlang::enexpr(.y) := .x))
-  # })
 })
-})
+
 
 
 test_that("get_url works", {
-  expect_identical(get_url(live = T),"https://api.alpaca.markets/")
-  expect_identical(get_url(live = F),"https://paper-api.alpaca.markets/")
-  expect_identical(get_url(data = TRUE, query = list(a = 1), "blah"), "https://api.polygon.io/v2/blah?a=1")
+  expect_identical(get_url(live = T),"https://api.alpaca.markets/v2")
+  expect_identical(get_url(live = F),"https://paper-api.alpaca.markets/v2")
+  expect_identical(stringr::str_extract(get_url(data = TRUE, query = list(a = 1), "blah", api = "api", poly = TRUE), ".*(?=\\&api)"), "https://api.polygon.io/v2/blah?a=1")
   expect_identical(get_url(data = TRUE, path = "2020-04-02", v = 1), "https://data.alpaca.markets/v1/2020-04-02")
 })
 

@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/AMZN/bars?start=2020-04-03T16:00:00-00:00&end=2020-04-03T17:00:00-00:00&limit=10000&timeframe=1Hour
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Fri, 28 May 2021 23:44:57 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '225'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"bars":[{"t":"2020-04-03T16:00:00Z","o":1902.4,"h":1903.68,"l":1895.1,"c":1897.39,"v":336385},{"t":"2020-04-03T17:00:00Z","o":1897.26,"h":1899.9983,"l":1889.69,"c":1892.56,"v":388031}],"symbol":"AMZN","next_page_token":null}'
+  recorded_at: 2021-05-28 23:44:56 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

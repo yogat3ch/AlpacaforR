@@ -5,9 +5,9 @@
 \alias{get_account}
 \title{Get Account Details}
 \usage{
-account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)))
+account(live = get_live())
 
-get_account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)))
+get_account(live = get_live())
 }
 \arguments{
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}

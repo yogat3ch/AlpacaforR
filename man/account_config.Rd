@@ -7,30 +7,36 @@
 \title{Get Account Configurations}
 \usage{
 account_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
+  dtbp_check,
+  fractional_trading,
+  max_margin_multiplier,
+  no_shorting,
+  pdt_check,
+  suspend_trade,
+  trade_confirm_email,
+  live = get_live()
 )
 
 get_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
+  dtbp_check,
+  fractional_trading,
+  max_margin_multiplier,
+  no_shorting,
+  pdt_check,
+  suspend_trade,
+  trade_confirm_email,
+  live = get_live()
 )
 
 set_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
+  dtbp_check,
+  fractional_trading,
+  max_margin_multiplier,
+  no_shorting,
+  pdt_check,
+  suspend_trade,
+  trade_confirm_email,
+  live = get_live()
 )
 }
 \arguments{

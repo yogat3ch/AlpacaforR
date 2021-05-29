@@ -31,7 +31,7 @@
 #' @importFrom lubridate as_datetime
 #' @export
 account <-
-  function(live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+  function(live = get_live()) {
     
   #Set URL & Headers
   
@@ -90,27 +90,49 @@ get_account <- account
 #' account_config(dtbp_check = "both", no_shorting = TRUE)
 #' account_config("default")
 #' @importFrom httr GET PATCH
-#' @importFrom purrr compact
 #' @export
 account_config <-
-  function(dtbp_check = NULL,
-           no_shorting = NULL,
-           pdt_check = NULL,
-           suspend_trade = NULL,
-           trade_confirm_email = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+  function(dtbp_check,
+           fractional_trading,
+           max_margin_multiplier,
+           no_shorting,
+           pdt_check,
+           suspend_trade,
+           trade_confirm_email,
+           live = get_live()) {
     
-  #Create body with order details, most common is a named list 
-  .def <- ifelse(length(dtbp_check == "default") == 0, F, tolower(substr(dtbp_check,0,1)) == "d")
+  
+  .def <- isTRUE(suppressMessages(match_letters(dtbp_check, "default")) == "default")
   if (.def) {
-    bodyl <- list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)
+    # set defaults if requested
+    bodyl <- list(
+      dtbp_check = "entry",
+      fractional_trading = TRUE,
+      max_margin_multiplier = 4,
+      no_shorting = FALSE,
+      pdt_check = "entry",
+      suspend_trade = FALSE,
+      trade_confirm_email = "all"
+    )
   } else {
-    bodyl <- purrr::compact(list(dtbp_check = dtbp_check, no_shorting = no_shorting, suspend_trade = suspend_trade, trade_confirm_email = trade_confirm_email))
+    bodyl <-
+      rlang::env_get_list(
+        nms = c(
+          "dtbp_check",
+          "fractional_trading",
+          "max_margin_multiplier",
+          "no_shorting",
+          "pdt_check",
+          "suspend_trade",
+          "trade_confirm_email"
+        )
+        ) %>% 
+      `[`(., !purrr::map_lgl(., rlang::is_missing))
   }
   
   #Set URL & Headers
   headers = get_headers(live)
-  if (length(bodyl) > 0) {
+  if (!rlang::is_empty(bodyl)) {
     # if configuration options are set
     account_config = httr::PATCH(url = get_url(c("account", "configurations"), live = live), body = bodyl, encode = "json", headers)
   } else {
@@ -240,7 +262,7 @@ account_activities <-
            direction = "desc",
            page_size = 50,
            page_token = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
     
   .dt <- purrr::compact(list(date = date, after = after, until = until))
   if (length(.dt) > 0) {
@@ -312,7 +334,7 @@ account_portfolio <-
            timeframe = NULL,
            date_end = NULL,
            extended_hours = FALSE,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
     
   # Fix and detect args
   # check classes ----

@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
-      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -16,9 +16,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Mon, 18 Jan 2021 15:23:47 GMT
+      date: Sat, 29 May 2021 00:26:15 GMT
       content-type: application/json; charset=utf-8
-      content-length: '227'
+      content-length: '161'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -27,22 +27,9 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: |
-        {
-          "status": "success",
-          "symbol": "TWTR",
-          "last": {
-            "askprice": 45.36,
-            "asksize": 1,
-            "askexchange": 17,
-            "bidprice": 45.2,
-            "bidsize": 1,
-            "bidexchange": 15,
-            "timestamp": 1610745288721000000
-          }
-        }
-  recorded_at: 2021-01-18 15:23:47 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"status":"success","symbol":"TWTR","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1622232000000042150}}'
+  recorded_at: 2021-05-29 00:26:15 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
 - request:
     method: get
     uri: https://data.alpaca.markets/v1/last_quote/stocks/BYND
@@ -51,8 +38,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
-      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -60,9 +47,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Mon, 18 Jan 2021 15:23:47 GMT
+      date: Sat, 29 May 2021 00:26:15 GMT
       content-type: application/json; charset=utf-8
-      content-length: '228'
+      content-length: '161'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -71,22 +58,9 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: |
-        {
-          "status": "success",
-          "symbol": "BYND",
-          "last": {
-            "askprice": 141.74,
-            "asksize": 1,
-            "askexchange": 2,
-            "bidprice": 139.84,
-            "bidsize": 2,
-            "bidexchange": 9,
-            "timestamp": 1610744401796000000
-          }
-        }
-  recorded_at: 2021-01-18 15:23:47 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"status":"success","symbol":"BYND","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1622232000000042150}}'
+  recorded_at: 2021-05-29 00:26:15 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
 - request:
     method: get
     uri: https://data.alpaca.markets/v1/last_quote/stocks/AAPL
@@ -95,8 +69,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
-      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -104,9 +78,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Mon, 18 Jan 2021 15:23:47 GMT
+      date: Sat, 29 May 2021 00:26:16 GMT
       content-type: application/json; charset=utf-8
-      content-length: '226'
+      content-length: '171'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -115,19 +89,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: |
-        {
-          "status": "success",
-          "symbol": "AAPL",
-          "last": {
-            "askprice": 127.17,
-            "asksize": 2,
-            "askexchange": 9,
-            "bidprice": 125,
-            "bidsize": 1,
-            "bidexchange": 17,
-            "timestamp": 1610748000031000000
-          }
-        }
-  recorded_at: 2021-01-18 15:23:47 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"status":"success","symbol":"AAPL","last":{"askprice":124.93,"asksize":1,"askexchange":15,"bidprice":116.87,"bidsize":1,"bidexchange":15,"timestamp":1622232080497332386}}'
+  recorded_at: 2021-05-29 00:26:15 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

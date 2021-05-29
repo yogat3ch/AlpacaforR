@@ -1,1 +1,29 @@
-
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/year/1975-07-11/1975-07-12?unadjusted=APCA-PRO&apiKey=LqXUCWibUJs_F_qEKOPV3DV5opEISq4N
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Fri, 28 May 2021 22:03:51 GMT
+      content-type: application/json
+      content-length: '127'
+      connection: keep-alive
+      x-request-id: 3a4c523efb8efe5d1c37cbba389dc0f3
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":0,"resultsCount":0,"adjusted":true,"status":"OK","request_id":"3a4c523efb8efe5d1c37cbba389dc0f3"}'
+  recorded_at: 2021-05-28 22:03:51 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

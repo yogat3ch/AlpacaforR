@@ -31,7 +31,7 @@
 #' @importFrom httr GET
 #' @export
 assets <- function(...){
-  symbol_id <- rlang::dots_list(...)
+  symbol_id <- do.call(c, rlang::dots_list(...))
   headers = get_headers()
   if (rlang::is_empty(symbol_id)) {
     symbol_id <- NULL
@@ -41,7 +41,10 @@ assets <- function(...){
     if (!.is_id) symbol_id <- toupper(symbol_id) # caps if ticker
     out <- purrr::map_dfr(symbol_id, ~{
       # get response
-      asts = asset_transform(httr::GET(url = get_url(c("assets", .x)), headers))
+      asts = try(asset_transform(httr::GET(url = get_url(c("assets", .x)), headers)))
+      if (is_error(asts)) data.frame(symbol = .x, status = "Not Found")
+      else
+        asts
     })
   }
   

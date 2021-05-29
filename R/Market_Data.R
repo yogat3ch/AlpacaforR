@@ -6,37 +6,48 @@
 #' 
 #' @description The bars API provides time-aggregated price and volume data for a single stock or multiple. **The `v2` (Polygon) API is only available for live accounts and accepts the `from`, `to`, `timeframe`, `multiplier`, and `unadjusted` arguments.**
 #' @param symbol \code{(character)} The stock or stocks (in vector format) for which data will be retrieved. Non case-sensitive.
-#' @param v \code{(integer)} The API version number. If `1`, the `v1` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used, if `2`, the `v2` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#polygon-integration}{Polygon/Alpaca API}: api.polygon.io/v2/aggs \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}  will be used. 
+#' @param v \code{(integer)} The API version number. 
+#' \itemize{
+#'   \item{\code{1}}{ the `v1` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/#endpoint}{IEX/Alpaca API}: data.alpaca.markets/v1 will be used}
+#'   \item{\code{2}}{ the `v2` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{Alpaca V2 API}: data.alpaca.markets/v2 endpoint will be used.}
+#'   \item{\code{"p"/"polygon"}}{ the \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}: api.polygon.io/v2/aggs will be used. }
+#' }
+ 
 #' @param timeframe \code{(character)} For the `v1` API, one of
 #' \itemize{
-#'  \item{`'t'/'lt'/'trade'`}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
-#'  \item{`'q'/'lq'/'quote'`}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
+#'  \item{`'tr'/'lt'/'trade'/'last_trade'`}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+#'  \item{`'qu'/'lq'/'quote'/'last_quote'`}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
 #'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
 #'  \item{`'d'`/`'day'`}{ (`multiplier` will be `1`)}
 #' } 
-#' Not case-sensitive.
-#' For the `v2` API, `multiplier` can be any positive `integer` for any one of the following `timeframe`'s:
+#' For the `v2` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
+#' \itemize{
+#'  \item{`'m'`/`'min'`/`'minute'`}
+#'  \item{`'h'`/`'hour'`}
+#'  \item{`'d'`/`'day'`}
+#'  }
+#' For the `"p"/"polygon"` API, `multiplier` can be any positive `integer` for any one of the following `timeframe`'s:
 #' \itemize{
 #'  \item{`'m'`/`'min'`/`'minute'`}
 #'  \item{`'h'`/`'hour'`}
 #'  \item{`'d'`/`'day'`}
 #'  \item{`'w'`/`'week'`}
-#'  \item{`'M'`/`'mo'`/`'month'`}{ (*Note* capitalized M for month)}
+#'  \item{`'M'`/`'mo'`/`'month'`}{ (*Note* capitalize M for month)}
 #'  \item{`'q'`/`'quarter'`}
 #'  \item{`'y'`/`'year'`} 
 #' } 
-#' Case-sensitive
 #' @param multiplier For the `v1` API, with `'minute'` `timeframe` one of `1`/`5`/`15`. Otherwise, defaults to `1`.
-#' For the `v2` API, this can be any `integer`, also defaults to `1`.
+#' For the `v2` API, `multiplier` can only be `1`.
+#' For the `"polygon"` API, this can be any positive `integer`. **Default** `1`.
 #' @param from (equivalent to `start` in `v1`) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *equal to or after* this time. Default is 7 days ago. 
 #' @param to (equivalent to `end` in `v1`) \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *equal to or before* this time. Default is today's date.
-#' @param after *`v1` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *after* this time. Default is 7 days ago. *Cannot be used with \code{from}*
+#' @param after *`v1` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *after* this time. Default is 7 days ago. *Cannot be used with \code{to}*
 #' @param until *`v1` only* \code{(Date/POSIXlt/Datetime(POSIXct)/character)} See Details for formatting guidelines. Return data *before* this time. Default is today's date. *Cannot be used with \code{from}*
-#' @param limit *`v1` only* \code{(integer)} The amount of bars to return per symbol. This can range from 1 to 1000. Defaults to 1000. *Note:* If \code{full} is set to T, this parameter is ignored and forced to 1000. 
-#' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note:* The `v1` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. Defaults to FALSE.
-#' @param unadjusted *v2 only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. Defaults to `FALSE`.
-#' @details All values to `from/after/to/until` will parse correctly if a numeric year, in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `v2` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `v2`. For the `v2` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively. 
-#' For a full overview of how the v2 Polygon.io Aggregates endpoint functions, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
+#' @param limit *v1 & v2* \code{(integer)} The amount of bars to return per symbol. This can range from `1` to `1000` for `v1` and `1` to `10000` for `v2`. **Default** 1000 (`v1`), 10000 (`v2`), 50000 (`p`). 
+#' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note on rate limits:* The `v1` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. The `polygon` API free tier has a call limit of 5 requests per minute, if the rate limit is reached, queries will pause for 1 minute. **Default** FALSE.
+#' @param unadjusted *polygon only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. **Default** `FALSE`.
+#' @details All values to `from/after/to/until` will parse correctly if a numeric year, in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `polygon` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `polygon`. For the `polygon` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively. 
+#' For a full overview of how the Polygon.io Aggregates endpoint behaves, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
 #' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
 #' \itemize{
 #'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
@@ -45,7 +56,7 @@
 #'  \item{\code{low}}{ \code{(numeric)} low price}
 #'  \item{\code{close}}{ \code{(numeric)} close price}
 #'  \item{\code{volume}}{ \code{(numeric)} volume (in millions)}
-#'  \item{\code{n *v2 only*}}{ \code{(numeric)} Number of items in aggregate window}
+#'  \item{\code{n *polygon only*}}{ \code{(numeric)} Number of items in aggregate window}
 #' }
 #' Additionally, a "query" attribute is attached to each symbol's `data.frame` with the "query" data as a `list` for each of the calls required to return it. This is accessed via \code{\link[base]{attr}}. Each call is a list with the following items:
 #' \itemize{
@@ -62,7 +73,7 @@
 #' # Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each symbol.
 #' market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175)
 #' # Get three months of hourly data for Beyond Meat from the v2 Polygon API when full = F:
-#' bars <- market_data(symbol = c("BYND"), v = 2, from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h")
+#' bars <- market_data(symbol = c("BYND"), v = 'polygon', from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h")
 #' # Returns successfully
 #' purrr::map(bars, nrow) # Note the number of rows
 #' purrr::map(bars, ~range(.x$time)) # Note that Some data is missing
@@ -99,7 +110,7 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
   evar <- environment()
   evar$.vn = list(
     symbol = "character",
-    v = c("integer", "numeric"),
+    v = c("integer", "numeric", "character"),
     timeframe = c("factor", "character"),
     tf_num = c("integer", "numeric"),
     tf_order = "factor",
@@ -115,13 +126,12 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
     cal = c("data.frame", "tibble")
   )
   # Last trade and quote handling  ----
-  if (grepl("^(?:lt)$|^t$|(?:trade)|^q$|^(?:lq)$|(?:quote)", timeframe, ignore.case = TRUE)) {
-    timeframe <- ifelse(grepl("^lt$|^t$|trade", timeframe, ignore.case = TRUE), "t", "q")
+  if (grepl("(?:^lt$)|(?:^tr$)|(?:^t$)|(?:^trade$)|(?:^last_trade$)|(?:^qu$)|(?:^lq$)|(?:^quote$)|(?:^last_quote$)", timeframe, ignore.case = TRUE)) {
+    timeframe <- ifelse(grepl("(?:^lt$)|(?:^tr$)|(?:^t$)|(?:^trade$)|(?:^last_trade$)", timeframe, ignore.case = TRUE), "tr", "qu")
     .url <- bars_url(symbol = symbol, timeframe = timeframe)
     .out <- bars_get(.url, timeframe = timeframe)
     return(.out)
   }
-  
   
   
   # Process & Bind important variables:  Thu Mar 26 08:40:24 2020 ----
@@ -131,7 +141,9 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
   
   
   
-  if (full) {
+  if (full && v != 2) {
+    # V2 has pagination - so the cobbling together of data with bars_complete is not necessary with this API.
+    
     # Form the URL
     .url <- bars_url(symbol)
     # retrieve the data
@@ -152,13 +164,14 @@ market_data <- function(symbol, v = 1, timeframe = "day", multiplier = 1, from =
 
 #' @title Create API amenable boundaries based on user input for market_data
 
+
 #' @description Internal function for fixing input date boundaries. The function is intended for use in an environment where its parameters already exist as it will use the variables from it's parent environment. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @inheritDotParams market_data
 #' @param evar An environment that holds variable constants necessary for sub-functions.
 #'@return \code{(list)} A list with two Date/Datetime items that are boundaries for the date range necessary to call the API with to retrieve the appropriate data from the specified API. Items will have names corresponding to the non-NULL \code{from/to/after/until} arguments in the calling environment or supplied to the function.
 #'@keywords internal
 bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  
+  force(evar)
   #trickery to get the variables from the calling environment
   fetch_vars(evar$.vn[c("v", "from", "to", "after", "until", "timeframe", "multiplier")], ...)
   
@@ -203,12 +216,10 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
   
   # Coerce to floor/ceiling dates/datetimes or fail with NA
   bounds <- purrr::imap(bounds, ~{
-    
-    
     # Floors or ceilings
     if (timeframe %in% c("minute", "hour", "day")) {
       #To include at least one full day of data, the boundary must be the previous day
-      .unit <- ifelse(v == 2, paste(1, "day"), paste(multiplier, timeframe))
+      .unit <- ifelse(v == "p", paste(1, "day"), paste(multiplier, timeframe))
       .call <- switch(.y,
                       from = ,
                       after = rlang::expr(lubridate::floor_date(.x, .unit)),
@@ -236,7 +247,7 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
   }) 
   
   # API version specific bounds
-  if (v == 1) {
+  if (v %in% 1:2) {
     if (timeframe == "minute" && (lubridate::interval(bounds[[1]], bounds[[2]]) / (60 * 60 * 24)) < 1) {
       if (!any(lubridate::hour(seq.POSIXt(from = bounds[[1]], to = bounds[[2]], by = paste0(multiplier, " ",ifelse(timeframe == "minute","min",timeframe),"s"))) %in% 9:16)) {
         warning("Date range supplied does not include typical market hours, the V1 API is unlikely to return data", call. = FALSE, immediate. = TRUE)
@@ -247,13 +258,14 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
       .dt <- purrr::when(
         .y,
         # If it's the start/after - use the beginning of the trading day
-        (. == "from" || . == "after") && inherits(.x, "Date") ~ lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"),
+        (. == "from" || . == "after") && inherits(.x, "Date") && timeframe %in% c("minute", "hour") ~ lubridate::as_datetime(paste0(.x, " 07:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"),
         # If its the end/until - use the end of the trading day
-        inherits(.x, "Date") ~ lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"),
+        inherits(.x, "Date") && v != 2 ~ lubridate::as_datetime(paste0(.x, " 19:00"), format = "%Y-%m-%d %H:%M", tz = "America/New_York"),
+        ~ inherits(.x, "Date") && v == 2 && lubridate::as_date(.x) == Sys.Date() ~ lubridate::floor_date(.x, "day"),
         ~.x
       )
     })
-  } else if (v == 2) {
+  } else if (v == "p") {
     bounds <- purrr::map(stats::setNames(bounds, c("from", "to")), ~lubridate::force_tz(lubridate::as_date(.x), "America/New_York"))
   }
   
@@ -271,7 +283,7 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
 #' @inheritDotParams market_data
 #' @keywords internal
 bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  
+  force(evar)
   .vn <- evar$.vn[c(
     "v",
     "unadjusted",
@@ -283,52 +295,94 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
   fetch_vars(.vn, ...)
   
   # Format symbol:  Thu Mar 26 08:48:03 2020 ----
-  if (v == 1) {
+  if (v == 1 && !timeframe %in% c("tr", "qu")) {
     .symbol = ifelse(length(symbol) > 1, paste0(trimws(symbol), collapse = ","), symbol)
-  } else if (v == 2) {
+  } else {
     .symbol = symbol
   }
   .symbol <- toupper(.symbol)
-  #Limit :  Thu Mar 26 08:50:30 2020 ----
-  # If limit is null or full = T OR if limit > 1000 then set at 1000 for v1
-  if (v == 1) {
-    if (is.null(limit) || isTRUE(limit > 1000)) {
-      if (isTRUE(limit > 1000)) message("`limit` cannot exceed 1000, coercing to 1000.")
-      limit <- 1000
-    }  
+  
+  if (!timeframe %in% c("tr", "qu")) {
+    #Limit :  Thu Mar 26 08:50:30 2020 ----
+    # If limit is null OR if limit > 1000 then set at 1000 for v1
+    .limit = c(v1 = 1000, v2 = 10000, p = 50000)
+    .limit <- purrr::when(limit,
+                is.null(.) ~ .limit[v],
+                . > .limit[v] ~ .limit[v],
+                ~ limit) 
+    if (!identical(.limit,limit)) {
+      message("`limit` coerced to ",.limit)
+      limit <- .limit
+    }
   }
+    
   # timeframe is quote or trade ----
   # Sun Jun 14 16:08:07 2020
-  if (v == 1 && timeframe %in% c("t", "q")) {
+  if (v == 1 && timeframe %in% c("tr", "qu")) {
 
-    .url <- purrr::map_chr(setNames(symbol, symbol), ~{
-      .url <- get_url(list(ifelse(timeframe == "t", "last","last_quote"), "stocks", .x), data = TRUE, v = v)
+    .url <- purrr::map_chr(setNames(.symbol, .symbol), ~{
+      .url <- get_url(list(ifelse(timeframe == "tr", "last","last_quote"), "stocks", .x), v = v, data = TRUE)
     })
-  } else if (v == 1) {
+  } else if (v %in% 1:2) {
     # multiplier & timeframe ----
     # Fri May 08 21:26:15 2020
-    timeframe <- ifelse(timeframe == "minute", paste0(multiplier, "Min"), "day")
+    timeframe <- purrr::when(timeframe,
+           . == "minute" ~ "Min",
+           . == "hour" && v == 2 ~ "Hour",
+           . == "day" && v == 2 ~ "Day",
+           . == "day" ~ "D")
+    timeframe <- paste0(ifelse(v == 2, 1, multiplier), timeframe)
     #full = F Make API requests:  Tue Mar 17 21:37:35 2020 ----
     
     # Coerce to appropriately formatted character strings
     bounds <- purrr::map(bounds, ~{
+      # V2 does not allow requests beyond present time
+      if (.x > Sys.time()) .x <- lubridate::as_datetime(lubridate::floor_date(Sys.time(), "day"))
       # V1 has a bug where offset must be -
       # V1 must have colon in offset
       stringr::str_replace(format(.x, "%Y-%m-%dT%H:%M:%S%z"), "[\\+\\-](\\d{2})(\\d{2})$", "-\\1:\\2")
       
     })
-
+    # Path for v1 or v2
+    .path <- purrr::when(v,
+                . == 1 ~ list("bars", as.character(timeframe)),
+                . == 2 ~ list("stocks", symbol = symbol, "bars"))
+    # Query for v1 or v2
+    .query <- purrr::compact(purrr::when(
+      v,
+      . == 1 ~ list(
+        symbols = .symbol,
+        limit = limit,
+        start = bounds$from,
+        after = bounds$after,
+        end = bounds$to,
+        until = bounds$until
+      ),
+      . == 2 ~ list(
+        start = bounds$from %||% bounds$after,
+        end = bounds$to %||% bounds$until,
+        limit = limit,
+        page_token = rlang::dots_list(...)$page_token,
+        timeframe = timeframe
+      )
+    ))
     # Build the url
-    .url <- get_url(
-      path = list("bars", as.character(timeframe)),
-      query = list(symbols = .symbol,
-                         limit = limit,
-                         start = bounds$from,
-                         after = bounds$after,
-                         end = bounds$to,
-                         until = bounds$until
-    ), data = TRUE, v = v)
-  } else if (v == 2) {
+    if (v == 1) {
+      .url <- get_url(
+        path = .path,
+        query = .query,
+        data = TRUE,
+        v = v)
+    } else if (v == 2) {
+      .url <- purrr::map_chr(stats::setNames(.path$symbol, .path$symbol), ~{
+        .url <- get_url(
+          purrr::list_modify(.path, symbol = .x),
+        query = .query
+        , data = TRUE, v = v)
+      })
+    }
+    
+  } else if (v == "p") {
     .url <- purrr::map_chr(stats::setNames(.symbol, .symbol), ~{
       .url <- get_url(list(
         ep = "aggs",
@@ -340,12 +394,69 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         from = as.character(lubridate::as_date(bounds[[1]])),
         to = as.character(lubridate::as_date(bounds[[2]]))
       ),
-      query = list(unadjusted = unadjusted,
-                   apiKey = Sys.getenv("APCA-LIVE-API-KEY-ID"))
-      , data = TRUE, v = v)
+      query = list(unadjusted = unadjusted)
+      , api = "api", poly = TRUE, data = TRUE, v = 2)
     })
   }
   return(.url)
+}
+
+bar_sym <- function(x, nm) {
+  .depths <- list()
+  for (.d in 1:purrr::vec_depth(x)) {
+    .depths[[.d]] <- purrr::reduce(1:.d, ~rlang::expr(`[[`(!!.x, .y)), .init = rlang::sym("x"))
+  }
+  
+  
+  if (!nm %in% names(x)) {
+   x <- purrr::compact(purrr::imap(.depths, ~{
+      .o <- try(eval(.x), silent = TRUE)
+      if (nm %in% names(.o))
+        .o
+      else
+        NULL
+    })) 
+   if (!rlang::is_empty(x)) x <- x[[1]]
+  } 
+  x
+}
+
+# bars_pagination ----
+# Mon Mar 22 11:25:31 2021
+bars_pagination <- function(bar, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  force(evar)
+  fetch_vars(evar$.vn[c("multiplier", "timeframe")])
+  .bar <- bar_sym(bar, "time")
+  .query <- get_query(.bar)
+  # if this is not the first query
+  if (is.null(names(.query))) {
+    .q <- tail(.q, 1) # get the last
+  } else 
+    .q <- .query
+  
+  i <- 1
+  bars <- list()
+  while (is.character(.q$next_page_token %||% tail(.q, 1)$next_page_token)) {
+    .url <- httr::parse_url(.q$url)
+    .url$query <- purrr::list_modify(.url$query, page_token = .q$next_page_token)
+    # Save the query meta-date for appending to the output df
+    bars[[i]] <- bars_transform(httr::GET(httr::build_url(.url), get_headers()))
+    bars[[i]] <- bar_sym(bars[[i]], "time")
+    
+    .query <- append(
+      purrr::when(
+        identical(.query, .q),
+        isTRUE(.) ~ list(.query),
+        ~ .query
+      ), list(get_query(bars[[i]]))
+    )
+    .q <- get_query(bars[[i]])
+    i <- i + 1
+    Sys.sleep(.3)
+  }
+  out <- rlang::exec(bind_rows, bar_sym(bar, "time"), !!!bars)
+  
+  as_tsymble(out, index = "time", query = .query, symbol = get_sym(.bar), interval = do.call(tsibble::new_interval, rlang::list2(!!timeframe := multiplier)))
 }
 
 
@@ -359,10 +470,11 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
 #' @keywords internal
 
 
-bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env()), just_tibble = FALSE) {
+  force(evar)
   fetch_vars(evar$.vn[c("v", "timeframe")], ...)
   
-  if (timeframe %in% c("t","q")) {
+  if (timeframe %in% c("tr","qu")) {
     headers = get_headers()
     e <- rlang::env(query = list())
     bars <- purrr::imap_dfr(url, ~{
@@ -373,30 +485,44 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
     })
     attr(bars, "query") <- e$query
   } else if (v == 1) {
-    headers = get_headers()
-    if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving\n", url))
-    agg_quote = httr::GET(url = url, headers)
-    
+    agg_quote = httr::GET(url = url, get_headers())
     bars <- bars_transform(agg_quote, ...)
-    
-    
-  } else if (v == 2) {
+  } else if (v == "p" || v == 2) {
     # get for v2 API
     bars <- purrr::imap(url, ~{
       .url <- .x
-      if (isTRUE(get0(".dbg", .GlobalEnv, "logical", F))) message(paste0("Retrieving ", .y, ":\n", .url))
       #Send Request
-      agg_quote = httr::GET(url = .url)
+      agg_quote = httr::GET(url = .url, if (v == 2) get_headers())
+      if (v == "p" && agg_quote$status_code == 429) {
+        # Handle "Too Many Requests" error for Polygon
+        message("Too many requests to Polygon, waiting 60s...")
+        Sys.sleep(60)
+        agg_quote = httr::GET(url = .url, if (v == 2) get_headers())
+      }
       # Save the query meta-date for appending to the output df
-      .quote <- bars_transform(agg_quote) # timeframe must be passed explicitly since ... does not carry into the purrr function from bars_get
-      return(.quote)
+      out <- bars_transform(agg_quote) # timeframe must be passed explicitly since ... does not carry into the purrr function from bars_get
+      .q <- get_query(bar_sym(out, "time"))
+      if (v == 2 && is.character(.q$next_page_token %||% tail(.q, 1)$next_page_token)) 
+        out <- bars_pagination(out)
+      
+      return(out)
     })
-    bars <- stats::setNames(unlist(bars, recursive = FALSE, use.names = FALSE), names(bars))
+    if (purrr::vec_depth(bars) > 3)
+      bars <- stats::setNames(unlist(bars, recursive = FALSE, use.names = FALSE), names(bars))
   }
-  
+  # If just the tibble should be returned and not a nested list.
+  if (isTRUE(just_tibble)) {
+    bars <- get_tibble(bars)
+  }
   return(bars)
 }
 
+get_tibble <- function(x) {
+  while (any(class(x) == "list")) {
+    x <- x[[1]]
+  }
+  x
+}
 
 # bars_transform ----
 # Sun Mar 29 16:09:30 2020
@@ -408,17 +534,18 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
 
 
 bars_transform <- function(agg_quote, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  
+  force(evar)
   
   fetch_vars(evar$.vn[c("v", "timeframe", "multiplier")], ...)
   
   .quote = response_text_clean(agg_quote)
+  check_response(.quote)
   .query <- get_query(.quote)
-  if (v == 2) {
+  if (v == "p" || v == 2) {
     # Mirror V1 response as list with nested symbol data
-    .quote <- rlang::list2(!!.query$ticker := .quote)
+    .quote <- rlang::list2(!!(.query$ticker %||% .query$symbol) := .quote)
   } 
-  if (!timeframe %in% c("q","t")) {
+  if (!timeframe %in% c("qu","tr")) {
     # only check output if it's a bars request
     purrr::iwalk(.quote, ~{
       .warn <- try({NROW(.x) > 0})
@@ -428,7 +555,7 @@ bars_transform <- function(agg_quote, ..., evar = get0("evar", mode = "environme
     })
   }
   
-  if (timeframe %in% c("q","t")) {
+  if (timeframe %in% c("qu","tr")) {
     # if last quote or trade
     .sym <- .quote$symbol
     bars <- tibble::as_tibble(.quote[[grep("^last", names(.quote))]])
@@ -440,7 +567,7 @@ bars_transform <- function(agg_quote, ..., evar = get0("evar", mode = "environme
     bars = purrr::imap(.quote, ~{
       if (!any("data.frame" %in% class(.x))) {
         message(paste0("The symbol ", .y, " returned no data.")) 
-        return(tibble::tibble())
+        return(NULL)
       } 
 
       .t <- switch(timeframe,
@@ -536,6 +663,7 @@ expand_calendar <- function(cal, timeframe, multiplier) {
 #' @inheritDotParams market_data
 
 bars_missing <- function(x, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  force(evar)
   fetch_vars(evar$.vn[c("v", "timeframe")], ...)
   # get the index
   .ind <- tsibble::index_var(x)
@@ -544,8 +672,8 @@ bars_missing <- function(x, ..., evar = get0("evar", mode = "environment", envir
   # must handle conversion to numeric for year, and coerce to tz UTC to match returned data
   .tail <- switch(as.character(timeframe),
          minute = ,
-         hour = list(begin = lubridate::int_start(utils::head(evar$cal, 1)$day),
-                     end = lubridate::int_end(utils::tail(evar$cal, 1)$day)),
+         hour = list(begin = lubridate::floor_date(evar$bounds[[1]], timeframe),
+                     end = lubridate::ceiling_date(evar$bounds[[2]], timeframe)),
          day = ,
          week = ,
          month = ,
@@ -554,15 +682,16 @@ bars_missing <- function(x, ..., evar = get0("evar", mode = "environment", envir
            end = try_date(evar$bounds[[2]], timeframe, tz = "UTC")),
          year = list(
            begin = lubridate::year(evar$bounds[[1]]),
-           begin = lubridate::year(evar$bounds[[2]])
+           end = lubridate::year(evar$bounds[[2]])
          )
          )
   
-  # add the beginning..
-  x <- suppressMessages(add_row(x, !!.ind := .tail[[1]], .before = 1))
-  # and end
-  x <- suppressMessages(add_row(x, !!.ind := .tail[[2]]))
-  
+  # add the beginning if not present..
+  if (!.tail$begin %in% x[[.ind]]) 
+    x <- suppressMessages(add_row(x, !!.ind := .tail[[1]], .before = 1))
+  # and end if not present...
+  if (!.tail$end %in% x[[.ind]]) 
+    x <- suppressMessages(add_row(x, !!.ind := .tail[[2]]))
   # fill the gaps & filter for market hours
   .args <- list(.data = x,
                 .full  = TRUE)
@@ -606,22 +735,29 @@ bars_span <- function(x, ext, timeframe) {
 #' @inheritParams bars_bounds
 
 gap_max <- function(ext, timeframe, evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  force(evar)
 # the max gap only needs to be determined once.
   evar$max_gap <- evar$max_gap %||% {
-    .int <- tsibble::interval(ext$out)
+    .int <- time_interval(ext$out)
+    if (.int$timeframe == "quarter") {
+      .int <- lubridate::duration(3, "months") * .int$multiplier
+    } else {
+      .int <- do.call(lubridate::duration, unname(.int))
+    }
+    
     .gap_idx <- which.max(diff(evar$cal$date))
     if (!rlang::is_empty(.gap_idx) && !timeframe %in% c("minute", "hour")) {
       .max <- lubridate::as.duration(difftime(
         lubridate::int_end(evar$cal$day[(.gap_idx + 1)]),
         lubridate::int_start(evar$cal$day[.gap_idx])
-      )) / lubridate::as.duration(.int)
+      )) / .int
     } else {
-      .max <- lubridate::as.duration(.int)
+      .max <- .int
     }
     .max
   }
   ext$missing <- bars_missing(ext$out, timeframe = timeframe)
-  dplyr::slice_max(dplyr::filter(ext$missing, .n > evar$max_gap), .n)
+  dplyr::slice_max(dplyr::filter(ext$missing, lubridate::duration(.n, timeframe) > evar$max_gap), .n)[1,]
 } 
 
 #' @title ensure the gap returned from `gap_identify` is valid
@@ -651,6 +787,7 @@ gap_check <- function(x, ext) {
 #' @keywords internal
 
 gap_identify <- function(ext, timeframe, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+  force(evar)
   .idx <- tsibble::index(ext$out)
   # get the largest gap
   if (ext$max %||% TRUE) {
@@ -668,12 +805,11 @@ gap_identify <- function(ext, timeframe, ..., evar = get0("evar", mode = "enviro
     
     # check for small gaps. Only needs to be computed once
     ext$expected <- ext$expected %||% {
-      if (timeframe == "day") {
-        .expected <- evar$cal$date[!evar$cal$date %in% ext$out[[.idx]]]
-      } else { # minute/hour
-        .expected <- evar$cal_exp$time[!evar$cal_exp$time %in% ext$out[[.idx]]]
-      }
-      .expected
+      evar[[ifelse(timeframe == "day", "cal", "cal_exp")]][[ifelse(timeframe == "day", "date", "time")]]  %>% 
+        # the time points not already present
+        `[`(!. %in% ext$out[[.idx]]) %>%
+        # within the bounds
+        `[`(lubridate::`%within%`(., do.call(lubridate::interval, unname(evar$bounds)))) 
     }
     
     # get the mean duration encompassed by an API call. Only computed once
@@ -750,10 +886,11 @@ group_by_rle <- function(x) {
 #' @inheritDotParams market_data
 #' @keywords internal
 bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
-  
+  force(evar)
   .vn <- evar$.vn[c("v", "unadjusted", "limit", "full", "timeframe", "multiplier")]
   fetch_vars(.vn, ...)  
-  
+  # If no data was returned, no new data is going to be returned. Return NULL
+  if (is.null(get_tibble(bars))) return(NULL)
   if (is.data.frame(bars)) bars <- list(bars)
   .newbars <- purrr::map(bars, ~{
     ext <- rlang::env(
@@ -763,35 +900,32 @@ bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", e
       count = 0
     )
     
-    
-    
-    if (timeframe %in% c("minute", "hour")) 
-      evar$cal_exp <- expand_calendar(evar$cal, timeframe, multiplier)
-    
-    .go <- gap_identify(ext, timeframe)# adds missing to ext
-    
-    while (isFALSE(.go)) {
-    
-      # only fetch data if there is data to fetch
-    .args <- list(
-      bounds = setNames(as.list(ext$gap[c(".from", ".to")]), c("from", "to")),
-      timeframe = timeframe,
-      multiplier = multiplier,
-      symbol = ext$symbol
-    ) 
-    .nd <- suppressMessages(bars_get(do.call(bars_url, .args), timeframe = timeframe, multiplier = multiplier, ...))
-    bars_span(.nd[[1]], ext, timeframe)
-    ext$out <- bind_rows(ext$out, .nd[[1]])
-    
-      # this count comes from identify_gap - delays break until tails are added.
-      .go <- gap_identify(ext, timeframe)
-    }
-    # sort added queries
-    .query <- get_query(ext$out)
-    if (is.null(.query$ts)) .query <- .query[order(purrr::map_dbl(.query, "ts"))]
-    attr(ext$out, "query") <- .query
-    
-    return(arrange(ext$out, !!ext$index))
+    #} else {
+      
+      .go <- gap_identify(ext, timeframe)# adds missing to ext
+      
+      while (isFALSE(.go)) {
+        
+        # only fetch data if there is data to fetch
+        .args <- list(
+          bounds = setNames(as.list(ext$gap[c(".from", ".to")]), c("from", "to")),
+          timeframe = timeframe,
+          multiplier = multiplier,
+          symbol = ext$symbol
+        ) 
+        .nd <- suppressMessages(bars_get(do.call(bars_url, .args), timeframe = timeframe, multiplier = multiplier, ..., just_tibble = TRUE))
+        bars_span(.nd, ext, timeframe)
+        ext$out <- bind_rows(ext$out, .nd)
+        
+        # this count comes from identify_gap - delays break until tails are added.
+        .go <- gap_identify(ext, timeframe)
+      }
+      # sort added queries
+      .query <- get_query(ext$out)
+      if (is.null(.query$ts)) .query <- .query[order(purrr::map_dbl(.query, "ts"))]
+      attr(ext$out, "query") <- .query
+    #}
+    return(dplyr::arrange(ext$out, !!ext$index))
   })
   return(.newbars)
 }
@@ -806,7 +940,7 @@ bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", e
 #' @param cenv Calling environment in which to assign variables
 #' @keywords internal
 
-evar_bind <- function(..., cenv = rlang::caller_env(), evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
+evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   .vars <- rlang::dots_list(...)
   fetch_vars(evar$.vn, ...)
   #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
@@ -822,40 +956,61 @@ evar_bind <- function(..., cenv = rlang::caller_env(), evar = get0("evar", mode 
   # Create ordered factor or timeframe options
   tf_order <- purrr::map_chr(.tf_opts, utils::tail, 1) %>% {factor(., levels = .)}
   
-  if (v == 1) {
-    .t <- grep(stringr::regex(timeframe, ignore_case = T), .tf_opts[c(1,3)], ignore.case = T)
+  
+  # if v = "polygon", or if v comes in as character number
+  if (!is.na(suppressWarnings(as.numeric(v)))) 
+    v <- as.numeric(v)
+  else
+    v <- "p"
+  
+  if (v %in% 1:2) {
+    .idx <- list(v1 = c(1,3), v2 = 1:3)
+    .t <- grep(timeframe, .tf_opts[.idx[[v]]], ignore.case = FALSE)
     if (length(.t) < 1) {
-      stop(paste0("`",timeframe,"` is not a valid timeframe for the v1 API. See ?market_data documentation."))
-    }
+      stop(paste0("`",timeframe,"` is not a valid timeframe for the v",v," API. See ?market_data documentation."))
+    } 
     # Get the timeframe
-    timeframe <- utils::tail(.tf_opts[c(1,3)][[.t]], 1)
+    timeframe <- utils::tail(.tf_opts[.idx[[v]]][[.t]], 1)
     
     # Check args
-    if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
-      rlang::abort("The v1 API only accepts multipliers of 1,5,15 for the minute timeframe")
-    } else if (timeframe == "day" && multiplier != 1) {
-      rlang::warn("The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.", class = "warning")
-      multiplier <- 1
+    if (v == 1) {
+      if (timeframe == "minute" && !any(multiplier %in% c(1,5,15))) {
+        rlang::abort("The v1 API only accepts multipliers of 1,5,15 for the minute timeframe")
+      } else if (timeframe == "day" && multiplier != 1) {
+        rlang::warn("The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.", class = "warning")
+        multiplier <- 1
+      }
+    } else if (v == 2) {
+      if (multiplier != 1) {
+        multiplier <- 1
+        rlang::warn("The v2 API only accepts 1 as a `multiplier` for the all timeframes. `multiplier` coerced to 1.")
+      }
     }
     
-  } else if (v == 2){
-    timeframe <- utils::tail(.tf_opts[[grep(substr(ifelse(timeframe == "month", "Month", as.character(timeframe)), 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
+  } else if (v == "p"){
+    timeframe <- utils::tail(.tf_opts[[grep(substr(ifelse(timeframe %in% c("M", "month"), "Month", as.character(timeframe)), 0 , 1), names(.tf_opts), ignore.case = FALSE)[1]]], 1)
   }
   # Get the timeframe as a numeric
   tf_num <- which(tf_order %in% timeframe)
-  rlang::env_bind(evar, timeframe = timeframe, multiplier = multiplier, tf_num = tf_num, tf_order = tf_order)
+  rlang::env_bind(evar, timeframe = timeframe, multiplier = multiplier, tf_num = tf_num, tf_order = tf_order, v = v)
+  # If bounds not created, create, if passed as variable, bind.
   if (!"bounds" %in% names(.vars)) {
     bounds <- bars_bounds(from = from, to = to, after = after, until = until)
-  }
+  } 
+    
+  rlang::env_bind(evar, bounds = bounds)
   
   
   
-  if (timeframe %in% c("minute", "hour", "day") && !"cal" %in% names(.vars)) {
+  if (timeframe %in% c("minute", "hour", "day") && !"cal" %in% ls(evar)) {
     # calendar is only necessary when timeframe is less than week
-    cal <- rlang::exec(calendar, !!!unname(bounds))
+    .args <- list(.env = evar,
+         cal = rlang::exec(calendar, !!!unname(bounds)))
+    if (timeframe %in% c("minute", "hour")) 
+      .args$cal_exp <- expand_calendar(.args$cal, timeframe, multiplier)
+    do.call(rlang::env_bind, .args)
   }
   # Stop if malformed date argument with informative message
   if (any(purrr::map_lgl(bounds, is.na))) rlang::abort(paste0("Check the following argument(s) format: `", names(purrr::keep(bounds, ~{is.null(.x)||is.na(.x)})), "`"))
   
-  rlang::env_bind(evar, bounds = bounds, cal = cal)
 }

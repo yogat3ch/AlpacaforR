@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/year/2016-04-03/2020-04-03?unadjusted=APCA-PRO&apiKey=LqXUCWibUJs_F_qEKOPV3DV5opEISq4N
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Fri, 28 May 2021 23:43:49 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: d7f50fa6f196b8a27257163d6a948bfd
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":505,"resultsCount":2,"adjusted":true,"results":[{"v":9.77608974e+08,"vw":1776.642,"o":1465.2,"c":1847.84,"h":2035.8,"l":1460.93,"t":1546318800000,"n":25572310},{"v":1.246690244e+09,"vw":2645.6062,"o":1875,"c":3256.93,"h":3552.25,"l":1626.0318,"t":1577854800000,"n":49141778}],"status":"OK","request_id":"d7f50fa6f196b8a27257163d6a948bfd","count":2}'
+  recorded_at: 2021-05-28 23:43:49 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

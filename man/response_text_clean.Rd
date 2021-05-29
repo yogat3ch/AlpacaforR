@@ -4,15 +4,15 @@
 \alias{response_text_clean}
 \title{Clean API responses}
 \usage{
-response_text_clean(dat)
+response_text_clean(x)
 }
 \arguments{
-\item{dat}{The response from our server GET request usually in a json format.}
+\item{x}{The response from our server GET request}
 }
 \value{
 The response in a readable format as a list.
 }
 \description{
-Clean the response text (usually in unreadable json) and convert to a readable format using fromJSON.
+Clean the response text (usually in unreadable json) and convert to a readable format using \link[jsonlite]{fromJSON}.
 }
 \keyword{internal}

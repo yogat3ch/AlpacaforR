@@ -33,22 +33,28 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
-Suggests: magrittr, testthat, withr, knitr, rmarkdown,
+Suggests: pkgload, testthat, withr, knitr, rmarkdown,
      qpdf, vcr, webmockr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Imports: 
+    cli,
+    crayon,
     dplyr,
     glue,
     httr,
     jsonlite,
     lubridate,
     purrr,
+    R6,
     rlang,
     stats,
     stringr,
     tibble,
+    tidyselect,
+    tsibble,
     utils,
+    vctrs,
     websocket,
     lifecycle
 RdMacros: lifecycle

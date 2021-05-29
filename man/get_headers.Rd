@@ -4,7 +4,7 @@
 \alias{get_headers}
 \title{return headers for API calls}
 \usage{
-get_headers(live = FALSE)
+get_headers(live = get_live())
 }
 \arguments{
 \item{live}{TRUE / FALSE if you are connecting to a live account. Default to NULL, so it will use the key variables set by the user for their respective paper account. Set live = TRUE to find your live key credentials.}

@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/week/2020-03-30/2020-03-30?unadjusted=FALSE&apiKey=APCA-LIVE-API-KEY-ID
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/week/2020-03-30/2020-03-30?unadjusted=APCA-PRO&apiKey=LqXUCWibUJs_F_qEKOPV3DV5opEISq4N
     body:
       encoding: ''
       string: ''
@@ -15,17 +15,17 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx/1.19.2
-      date: Mon, 18 Jan 2021 15:17:11 GMT
+      date: Fri, 28 May 2021 22:02:44 GMT
       content-type: application/json
       transfer-encoding: chunked
       connection: keep-alive
       vary: Accept-Encoding
-      x-request-id: 26182ca7cea0acd70b59ac72726bce9b
+      x-request-id: afe2d90faad66669aea26e936939fcf3
       strict-transport-security: max-age=15724800; includeSubDomains
       content-encoding: gzip
     body:
       encoding: UTF-8
       file: no
-      string: '{"ticker":"AMZN","queryCount":5,"resultsCount":1,"adjusted":true,"results":[{"v":2.3317443e+07,"vw":1934.5883,"o":1922.83,"c":1906.59,"h":1993.02,"l":1889.15,"t":1585512000000,"n":704421}],"status":"OK","request_id":"26182ca7cea0acd70b59ac72726bce9b","count":1}'
-  recorded_at: 2021-01-18 15:17:10 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"ticker":"AMZN","queryCount":5,"resultsCount":1,"adjusted":true,"results":[{"v":2.3317443e+07,"vw":1934.5883,"o":1922.83,"c":1906.59,"h":1993.02,"l":1889.15,"t":1585454400000,"n":704421}],"status":"OK","request_id":"afe2d90faad66669aea26e936939fcf3","count":1}'
+  recorded_at: 2021-05-28 22:02:44 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

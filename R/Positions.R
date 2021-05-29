@@ -45,7 +45,7 @@
 positions <-
   function(symbols = NULL,
            action = "get",
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE))) {
+           live = get_live()) {
     
   if (is.character(symbols)) symbols <- toupper(symbols)
   

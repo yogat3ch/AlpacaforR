@@ -23,7 +23,6 @@ test_that("The watchlist appears in the list of watchlists", {
 vcr::use_cassette("watchlist_is_returned_when_it_s_name_is_passed_as_an_arg", {
 test_that("The watchlist is returned when it's name is passed as an arg", {
   (test <- watchlist("test"))
-  expect_s3_class(wl, "watchlist")
   expect_equal(test,wl, ignore_attr = TRUE)
   expect_s3_class(attr(wl, "info")[["created_at"]], "POSIXct")
 })

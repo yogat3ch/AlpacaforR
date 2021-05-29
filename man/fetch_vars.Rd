@@ -6,22 +6,20 @@
 \usage{
 fetch_vars(
   .vn,
-  e = NULL,
+  ...,
   evar = get0("evar", mode = "environment", envir = rlang::caller_env(), ifnotfound =
     new.env()),
-  cenv = rlang::caller_env(),
-  penv = parent.env(rlang::caller_env()),
-  sf = rev(sys.frames())
+  cenv = rlang::caller_env()
 )
 }
 \arguments{
 \item{.vn}{named vector of variable names with their corresponding classes - to be tested with \link[base]{inherits}}
 
-\item{e}{The list made from ellipsis if parameters are input as ellipsis argument}
-
 \item{evar}{Environment with variables passed to top level of function}
 
 \item{cenv}{The caller environment, stored automatically}
+
+\item{e}{The list made from ellipsis if parameters are input as ellipsis argument}
 
 \item{penv}{The parent of the caller environment, also stored automatically}
 

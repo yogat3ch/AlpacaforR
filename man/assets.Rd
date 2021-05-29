@@ -2,12 +2,9 @@
 % Please edit documentation in R/Assets.R
 \name{assets}
 \alias{assets}
-\alias{get_assets}
 \title{Get Assets}
 \usage{
 assets(...)
-
-get_assets(...)
 }
 \arguments{
 \item{...}{\code{(character)} asset symbols or IDs. If NULL (the default), a tibble of all assets is returned.}
@@ -29,8 +26,6 @@ Asset \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 \description{
 The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag \code{tradable = FALSE}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/assets#get-an-asset}{Assets: GET} for details.
-
-\code{get_assets} is deprecated. Use \code{\link[AlpacaforR]{assets}} instead.
 }
 \details{
 This function is vectorized over all arguments.
@@ -42,6 +37,5 @@ assets()
 (AAPL <- assets("AAPL"))
 # or by id:
 (AAPL <- assets(AAPL$id))
-get_assets()
 }
 \concept{Assets}

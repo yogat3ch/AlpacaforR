@@ -1,0 +1,62 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/calendar?start=2021-05-27&end=2021-05-28
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.10
+      date: Fri, 28 May 2021 22:01:29 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '197'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"date":"2021-05-27","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"},{"date":"2021-05-28","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"}]'
+  recorded_at: 2021-05-28 22:01:30 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/bars/1D?symbols=BYND&limit=1000&start=2021-05-27T19:00:00-04:00&end=2021-05-28T04:00:00-00:00
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Fri, 28 May 2021 22:01:30 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '154'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"BYND":[{"t":1622088000,"o":134.39,"h":146.8,"l":133.54,"c":142.61,"v":19977731},{"t":1622174400,"o":149.98,"h":154.4,"l":143,"c":145.465,"v":14923286}]}'
+  recorded_at: 2021-05-28 22:01:30 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

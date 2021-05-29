@@ -38,9 +38,9 @@ test_that("market_data_errors_when_incompatible_arguments_are_requested", {
 })
 
 
-vcr::use_cassette("market_data_warning_and_messages_are_informative", match_requests_on = c("method"), {
-  test_that("market_data_warning_and_messages_are_informative", {
-    expect_warning(expect_message(expect_message(market_data("BYND", v = 1, multiplier = 7, timeframe = "d"), regexp = "(?:`to` omitted)"), regexp ="(?:`from` omitted)"), regexp = "The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.")
+vcr::use_cassette("market_data_warnings_are_informative", match_requests_on = c("method"), {
+  test_that("market_data_warnings_are_informative", {
+    expect_warning(market_data("BYND", v = 1, multiplier = 7, timeframe = "d"), regexp = "The v1 API only accepts 1 as a `multiplier` for the day timeframe. One day bars will be returned.")
   })
 })
 
@@ -82,20 +82,23 @@ test_that("bars_bounds returns boundaries as anticipated", {
       {.[[paste0(.pre, "_data")]][[1]]}
     vcr::use_cassette(.lab, match_requests_on = "uri", {
       .object <- bars_get(url = .url, evar = evar)
-      test_that(.lab, {
-        # check that all time points are present
-        expect_equal(.object$AMZN[[tsibble::index(.object$AMZN)]], .expected$AMZN[[tsibble::index(.expected$AMZN)]], ignore_attr = TRUE)
-        # check that the mean of each column is with 5% of the expected mean
-        purrr::walk2(
-          colMeans(dplyr::select(as.data.frame(.object$AMZN), where(is.numeric))),
-          colMeans(dplyr::select(as.data.frame(.expected$AMZN), where(is.numeric))),
-           ~{
-          expect_equal(.x,
-                       .y,
-                       tolerance = .y * .05,
-                       ignore_attr = TRUE)
+      # added if since 1-day lower-bound returns no data
+      if (!is.null(get_tibble(.expected))) {
+        test_that(.lab, {
+          # check that all time points are present
+          expect_equal(.object$AMZN[[tsibble::index(.object$AMZN)]], .expected$AMZN[[tsibble::index(.expected$AMZN)]], ignore_attr = TRUE)
+          # check that the mean of each column is with 5% of the expected mean
+          purrr::walk2(
+            colMeans(dplyr::select(as.data.frame(.object$AMZN), where(is.numeric))),
+            colMeans(dplyr::select(as.data.frame(.expected$AMZN), where(is.numeric))),
+            ~{
+              expect_equal(.x,
+                           .y,
+                           tolerance = .y * .05,
+                           ignore_attr = TRUE)
+            })
         })
-      })
+      }
     })
   })
 })
@@ -110,23 +113,25 @@ test_that("bars_bounds returns boundaries as anticipated", {
       .expected <- dplyr::ungroup(test_market_data$bars) %>%
         dplyr::filter(multiplier == .vars$multiplier & timeframe == .vars$timeframe) %>%
         dplyr::pull(paste0(.pre, "_complete")) %>% magrittr::extract2(1)
-    vcr::use_cassette(.lab, match_requests_on = "uri", {
-      .object <- bars_complete(bars = .bars, evar = evar)
-      test_that(.lab, {
-        # check that all time points are present
-        expect_equal(.object$AMZN[[tsibble::index(.object$AMZN)]], .expected$AMZN[[tsibble::index(.expected$AMZN)]], ignore_attr = TRUE)
-        # check that the mean of each column is with 5% of the expected mean
-        purrr::walk2(
-          colMeans(dplyr::select(as.data.frame(.object$AMZN), where(is.numeric))),
-          colMeans(dplyr::select(as.data.frame(.expected$AMZN), where(is.numeric))),
-          ~{
-            expect_equal(.x,
-                         .y,
-                         tolerance = .y * .05,
-                         ignore_attr = TRUE)
+      if (!is.null(get_tibble(.expected))) {
+        vcr::use_cassette(.lab, match_requests_on = "uri", {
+          .object <- bars_complete(bars = .bars, evar = evar)
+          test_that(.lab, {
+            # check that all time points are present
+            expect_equal(.object$AMZN[[tsibble::index(.object$AMZN)]], .expected$AMZN[[tsibble::index(.expected$AMZN)]], ignore_attr = TRUE)
+            # check that the mean of each column is with 5% of the expected mean
+            purrr::walk2(
+              colMeans(dplyr::select(as.data.frame(.object$AMZN), where(is.numeric))),
+              colMeans(dplyr::select(as.data.frame(.expected$AMZN), where(is.numeric))),
+              ~{
+                expect_equal(.x,
+                             .y,
+                             tolerance = .y * .05,
+                             ignore_attr = TRUE)
+              })
           })
-      })
-    })
+        })
+      }
   })
 })
 
@@ -135,12 +140,13 @@ test_that("bars_bounds returns boundaries as anticipated", {
 # market_data ----
 # Wed Apr 15 16:27:58 2020
 
-vcr::use_cassette("market_data_works_when_v_2_and_full_T", match_requests_on = "uri", {
-test_that("market_data works when v = 2 and full = T", {
-  .object <- market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
-  .expected <- test_market_data$v2
-  # check that all time points are present
-  expect_equal(.object$BYND[[tsibble::index(.object$BYND)]], .expected$BYND[[tsibble::index(.expected$BYND)]], ignore_attr = TRUE)
+vcr::use_cassette("market_data_works_when_v_1_and_full_T", match_requests_on = "uri", {
+test_that("market_data works when v = 1 and full = T", {
+  .object <- market_data(c("BYND"), v = 1, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
+  .expected <- test_market_data$v1
+  # check that the majority of time points are present
+  # small discrepancies appear inevitable, so mean is used here
+  expect_equal(mean(time_index(.object$BYND, "v")),  mean(time_index(.expected$BYND, "v")), ignore_attr = TRUE, tolerance = 10)
   # check that the mean of each column is with 5% of the expected mean
   purrr::walk2(
     colMeans(dplyr::select(as.data.frame(.object$BYND), where(is.numeric))),
@@ -154,14 +160,13 @@ test_that("market_data works when v = 2 and full = T", {
 })
 })
 
-vcr::use_cassette("market_data_works_when_v_1_and_full_T", match_requests_on = "uri", {
-test_that("market_data works when v = 1 and full = T", {
-  .object <- market_data(c("BYND"), v = 1, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
-  
-  .expected <- test_market_data$v1
+vcr::use_cassette("market_data_works_when_v_2_and_full_T", match_requests_on = "uri", {
+test_that("market_data works when v = 2 and full = T", {
+  .object <- market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 1, timeframe = "m", full = T)
+  .expected <- test_market_data$v2
   # check that the majority of time points are present
   # small discrepancies appear inevitable, so mean is used here
-  expect_equal(mean(.object$BYND[[tsibble::index(.object$BYND)]]),  mean(.expected$BYND[[tsibble::index(.expected$BYND)]]), ignore_attr = TRUE, tolerance = 5)
+  expect_equal(mean(time_index(.object$BYND, "v")),  mean(time_index(.expected$BYND, "v")), ignore_attr = TRUE, tolerance = 5)
   # check that the mean of each column is with 5% of the expected mean
   purrr::walk2(
     colMeans(dplyr::select(as.data.frame(.object$BYND), where(is.numeric))),
@@ -177,7 +182,7 @@ test_that("market_data works when v = 1 and full = T", {
 
 vcr::use_cassette("market_data_works_with_last_quote", match_requests_on = "uri", {
   test_that("market_data_works_with_last_quote", {
-    .q <- market_data(c("TWTR", "BYND", "AAPL"), timeframe = "q")
+    .q <- market_data(c("TWTR", "BYND", "AAPL"), timeframe = "qu")
     expect_equal(nrow(.q), 3)
     expect_equal(length(attr(.q, "query")), 3)
     expect_identical(.q$symbol, c("TWTR", "BYND", "AAPL"))

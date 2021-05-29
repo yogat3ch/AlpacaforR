@@ -57,7 +57,7 @@ vcr::use_cassette("Positions_cancels_all_orders_when_market_is_closed", {
 
 if (.open) {
   vcr::use_cassette("positions_amzn", match_requests_on = "path", {
-    .lq <<- polygon("lq", symbol = "AMZN")
+    .lq <<- market_data("lq", symbol = "AMZN")
   })
   vcr::use_cassette("positions_order_submit_amzn", {
   order_submit("AMZN", qty = 1, order_class = "b", take_profit = list(l = .lq$askprice * 1.05), stop_loss = list(l = .lq$askprice * .95, s = .lq$askprice * .96))

@@ -1,12 +1,14 @@
 http_interactions:
 - request:
     method: get
-    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/day/2020-03-30/2020-04-03?unadjusted=FALSE&apiKey=APCA-LIVE-API-KEY-ID
+    uri: https://data.alpaca.markets/v2/stocks/AMZN/bars?start=2020-03-30T00:00:00-00:00&end=2020-04-03T00:00:00-00:00&limit=10000&timeframe=1Day
     body:
       encoding: ''
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -14,18 +16,17 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.19.2
-      date: Mon, 18 Jan 2021 15:16:50 GMT
-      content-type: application/json
-      transfer-encoding: chunked
+      date: Fri, 28 May 2021 22:01:33 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '400'
       connection: keep-alive
-      vary: Accept-Encoding
-      x-request-id: c03c8a0c7bd17a348e949613a5685f4b
+      access-control-allow-credentials: 'true'
+      vary: Origin
       strict-transport-security: max-age=15724800; includeSubDomains
-      content-encoding: gzip
+      access-control-allow-origin: '*'
     body:
       encoding: UTF-8
       file: no
-      string: '{"ticker":"AMZN","queryCount":5,"resultsCount":5,"adjusted":true,"results":[{"v":6.126087e+06,"vw":1953.4227,"o":1922.83,"c":1963.95,"h":1973.63,"l":1912.34,"t":1585540800000,"n":170631},{"v":5.123626e+06,"vw":1966.9637,"o":1964.35,"c":1949.72,"h":1993.02,"l":1944.01,"t":1585627200000,"n":155507},{"v":4.121875e+06,"vw":1917.9707,"o":1932.97,"c":1907.7,"h":1944.96,"l":1893,"t":1585713600000,"n":141417},{"v":4.335985e+06,"vw":1911.2525,"o":1901.64,"c":1918.83,"h":1927.5258,"l":1890,"t":1585800000000,"n":123267},{"v":3.60987e+06,"vw":1903.6781,"o":1911.15,"c":1906.59,"h":1926.33,"l":1889.15,"t":1585886400000,"n":113599}],"status":"OK","request_id":"c03c8a0c7bd17a348e949613a5685f4b","count":5}'
-  recorded_at: 2021-01-18 15:16:49 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"bars":[{"t":"2020-03-30T04:00:00Z","o":1922.83,"h":1973.63,"l":1912.34,"c":1963.95,"v":6126339},{"t":"2020-03-31T04:00:00Z","o":1964.35,"h":1993.02,"l":1944.01,"c":1949.72,"v":5123759},{"t":"2020-04-01T04:00:00Z","o":1932.97,"h":1944.96,"l":1893,"c":1907.7,"v":4122195},{"t":"2020-04-02T04:00:00Z","o":1901.64,"h":1927.5258,"l":1890,"c":1918.83,"v":4336003}],"symbol":"AMZN","next_page_token":null}'
+  recorded_at: 2021-05-28 22:01:33 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

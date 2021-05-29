@@ -4,19 +4,15 @@
 \alias{positions}
 \title{Get Positions}
 \usage{
-positions(
-  tickers = NULL,
-  action = "get",
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE))
-)
+positions(symbols = NULL, action = "get", live = get_live())
 }
 \arguments{
-\item{tickers}{\code{(character)} Symbol(s) for which Position information will be retrieved.}
+\item{symbols}{\code{(character)} Symbol(s) for which Position information will be retrieved.}
 
 \item{action}{\code{(character)}
 \itemize{
-\item{\code{"get"/"g"}}{ \code{GET} all positions or those specified by \code{tickers}}
-\item{\code{"close","c"}}{ Close positions specified by \code{tickers}}
+\item{\code{"get"/"g"}}{ \code{GET} all positions or those specified by \code{symbols}}
+\item{\code{"close","c"}}{ Close positions specified by \code{symbols}}
 \item{\code{"close_all"}}{ Close all positions}
 }}
 
@@ -47,10 +43,10 @@ Position \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api
 The positions API provides information about an account's current open positions. The response will include information such as cost basis, shares traded, and market value, which will be updated live as price information is updated. Character values are returned as a string while integer values are returned as numeric. See \href{https://alpaca.markets/docs/api-documentation/api-v2/positions/}{Positions} for details.
 }
 \details{
-\code{position} is vectorized and thus multiple arguments may be provided to \code{tickers} and the function will perform the \code{action} specified for each. \code{action} is not vectorized, and only one action may be performed for a set of tickers at a given time.
+\code{position} is vectorized and thus multiple arguments may be provided to \code{symbols} and the function will perform the \code{action} specified for each. \code{action} is not vectorized, and only one action may be performed for a set of symbols at a given time.
 }
 \examples{
-positions(ticker = "AAPL", live = FALSE)
+positions("AAPL", live = FALSE)
 positions("AAPL", live = TRUE)
 positions() # all paper positions
 positions(live = TRUE) # all live positions

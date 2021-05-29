@@ -8,27 +8,32 @@ tf_as_duration(multiplier, timeframe)
 }
 \arguments{
 \item{multiplier}{For the \code{v1} API, with \code{'minute'} \code{timeframe} one of \code{1}/\code{5}/\code{15}. Otherwise, defaults to \code{1}.
-For the \code{v2} API, this can be any \code{integer}, also defaults to \code{1}.}
+For the \code{v2} API, \code{multiplier} can only be \code{1}.
+For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{Default} \code{1}.}
 
 \item{timeframe}{\code{(character)} For the \code{v1} API, one of
 \itemize{
-\item{\code{'t'/'lt'/'trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
-\item{\code{'q'/'lq'/'quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
+\item{\code{'tr'/'lt'/'trade'/'last_trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+\item{\code{'qu'/'lq'/'quote'/'last_quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
 \item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
 }
-Not case-sensitive.
-For the \code{v2} API, \code{multiplier} can be any positive \code{integer} for any one of the following \code{timeframe}'s:
+For the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
+\itemize{
+\item{\code{'m'}/\code{'min'}/\code{'minute'}}
+\item{\code{'h'}/\code{'hour'}}
+\item{\code{'d'}/\code{'day'}}
+}
+For the \code{"p"/"polygon"} API, \code{multiplier} can be any positive \code{integer} for any one of the following \code{timeframe}'s:
 \itemize{
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}
 \item{\code{'h'}/\code{'hour'}}
 \item{\code{'d'}/\code{'day'}}
 \item{\code{'w'}/\code{'week'}}
-\item{\code{'M'}/\code{'mo'}/\code{'month'}}{ (\emph{Note} capitalized M for month)}
+\item{\code{'M'}/\code{'mo'}/\code{'month'}}{ (\emph{Note} capitalize M for month)}
 \item{\code{'q'}/\code{'quarter'}}
 \item{\code{'y'}/\code{'year'}}
-}
-Case-sensitive}
+}}
 }
 \description{
 convert quarter timeframe to duration

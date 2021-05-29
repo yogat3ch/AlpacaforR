@@ -1,7 +1,22 @@
+
+
 tsymble <- tsibble::new_tsibble(tsibble::build_tsibble(tibble::tibble(time = Sys.Date() + 0:3), index = "time", ordered = TRUE, interval = tsibble::new_interval(day = 1), index2 = "time"), symbol = character(), query = list(), class = "tsymble")
 
 
-
+build_tsymble <- function(x, symbol, query, validate = TRUE) {
+  if(tsibble::is_grouped_ts(x)){
+    tsymble <- structure(x, class = c("grouped_tsymble", "grouped_ts", "grouped_df", 
+                                  "tsymble_ts", "tbl_ts", "tbl_df", "tbl", "data.frame"),
+                     symbol = symbol, query = query)
+  } else {
+    tsymble <- tsibble::new_tsibble(
+      x, symbol = symbol, query = query,
+      class = "tsymble_ts")
+  }
+  
+  if (validate) validate_tsymble(tsymble)
+  tsymble
+}
 
 
 
@@ -9,14 +24,21 @@ tsymble <- tsibble::new_tsibble(tsibble::build_tsibble(tibble::tibble(time = Sys
 #' @title Construct a tsybble
 #' @description \lifecycle{experimental}
 #' Constructs a \code{tsymble}. A \code{\link[tsibble]{tsibble}} with ticker symbol, and query metadata attributes. 
+#' @param index \code{(character)} index column name
 #' @param symbol \code{(character)} Ticker symbol
 #' @param query \code{(list)} Query metadata
 #' @inheritParams tsibble::as_tsibble
-#' @inheritDotParams tsibble::as_tsibble  -index -x
+#' @inheritDotParams tsibble::build_tsibble  -index -x
 #' @export
 
-as_tsymble <- function(x, index = tsibble::index_var(x), index2 = NULL, symbol = get_sym(x), query = get_query(x), interval = NULL, ordered = NULL, key_data = NULL) {
-  force(symbol)
+as_tsymble <-
+  function(x,
+           index,
+           symbol = get_sym(x),
+           query = get_query(x),
+           validate = TRUE,
+           ...) {
+    
   force(query)
   # tsibble must have distinct index
   if (NROW(x) > 2) {
@@ -24,24 +46,30 @@ as_tsymble <- function(x, index = tsibble::index_var(x), index2 = NULL, symbol =
   } else {
     dx <- x
   }
-  if (isTRUE(interval$year > 0)) {
+  
+  if (isTRUE(rlang::dots_list(...)$interval$year > 0)) {
     # eliminates (can't obtain interval due to the mismatched index class)
     dx <- dplyr::mutate(dx, dplyr::across(index, lubridate::year))
   }
   
-  dx <- do.call(tsibble::build_tsibble, list(
+  if (missing(index) && tsibble::is_tsibble(x)) {
+    index <- tsibble::index_var(x)
+  } else {
+    index <- grep("(?:^date$)|(?:^time$)", names(x), value = TRUE, perl = TRUE)
+  }
+  
+  
+    
+  dx <- do.call(tsibble::build_tsibble, rlang::list2(
     dx,
     index = index,
-    if (!missing(index2)) index2 = index2,
-    interval = interval,
-    ordered = ordered,
-    key_data = key_data
+    ...
   ))
-  structure(
+  build_tsymble(
     dx,
     symbol = symbol,
     query = query,
-    class = c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble")
+    validate = validate
   )
 }
 
@@ -49,19 +77,15 @@ as_tsymble <- function(x, index = tsibble::index_var(x), index2 = NULL, symbol =
 #' @param x \code{(tsymble)}
 
 validate_tsymble <- function(x) {
-  
+  .classes <- c("tsymble_ts", "tbl_ts", "tbl_df", "tbl", "data.frame")
   # correct classes
-  if (!all(class(x) %in% c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"))) stop("classes must be: ", paste0(c("tbl_ts", "tbl_df", "tbl", "data.frame", "tsymble"), collapse = ", "), call. = FALSE)
-  # valid index
-  if (!tsibble::index_valid(x[[tsibble::index(x)]])) stop("tsymble must have valid index", call. = FALSE)
+  if (!all(class(x) %in% .classes)) abort("missing class: ", .classes[!.classes %in% class(x)])
+  
   # query attribute is list
-  if (!is.list(attr(x, "query"))) {
-    stop("query attribute must be a list.", call. = FALSE)
-  }
+  if (!is.list(get_query(x)) && !is.null(get_query(x))) abort("query attribute must be a list.")
+  
   # symbol is character
-  if (!is.character(attr(x, "symbol"))) stop("symbol attribute must be a character", call. = FALSE)
-  # symbol is length 1
-  if (!length(attr(x, "symbol"))) stop("symbol must be length 1", call. = FALSE)
+  if (!is.character(get_sym(x)) || rlang::is_empty(get_sym(x))) abort("symbol attribute must be a length one character vector")
   
 }
 
@@ -84,32 +108,34 @@ merge_query <- function(.) {
 }
 
 
+
+
 #' @inherit dplyr::bind_rows
 
 bind_rows <- function (..., .id = NULL) {
-  . <- rlang::dots_list(...)
-  .a <- attributes(.[[1]])
-  .a$query <- merge_query(.)
-  .a$.Data <- dplyr::bind_rows(!!!purrr::map(., tibble::as_tibble), .id = .id) %>% 
-    dplyr::distinct(!!rlang::sym(.a$index), .keep_all = TRUE) %>% 
-    tsibble::as_tsibble(index = .a$index)
-  .a$row.names <- row.names(.a$Data)
-  do.call(structure, .a)
+  . <- purrr::compact(rlang::dots_list(...))
+  .zero_row <- purrr::map_lgl(., ~nrow(.x) == 0)
+  if (any(.zero_row)) . <- .[!.zero_row]
+  .sym <- unique(do.call(c, purrr::map(., get_sym)))
+  .query <- merge_query(.)
+  .indexes <- purrr::map_chr(., time_index)
+  .index <- unique(.indexes)
+  if (length(.index) > 1) {
+    # if some indexes arent named the same, make them uniform
+    .off_named <- !.indexes %in% .index
+    purrr::map(.[which(.off_named)], ~{
+      names(.x) <- stringr::str_replace(names(.x), unique(.indexes[.off_named]), paste0("^",.index,"$"))
+    })
+  }
+  dplyr::bind_rows(!!!purrr::map(., tibble::as_tibble), .id = .id) %>% 
+    dplyr::distinct(!!rlang::sym(.index), .keep_all = TRUE) %>% 
+    as_tsymble(index = .index, symbol = .sym, query = .query)
 }
 
-arrange.tsymble <- function(.data, ..., .by_group = FALSE) {
-  .a <- attributes(.data)
-  .a$.Data <- dplyr::arrange(.data, ..., .by_group)
-  do.call(structure, .a)
-}
 
 
-#' @inherit dplyr::arrange
 
-arrange <- function (.data, ..., .by_group = FALSE) 
-{
-  UseMethod("arrange")
-}
+
 #' @title Retrieve the ticker symbol
 #' @description \lifecycle{experimental}
 #' Retrieve the ticker symbol from a `tsymble` returned from market_data.
@@ -117,7 +143,7 @@ arrange <- function (.data, ..., .by_group = FALSE)
 #' @return \code{(character)}
 #' @export 
 
-get_sym <- function(x) attr(x, "symbol")
+get_sym <- function(x) x %@% "symbol"
 
 #' @title get_query
 #' @description \lifecycle{experimental}
@@ -126,17 +152,11 @@ get_sym <- function(x) attr(x, "symbol")
 #' @return \code{(character)}
 #' @export 
 
-get_query <- function(x) attr(x, "query")
+get_query <- function(x) x %@% "query"
 
 
 
 
-
-
-#' @inherit tibble::add_row
-add_row <- function(.data, ..., .before = NULL, .after = NULL)  {
-  UseMethod("add_row", .data)
-}
 
 #' @title Add a row to a tsybble
 #' @description \lifecycle{experimental}
@@ -145,11 +165,18 @@ add_row <- function(.data, ..., .before = NULL, .after = NULL)  {
 #' @keywords internal
 
 #' @importFrom tibble add_row
-add_row.tsymble <- function(.data, ..., .before = NULL, .after = NULL) {
-  .c <- class(.data)
-  class(.data) <- .c[!.c %in% c("tsymble", "tbl_ts")]
-  structure(tibble::add_row(.data, ..., .before = .before, .after = .after), class = .c)
+#' @export
+#' @inherit tibble::add_row
+add_row.tsymble_ts <- function(.data, ..., .before = NULL, .after = NULL)  {
+  NextMethod()
 }
+
+
+# add_row.tsymble <- function(.data, ..., .before = NULL, .after = NULL) {
+#   .c <- class(.data)
+#   class(.data) <- .c[!.c %in% c("tsymble", "tbl_ts")]
+#   structure(tibble::add_row(.data, ..., .before = .before, .after = .after), class = .c)
+# }
 
 
 

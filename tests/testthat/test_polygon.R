@@ -1,6 +1,8 @@
 #' @include internal.R
 #' @include Polygon.R
 
+# CHANGED 2021-03-19T17:43:02 Commented out endpoints no long accessible to Alpaca users
+
 vcr::vcr_configure(dir = file.path(dirname(.log_path), "polygon"))
 vcr::use_cassette("Tickers_is_accessible_and_returns_the_appropriate_data", match_requests_on = c("path"), {
 test_that("Tickers is accessible and returns the appropriate data", {
@@ -112,74 +114,74 @@ test_that("Exchanges is accessible and returns appropriate data", {
 })
 })
 
-vcr::use_cassette("Historic_Trades_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Historic Trades is accessible and returns appropriate data", {
-  .resp <- polygon("Historic Trades", limit = 5)
-  expect_s3_class(.resp$t, "POSIXct")
-  expect_length(.resp, 9)
-  .exp <- list(
-    c = list(name = "conditions", type = "[]int"),
-    I = list(name = "orig_id", type = "string"),
-    e = list(name = "correction",
-             type = "int"),
-    x = list(name = "exchange", type = "int"),
-    r = list(name = "trf_id", type = "int"),
-    s = list(name = "size",
-             type = "int"),
-    t = list(name = "sip_timestamp", type = "int64"),
-    f = list(name = "trf_timestamp", type = "int64"),
-    i = list(name = "id", type = "string"),
-    p = list(name = "price",
-             type = "float64"),
-    z = list(name = "tape", type = "int"),
-    y = list(name = "participant_timestamp", type = "int64"),
-    q = list(name = "sequence_number", type = "int")
-  ) %>% {.[sort(names(.))]}
-  expect_identical(attr(.resp, "query")$map %>% {.[sort(names(.))]}, .exp)
-})
-})
+# vcr::use_cassette("Historic_Trades_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Historic Trades is accessible and returns appropriate data", {
+#   .resp <- polygon("Historic Trades", limit = 5)
+#   expect_s3_class(.resp$t, "POSIXct")
+#   expect_length(.resp, 9)
+#   .exp <- list(
+#     c = list(name = "conditions", type = "[]int"),
+#     I = list(name = "orig_id", type = "string"),
+#     e = list(name = "correction",
+#              type = "int"),
+#     x = list(name = "exchange", type = "int"),
+#     r = list(name = "trf_id", type = "int"),
+#     s = list(name = "size",
+#              type = "int"),
+#     t = list(name = "sip_timestamp", type = "int64"),
+#     f = list(name = "trf_timestamp", type = "int64"),
+#     i = list(name = "id", type = "string"),
+#     p = list(name = "price",
+#              type = "float64"),
+#     z = list(name = "tape", type = "int"),
+#     y = list(name = "participant_timestamp", type = "int64"),
+#     q = list(name = "sequence_number", type = "int")
+#   ) %>% {.[sort(names(.))]}
+#   expect_identical(attr(.resp, "query")$map %>% {.[sort(names(.))]}, .exp)
+# })
+# })
 
-vcr::use_cassette("Historic_Quotes_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Historic Quotes is accessible and returns appropriate data", {
-  .resp <- polygon("Historic Quotes", ticker = "MSFT", date = "2008-04-15", limit = 5)
-  expect_equal(.resp$t, structure(c(1208246852.8, 1208246875.777, 1208246877.527, 1208247302.04, 1208247302.04), class = c("POSIXct", "POSIXt")), tolerance = 1)
-  expect_identical(attr(.resp,"query")$map %>% {.[sort(names(.))]},list(
-    s = list(name = "bid_size", type = "int"),
-    x = list(name = "bid_exchange",
-             type = "int"),
-    P = list(name = "ask_price", type = "float64"),
-    S = list(name = "ask_size", type = "int"),
-    t = list(name = "sip_timestamp",
-             type = "int64"),
-    q = list(name = "sequence_number", type = "int"),
-    c = list(name = "conditions", type = "[]int"),
-    p = list(name = "bid_price",
-             type = "float64"),
-    X = list(name = "ask_exchange", type = "int"),
-    z = list(name = "tape", type = "int"),
-    y = list(name = "participant_timestamp",
-             type = "int64"),
-    f = list(name = "trf_timestamp", type = "int64"),
-    i = list(name = "indicators", type = "[]int")
-  )%>% {.[sort(names(.))]})
-  expect_length(.resp, 10)
-})
-})
+# vcr::use_cassette("Historic_Quotes_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Historic Quotes is accessible and returns appropriate data", {
+#   .resp <- polygon("Historic Quotes", ticker = "MSFT", date = "2008-04-15", limit = 5)
+#   expect_equal(.resp$t, structure(c(1208246852.8, 1208246875.777, 1208246877.527, 1208247302.04, 1208247302.04), class = c("POSIXct", "POSIXt")), tolerance = 1)
+#   expect_identical(attr(.resp,"query")$map %>% {.[sort(names(.))]},list(
+#     s = list(name = "bid_size", type = "int"),
+#     x = list(name = "bid_exchange",
+#              type = "int"),
+#     P = list(name = "ask_price", type = "float64"),
+#     S = list(name = "ask_size", type = "int"),
+#     t = list(name = "sip_timestamp",
+#              type = "int64"),
+#     q = list(name = "sequence_number", type = "int"),
+#     c = list(name = "conditions", type = "[]int"),
+#     p = list(name = "bid_price",
+#              type = "float64"),
+#     X = list(name = "ask_exchange", type = "int"),
+#     z = list(name = "tape", type = "int"),
+#     y = list(name = "participant_timestamp",
+#              type = "int64"),
+#     f = list(name = "trf_timestamp", type = "int64"),
+#     i = list(name = "indicators", type = "[]int")
+#   )%>% {.[sort(names(.))]})
+#   expect_length(.resp, 10)
+# })
+# })
 
-vcr::use_cassette("Last_Trade_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Last Trade is accessible and returns appropriate data", {
-  .resp <- polygon("Last trade for a symbol", symbol = "BYND")
-  expect_type(attr(.resp,"query"), "list")
-})
-})
+# vcr::use_cassette("Last_Trade_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Last Trade is accessible and returns appropriate data", {
+#   .resp <- polygon("Last trade for a symbol", symbol = "BYND")
+#   expect_type(attr(.resp,"query"), "list")
+# })
+# })
 
-vcr::use_cassette("Last_Quote_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Last Quote is accessible and returns appropriate data", {
-  .resp <- polygon("Last quote for a symbol", symbol = "BYND")
-  expect_type(attr(.resp,"query"), "list")
-  expect_equal(dim(.resp), c(1,7))
-})
-})
+# vcr::use_cassette("Last_Quote_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Last Quote is accessible and returns appropriate data", {
+#   .resp <- polygon("Last quote for a symbol", symbol = "BYND")
+#   expect_type(attr(.resp,"query"), "list")
+#   expect_equal(dim(.resp), c(1,7))
+# })
+# })
 
 vcr::use_cassette("Daily_Open_Close_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
 test_that("Daily Open/Close is accessible and returns appropriate data", {
@@ -217,58 +219,52 @@ test_that("Condition Mappings is accessible and returns appropriate data", {
   expect_length(.resp, 45)
 })
 })
-vcr::use_cassette("polygon_calendar", match_requests_on = c("path"), {
-.c <- calendar()
-})
-vcr::use_cassette("poly_clock", {
-  .ms_open <- !.c$dow %in% c("Sat", "Sun")
-})
 
-vcr::use_cassette("Snapshot_All_Tickers_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
-  if (.ms_open) {
-    .resp <- polygon("Snapshot: All Tickers")
-    expect_s3_class(.resp, "data.frame")
-    expect_s3_class(.resp$updated, "POSIXct")
-    expect_gt(nrow(.resp), 1)
-  } else {
-    # if it's a non market day
-    expect_warning(.resp <- polygon("Snapshot: All Tickers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")
-  }
-  expect_identical(attr(.resp, "query")$status_code, 200L)
-})
-})
+# vcr::use_cassette("Snapshot_All_Tickers_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Snapshot: All Tickers is accessible and returns appropriate data", {
+#   if (.ms_open) {
+#     .resp <- polygon("Snapshot: All Tickers")
+#     expect_s3_class(.resp, "data.frame")
+#     expect_s3_class(.resp$updated, "POSIXct")
+#     expect_gt(nrow(.resp), 1)
+#   } else {
+#     # if it's a non market day
+#     expect_warning(.resp <- polygon("Snapshot: All Tickers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")
+#   }
+#   expect_identical(attr(.resp, "query")$status_code, 200L)
+# })
+# })
 
-vcr::use_cassette("Snapshot_Single_Ticker_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Snapshot: Single Ticker is accessible and returns appropriate data", {
-  
-  
-  if (.ms_open) {
-    .resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")
-    expect_identical(attr(.resp, "query")$status_code, 200L)
-    expect_s3_class(.resp, "tbl")
-    expect_identical(unique(.resp$ticker), "BYND")
-    expect_s3_class(.resp$updated, "POSIXct")
-    expect_equal(nrow(.resp), 1, tolerance = 1.1)
-  } else {
-    # if not a day the market was open
-    expect_warning({.resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")}, regexp = "NotFound")
-  }
-})
-})
+# vcr::use_cassette("Snapshot_Single_Ticker_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Snapshot: Single Ticker is accessible and returns appropriate data", {
+#   
+#   
+#   if (.ms_open) {
+#     .resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")
+#     expect_identical(attr(.resp, "query")$status_code, 200L)
+#     expect_s3_class(.resp, "tbl")
+#     expect_identical(unique(.resp$ticker), "BYND")
+#     expect_s3_class(.resp$updated, "POSIXct")
+#     expect_equal(nrow(.resp), 1, tolerance = 1.1)
+#   } else {
+#     # if not a day the market was open
+#     expect_warning({.resp <- polygon("Snapshot: Single Ticker", ticker = "BYND")}, regexp = "NotFound")
+#   }
+# })
+# })
 
-vcr::use_cassette("Snapshot_Gainers_Losers_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
-test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
-  if (.ms_open) {
-    .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
-    expect_s3_class(.resp, "data.frame")
-    expect_s3_class(.resp$lastQuote.t,  "POSIXct")
-  } else {
-    expect_warning(.resp <- polygon("Snapshot: Gainers/Losers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")
-  }
-  expect_identical(attr(.resp, "query")$status_code, 200L)
-})
-})
+# vcr::use_cassette("Snapshot_Gainers_Losers_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
+# test_that("Snapshot: Gainers/Losers is accessible and returns appropriate data", {
+#   if (.ms_open) {
+#     .resp <- polygon("Snapshot: Gainers/Losers", direction = "gainers")
+#     expect_s3_class(.resp, "data.frame")
+#     expect_s3_class(.resp$lastQuote.t,  "POSIXct")
+#   } else {
+#     expect_warning(.resp <- polygon("Snapshot: Gainers/Losers"), regexp = "(?:Query returned no results)|(?:returns no data when market is closed)")
+#   }
+#   expect_identical(attr(.resp, "query")$status_code, 200L)
+# })
+# })
 
 vcr::use_cassette("Previous_Close_is_accessible_and_returns_appropriate_data", match_requests_on = c("path"), {
 test_that("Previous Close is accessible and returns appropriate data", {

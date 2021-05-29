@@ -156,7 +156,7 @@ Arguments:
 \item{\code{"unadjusted"}}{ \code{(logical)} \emph{Optional} NULL, TRUE, FALSE}
 }
 }
-\item{\code{a}}{ Aggregates - see ?market-data}
+\item{\code{a}}{ Aggregates - see \link[AlpacaforR]{market_data}}
 \item{\code{gd}}{ \href{https://polygon.io/docs/#get_v2_aggs_grouped_locale__locale__market__market___date__anchor}{Grouped Daily (Bars)}: Get the daily OHLC for entire markets.
 Arguments:
 \itemize{
@@ -169,16 +169,5 @@ Arguments:
 }
 
 This function is not vectorized. Only a single endpoint may be called at a time. Thus any endpoints with path parameters (parameters denoted in bold) require that a single combination of path parameters be passed for a given call.
-}
-\seealso{
-Other Polygon: 
-\code{\link{get_meta}()},
-\code{\link{get_poly_agg_quote}()},
-\code{\link{get_poly_historic_info}()},
-\code{\link{get_poly_last_price}()},
-\code{\link{get_poly_last_trade}()},
-\code{\link{get_poly_ohlc}()},
-\code{\link{get_poly_prev_dayclose}()},
-\code{\link{get_poly_stock_splits}()}
 }
 \concept{Polygon}

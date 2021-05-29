@@ -12,32 +12,36 @@ vcr::vcr_configure(
 # internal.R prep ----
 # Sat Dec 26 08:49:28 2020
 #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
-evar <- rlang::env(
-.vn = list(
-  symbol = "character",
-  v = c("integer", "numeric"),
-  timeframe = c("factor", "character"),
-  tf_num = c("integer", "numeric"),
-  tf_order = "factor",
-  multiplier = c("integer", "numeric"),
-  from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-  to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-  after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-  until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-  limit = c("integer", "numeric", "NULL"),
-  full = "logical",
-  unadjusted = "logical",
-  bounds = "list",
-  cal = c("data.frame", "tibble")
-),
-# Add appropriate variables to local environment
-symbol = "AMZN",
-v = 2,
-after = NULL,
-until = NULL,
-full = T,
-unadjusted = F
-)
+evar_reset <- function(...) {
+    e <- rlang::env(
+  .vn = list(
+    symbol = "character",
+    v = c("integer", "numeric", "character"),
+    timeframe = c("factor", "character"),
+    tf_num = c("integer", "numeric"),
+    tf_order = "factor",
+    multiplier = c("integer", "numeric"),
+    from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+    limit = c("integer", "numeric", "NULL"),
+    full = "logical",
+    unadjusted = "logical",
+    bounds = "list",
+    cal = c("data.frame", "tibble")
+  ),
+  # Add appropriate variables to local environment
+  symbol = "AMZN",
+  after = NULL,
+  until = NULL,
+  full = FALSE,
+  unadjusted = F
+  )
+  rlang::env_bind(e, ...)
+  return(e)
+}
+evar <- evar_reset()
 .pre <- c(eb = "eb", sb = "sb", lb = "lb")
 if (FALSE) {
   
@@ -45,22 +49,26 @@ if (FALSE) {
   .test <- suppressWarnings({
     data.frame(
       multiplier = c(
-        minute = c(1, 5, 15),
+        minute = 1,
         hour = 1,
         day = 1,
-        week = c(1, 2, 4),
-        month = c(1, 2, 3),
+        week = 1,
+        month = 1,
         quarter = 1,
-        1
+        year = 1
       ),
       timeframe = c(
-        rep("minute", 3),
+        "minute",
         "hour",
         "day",
-        rep("week", 3),
-        rep("month", 3),
+        "week",
+        "month",
         "quarter",
         "year"
+      ),
+      v = c(
+        rep(2, 3),
+        rep("p", 4)
       ),
       to = lubridate::ymd_hm("2020-04-03 16:30")
     ) %>%
@@ -124,8 +132,8 @@ if (FALSE) {
     .data <- purrr::pmap(dplyr::bind_cols(.test2, .url), ~{
       # FINALLY figured out how to call arguments by name in pmap
       .vars <- rlang::dots_list(...)
-      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]])
-      .object <- bars_get(url = .vars[[paste0(.pre,"_url")]], v = 2)
+      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]], .vars)
+      .object <- bars_get(url = .vars[[paste0(.pre,"_url")]])
     })
   }) %>% 
     tibble::as_tibble()
@@ -136,14 +144,15 @@ if (FALSE) {
     .pre <- .x
     .complete <- purrr::pmap(.test3, ~ {
       .vars <- rlang::dots_list(...)
-      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]])
+      evar <- evar_reset()
+      rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]], cal = .vars[[paste0(.pre, "_cal")]], full = TRUE, evar = evar)
       .object <- bars_complete(bars = .vars[[paste0(.pre, "_data")]], evar = evar)
     })
   }) %>%  
     tibble::as_tibble()
   test_market_data <- list(bars = dplyr::bind_cols(.test3, .complete))
-  test_market_data$v2 <- market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
   test_market_data$v1 <-  market_data(c("BYND"), v = 1, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
+  test_market_data$v2 <-  market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 1, timeframe = "m", full = T)
   
   saveRDS(test_market_data, file.path(pkgload::package_file(), "tests/testthat/rds/test_market_data.rds"))
 }
