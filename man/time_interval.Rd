@@ -7,7 +7,7 @@
 time_interval(x)
 }
 \arguments{
-\item{x}{\code{(list/data.frame/xts/tsibble)} input data}
+\item{x}{\code{(data.frame/tsibble)} input data}
 }
 \value{
 \code{(list)} with the following:

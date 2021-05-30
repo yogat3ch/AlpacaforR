@@ -1,7 +1,7 @@
 #' @title Default value for zero length variable
 #' @description This infix replaces zero length variables with a default value
-#' @usage x %|z|% y
-#' @param x,y If `x` is length zero, will return `y`; otherwise returns `x`
+#' @param x (lhs) If `x` is length zero,
+#' @param y (rhs)  will return `y`; otherwise returns `x`
 #' @examples 
 #' numeric(0) %|z|% NA_real_
 #' @export
@@ -65,27 +65,30 @@ tax_form <- function(year, cost_basis = c("fifo", "lifo", "hc", "lc")[1]) {
 
 #' @title time_index
 #' @description  Get the time index for a data.frame or xts
-#' @param .d \code{(data.frame/xts)} input data
-#' @param type \code{(character)} If TRUE
+#' @param x \code{(tsibble/list with tibble)}
+#' @param type 
 #' \itemize{
-#'   \item{\code{"name"/"n"}}{ (Default) return the name of the index}
-#'   \item{\code{"value"/"v"}}{ return the vector of values in the time index}
-#'   \item{\code{"symbol"/"s"}}{ return the symbol for the time index}
+#'   \item{\code{"character"/"c"}}{ (Default) \code{(character)} vector of the index}
+#'   \item{\code{"value"/"v"}}{ \code{(Date/Datetime)} vector of values in the time index}
+#'   \item{\code{"language"/"symbol"/"s"/"l"}}{ \code{(symbol)} for the time index}
 #' }
 
 #' @return \code{(character/numeric)} Either the name of the index, or the index itself based on `name` argument
-#' @importFrom stringr str_extract regex
-#' @importFrom stats na.exclude
 #' @export
 
 time_index <- function(x, type = "character"){
   
-  if (inherits(x, "list")) x <- x[[1]]
+  if (inherits(x, "list")) x <- get_tibble(x)
   
-  .type <- AlpacaforR::match_letters(type,
+  .type <- switch(match_letters(type,
                                      v = "value",
                                      c = "character",
-                                     l = "language")
+                                     l = "language",
+                                     s = "symbol") %>% names(),
+                  v = "value",
+                  c = "character",
+                  l = ,
+                  s = "language")
   
   
   if (tsibble::is_tsibble(x)) {
@@ -109,17 +112,16 @@ time_index <- function(x, type = "character"){
 
 #' @title time_interval
 #' @description Retrieve the time interval. If a `tsibble`, values are retrieved with `tsibble::interval`. If another object, the time index is detected and the Mode of the intervals is used.
-#' @param x \code{(list/data.frame/xts/tsibble)} input data
+#' @param x \code{(data.frame/tsibble)} input data
 #' @return \code{(list)} with the following:
 #' \itemize{
 #'  \item{multiplier}{ \code{(numeric)} of the multiple of the interval period}
 #'  \item{timeframe}{ \code{(character)} describing the interval}
 #' }
-#' @importFrom DescTools Mode
-#' @importFrom purrr map_dbl map_chr
 #' @export
 
 time_interval <- function(x) {
+  
   if (tsibble::is_tsibble(x)) {
     i <- tsibble::interval(x)
     idx <- purrr::map_lgl(i, ~ .x > 0)
@@ -207,7 +209,7 @@ date_try <- function(x, tz = Sys.timezone()) {
 #' @export
 
 try_date <- function(.x, timeframe = "day", tz = NULL) {
-  timeframe <- match_letters(timeframe, mi = "minute", ho = "hour", da = "day", we = "week", mo = "month", qu = "quarter", ye = "year", x = 2)
+  timeframe <- match_letters(timeframe, mi = "minute", ho = "hour", da = "day", we = "week", Mo = "month", qu = "quarter", ye = "year", x = 2)
   .out <- withCallingHandlers(date_try(.x, tz), warning = rlang::cnd_muffle, message = rlang::cnd_muffle) 
   if (!timeframe %in% c("minute", "hour")) { 
     .fn <- switch(as.character(timeframe),
@@ -235,14 +237,16 @@ is_error <- function(x) inherits(x, "try-error")
 #' @title Match the first x letters to supplied arguments
 #' @description Case insensitive matching of argument to possibilities provided in ellipsis.
 #' @export
-match_letters <- function(arg, ..., x = 1, several.ok = FALSE, capitalize = FALSE) {
+match_letters <- function(arg, ..., x = 1, several.ok = FALSE, ignore.case = FALSE, capitalize = FALSE) {
   if (is.null(arg)) {
     out <- arg
   } else {
-    out <- tryCatch(match.arg(substr(tolower(arg), 0, x), tolower(purrr::flatten(rlang::dots_list(...))), several.ok = several.ok),
+    out <- tryCatch(grep(paste0("^",substr(ifelse(length(arg) > 1, paste0("^",arg, collapse = "|"), arg), 0, x)), purrr::flatten(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
                     error = function(e) {
                       message(paste0(e))
                     })
+    if (!several.ok)
+      out <- out[1]
     
     if (capitalize && !is.null(out))
       out <- purrr::map_chr(out, ~purrr::when(nchar(.x) == 1,. ~ toupper(.x), ~ gsub("^(\\w)(\\w+)","\\U\\1\\L\\2", .x, perl = TRUE)))

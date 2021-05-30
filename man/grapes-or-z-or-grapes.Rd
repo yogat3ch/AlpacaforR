@@ -4,10 +4,12 @@
 \alias{\%|z|\%}
 \title{Default value for zero length variable}
 \usage{
-x %|z|% y
+lhs \%|z|\% rhs
 }
 \arguments{
-\item{x, y}{If \code{x} is length zero, will return \code{y}; otherwise returns \code{x}}
+\item{x}{(lhs) If \code{x} is length zero,}
+
+\item{y}{(rhs)  will return \code{y}; otherwise returns \code{x}}
 }
 \description{
 This infix replaces zero length variables with a default value

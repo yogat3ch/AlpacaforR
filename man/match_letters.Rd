@@ -4,7 +4,14 @@
 \alias{match_letters}
 \title{Match the first x letters to supplied arguments}
 \usage{
-match_letters(arg, ..., x = 1, several.ok = FALSE, capitalize = FALSE)
+match_letters(
+  arg,
+  ...,
+  x = 1,
+  several.ok = FALSE,
+  ignore.case = FALSE,
+  capitalize = FALSE
+)
 }
 \description{
 Case insensitive matching of argument to possibilities provided in ellipsis.

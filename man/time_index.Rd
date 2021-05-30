@@ -7,14 +7,13 @@
 time_index(x, type = "character")
 }
 \arguments{
-\item{type}{\code{(character)} If TRUE
-\itemize{
-\item{\code{"name"/"n"}}{ (Default) return the name of the index}
-\item{\code{"value"/"v"}}{ return the vector of values in the time index}
-\item{\code{"symbol"/"s"}}{ return the symbol for the time index}
-}}
+\item{x}{\code{(tsibble/list with tibble)}}
 
-\item{.d}{\code{(data.frame/xts)} input data}
+\item{type}{\itemize{
+\item{\code{"character"/"c"}}{ (Default) \code{(character)} vector of the index}
+\item{\code{"value"/"v"}}{ \code{(Date/Datetime)} vector of values in the time index}
+\item{\code{"language"/"symbol"/"s"/"l"}}{ \code{(symbol)} for the time index}
+}}
 }
 \value{
 \code{(character/numeric)} Either the name of the index, or the index itself based on \code{name} argument

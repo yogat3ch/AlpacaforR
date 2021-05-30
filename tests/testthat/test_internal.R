@@ -55,6 +55,7 @@ test_that("get_url works", {
   expect_identical(get_url(live = F),"https://paper-api.alpaca.markets/v2")
   expect_identical(stringr::str_extract(get_url(data = TRUE, query = list(a = 1), "blah", api = "api", poly = TRUE), ".*(?=\\&api)"), "https://api.polygon.io/v2/blah?a=1")
   expect_identical(get_url(data = TRUE, path = "2020-04-02", v = 1), "https://data.alpaca.markets/v1/2020-04-02")
+  expect_identical(get_url(api = "ws", v = 2, data = TRUE), "wss://stream.data.alpaca.markets/v2")
 })
 
 
