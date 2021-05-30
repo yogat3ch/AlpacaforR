@@ -261,7 +261,7 @@ check_response <- function(resp) {
     if (grepl(pattern = "^5", x = query$status_code)) {
       
     } else if(grepl(pattern = "^4", x = query$status_code))
-      rlang::abort(paste("code:", query$status_code, "\nmessage:", resp$message))
+      glubort("code: {query$status_code}\nmessage: {resp$message}")
   }
   
 }

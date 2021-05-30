@@ -245,7 +245,7 @@ match_letters <- function(arg, ..., x = 1, several.ok = FALSE, capitalize = FALS
                     })
     
     if (capitalize && !is.null(out))
-      out <- purrr::map_chr(out, ~gsub("^(\\w)(\\w+)","\\U\\1\\L\\2", .x, perl = TRUE))
+      out <- purrr::map_chr(out, ~purrr::when(nchar(.x) == 1,. ~ toupper(.x), ~ gsub("^(\\w)(\\w+)","\\U\\1\\L\\2", .x, perl = TRUE)))
   }
   out
 }
