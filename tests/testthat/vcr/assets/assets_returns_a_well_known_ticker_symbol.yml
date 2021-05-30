@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
-      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -16,17 +16,17 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.16.1
-      date: Tue, 29 Dec 2020 16:44:16 GMT
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 10:55:18 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '226'
+      content-length: '246'
       connection: keep-alive
-      access-control-allow-credentials: 'true'
+      access-control-allow-origin: '*'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
       string: '{"id":"8ccae427-5dd0-45b3-b5fe-7ba5e422c766","class":"us_equity","exchange":"NASDAQ","symbol":"TSLA","name":"Tesla,
-        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true}'
-  recorded_at: 2020-12-29 16:44:16 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true}'
+  recorded_at: 2021-05-30 10:55:19 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

@@ -20,6 +20,7 @@
 #'  \item{\code{shortable}}{ \code{(logical)} Asset is shortable on Alpaca or not.}
 #'  \item{\code{easy_to_borrow}}{ \code{(logical)} Asset is easy-to-borrow or not (filtering for `easy_to_borrow = TRUE` is the best way to check whether the name is currently available to short at Alpaca).}
 #'  }
+#'  @details Errors will be caught and surfaced but the function will always return a \code{(tibble)} to prevent error breaks when retrieving a large vector of assets.
 #' @examples
 #' # Get a tibble of all active assets: 
 #' assets()
@@ -41,10 +42,12 @@ assets <- function(...){
     if (!.is_id) symbol_id <- toupper(symbol_id) # caps if ticker
     out <- purrr::map_dfr(symbol_id, ~{
       # get response
-      asts = try(asset_transform(httr::GET(url = get_url(c("assets", .x)), headers)))
-      if (is_error(asts)) data.frame(symbol = .x, status = "Not Found")
-      else
-        asts
+      asts = try(asset_transform(httr::GET(url = get_url(c("assets", .x)), headers)), silent = TRUE)
+      if (is_error(asts)) {
+        rlang::warn(attr(asts,"condition")$message)
+        asts <- data.frame(symbol = .x, status = "Not Found")
+      } 
+      asts
     })
   }
   
