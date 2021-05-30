@@ -1,0 +1,61 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 01:06:14 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '699'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"356154.156","regt_buying_power":"176049.69","daytrading_buying_power":"356154.156","cash":"85523.79","portfolio_value":"90525.9","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"90525.9","last_equity":"90544.86","long_market_value":"5002.11","short_market_value":"0","initial_margin":"2501.055","maintenance_margin":"1500.633","last_maintenance_margin":"1506.321","sma":"0","daytrade_count":3}'
+  recorded_at: 2021-05-30 01:06:14 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/account/portfolio/history?period=2W&timeframe=1D&date_end=2020-06-08&extended_hours=TRUE
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 01:06:14 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '538'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"timestamp":[1590499800,1590586200,1590672600,1590759000,1591018200,1591104600,1591191000,1591277400,1591363800,1591623000],"equity":[96963,96959.38,96959.38,96928.45,96928.45,96928.45,96928.45,96928.45,96928.45,96928.45],"profit_loss":[-8.18,-3.62,0,-30.93,0,0,0,0,0,0],"profit_loss_pct":[0,-0.0000373338283675,-0.0000373338283675,-0.00035632148345240744,-0.00035632148345240744,-0.00035632148345240744,-0.00035632148345240744,-0.00035632148345240744,-0.00035632148345240744,-0.00035632148345240744],"base_value":96963,"timeframe":"1D"}'
+  recorded_at: 2021-05-30 01:06:14 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

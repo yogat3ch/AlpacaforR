@@ -45,21 +45,6 @@ account <-
   suppressMessages(out$created_at <- lubridate::as_datetime(out$created_at, tz = Sys.timezone()))
   return(out)
 }
-#----------------------------------------------------------------------------------------------
-
-#' @family Accounts
-#' @title get_account
-#' @rdname account
-#' @description \code{get_account} is deprecated please use \code{\link[AlpacaforR]{account}} instead.
-#' @examples get_account()
-#' @export
-
-get_account <- account
-
-
-
-
-
 
 # account_config ----
 # Wed Apr 22 20:25:56 2020
@@ -101,10 +86,21 @@ account_config <-
            trade_confirm_email,
            live = get_live()) {
     
-  
-  .def <- isTRUE(suppressMessages(match_letters(dtbp_check, "default")) == "default")
-  if (.def) {
-    # set defaults if requested
+  bodyl <-
+    rlang::env_get_list(
+      nms = c(
+        "dtbp_check",
+        "fractional_trading",
+        "max_margin_multiplier",
+        "no_shorting",
+        "pdt_check",
+        "suspend_trade",
+        "trade_confirm_email"
+      )
+    ) %>% 
+    `[`(., !purrr::map_lgl(., rlang::is_missing))
+  # set defaults if requested
+  if (isTRUE(suppressMessages(match_letters(bodyl$dtbp_check, "default")) == "default"))
     bodyl <- list(
       dtbp_check = "entry",
       fractional_trading = TRUE,
@@ -114,21 +110,6 @@ account_config <-
       suspend_trade = FALSE,
       trade_confirm_email = "all"
     )
-  } else {
-    bodyl <-
-      rlang::env_get_list(
-        nms = c(
-          "dtbp_check",
-          "fractional_trading",
-          "max_margin_multiplier",
-          "no_shorting",
-          "pdt_check",
-          "suspend_trade",
-          "trade_confirm_email"
-        )
-        ) %>% 
-      `[`(., !purrr::map_lgl(., rlang::is_missing))
-  }
   
   #Set URL & Headers
   headers = get_headers(live)
@@ -142,32 +123,6 @@ account_config <-
   account_config = response_text_clean(account_config)
   return(account_config)
 }
-#----------------------------------------------------------------------------------------------
-#NEW for V2
-#account_config(live = TRUE)
-#' @title get_config
-#' @rdname account_config
-#' @description \code{get_config} is deprecated, please use \code{\link[AlpacaforR]{account_config}} instead.
-#' @examples get_config()
-#' @export
-get_config <- account_config
-
-
-
-
-
-
-
-#' @rdname account_config
-#' @md
-#' @title Send Account Configurations function (Deprecated)
-#' 
-#' @description \code{set_config} is deprecated. Please use \code{\link[AlpacaforR]{account_config}} instead.
-#' See [Account Configurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) for details.
-#' @export
-set_config <- account_config
-
-
 
 
 
@@ -300,9 +255,16 @@ account_activities <-
 
 #' @title Account Portfolio History
 #' @family Account
-#' @description The [portfolio history endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns the timeseries data for equity and profit loss information of the account in a requested timespan (optional) for a given timeframe.
+#' @description The [portfolio history endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns a timeseries of equity and profit/loss summaries for the account over a `period` previous aggregated by a given `timeframe`.
 #' @details All \code{(Date/POSIXlt)} will parse correctly if in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly.
-#' @param period `(character/Duration/Period)` *Optional* The period of time with which the data will extend backwards from `date_end` in `number + unit` format. Such as `"1D"`, where `unit` can be `"D"` for day, `"W"` for week, `"M"` for month and `"A"/"Y"` for year. Defaults to `"1M"`. Accepts any number for multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} objects.
+#' @param period `(character/Duration/Period)` *Optional* The period of time previous starting at `date_end` in `number + unit` format over which data will be provided. Such as one day `"1D"`.
+#' \itemize{
+#'   \item{\code{`"D"`}}{ day }
+#'   \item{\code{`"W"`}}{ week }
+#'   \item{\code{`"M"`}}{ month }
+#'   \item{\code{`"A/Y"`}}{ year }
+#' }
+#' Defaults to `"1M"`. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period} & \link[lubridate]{Duration}} objects.
 #' @param timeframe `(character)` *Optional* The timeframe of the returned data in `"MT"` format where `M` is a multiplier and `T` is the timeframe from one of the following (non case-sensitive):
 #' #' \itemize{
 #'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
@@ -339,114 +301,70 @@ account_portfolio <-
   # Fix and detect args
   # check classes ----
   # Mon May 18 11:01:09 2020
-  .vn <- list(period = c("character", "Period", "NULL"), timeframe = c("character", "NULL"), date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"), extended_hours = "logical", live = "logical")
+    .vn <-
+      list(
+        period = c("character", "Period", "Duration", "NULL"),
+        timeframe = c("character", "NULL"),
+        date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"),
+        extended_hours = "logical",
+        live = "logical"
+      )
   .e <- environment()
   purrr::iwalk(.vn, ~{
-    if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
+    if (!inherits(get0(.y, inherits = FALSE, envir = .e), .x)) rlang::abort(paste0(.y," must be ", paste0(.x, collapse = ", ")))
   })
   
   #  period ----
   # Mon May 18 10:53:29 2020
   if (is.null(period)) {
-    .period <- "M"
-    .lp <- "months"
-    .pmultiplier <- 1
-    message(paste0("`period` set to 1 Month"))
-  } else if (isFALSE(inherits(period, c("Period", "Duration")))) {
-    .period <- stringr::str_extract(period, "[A-Za-z]+$")
-    .period <- substr(tolower(.period), 0, 1)
-    if (.period == "d") {
-      .period = "D"
-      .lp <- "days"
-    } else if (grepl("a|y", .period)) {
-      .period = "A"
-      .lp <- "years"
-    } else if (.period == "w") {
-      .period <- "W"
-      .lp <- "weeks"
-    } else if (.period == "m") {
-      .period <- "M"
-      .lp <- "months"
-    } else {
-      rlang::abort("`period` must have a unit of (D)ays, (W)eeks, (M)onths, or (Y)e(A)rs")
-    }
-    .pmultiplier <- as.numeric(stringr::str_extract(period, "^\\d+"))
-  } else if (isTRUE(inherits(period, c("Period", "Duration")))) {
-    if (isTRUE(inherits(period, c("Period")))) {
-       .period <- toupper(stringr::str_extract(period, "[A-Za-z]"))
-       .pmultiplier <- as.numeric(stringr::str_extract(period, "[0-9]"))
-       .period <- ifelse(.period == "Y", "A", .period)
-       .lp <- c(D = "days", A = "years", Y = "years", W = "weeks", M = "months")[.period]
-    }
-     
+    .period <- list(
+      multiplier = 1,
+      units = "months",
+      api_units = "M",
+      period = lubridate::period(1, "months")
+    )
+  } else {
+    .period <- list(
+      multiplier = period_multiplier(period),
+      units = period_units(period),
+      api_units = period_api_units(period),
+      period = account_period(period)
+    )
   }
-  .lp <- lubridate::duration(.pmultiplier, units = .lp)
-  .p_num <- as.numeric(factor(.period, levels = c("D", "W", "M", "A")))
+  
   #  timeframe ----
   # Mon May 18 10:53:35 2020
   # if timeframe is blank
   
-  if (!is.null(timeframe)) {
-    if (stringr::str_detect(timeframe, "^\\d+")) {
-      # Account for old argument style to timeframe
-      .multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
-      
-    } 
-    .timeframe <- substr(tolower(stringr::str_extract(timeframe, "[A-Za-z]+$")), 0, 1)
+  if (is.null(timeframe)) {
+    .timeframe <- list(
+      multiplier = 1,
+      units = "days",
+      api_units = "D"
+    )
   } else {
-    .timeframe <- ""
-    .multiplier <- 1
+    .timeframe <- list(
+      multiplier = as.numeric(stringr::str_extract(timeframe, "\\d+")),
+      units = match_letters(stringr::str_extract(timeframe, "[A-Za-z]+"), "minutes", "hours", "days")
+    )
+    .timeframe$api_units <- match_letters(.timeframe$units, "Min", "H", "D", capitalize = TRUE)
   }
   
-  
-  # set minimum timeframes if null
-  if (.lp <= lubridate::weeks(1) && !.timeframe %in% c("h","d") && .p_num < 2) {
-    .timeframe <- "m"
-    if (isTRUE(!.multiplier %in% c(1, 5, 15))) {
-      message(paste0("multiplier can be 1,5, or 15 when `timeframe` is minutes. Multiplier set to 5."))
-      .multiplier <- 5
-    }
-  } else if ((.lp > lubridate::weeks(1) && .lp <= lubridate::days(30)) && !.timeframe %in% c("h","d") && .p_num < 3) {
-    .timeframe <- "m"
-    if (isTRUE(!.multiplier %in% c(5, 15))) {
-      message(paste0("multiplier can be 5 or 15 when `timeframe` is minutes and period or `date_end` to the present is > 7 days & < 30 days. Multiplier set to 5."))
-      .multiplier <- 5
-    }
-  } else if (.lp > lubridate::days(30)) {
-    .timeframe <- "d"
-    if (isFALSE(stringr::str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T)))) {
-      message(paste0("`timeframe` must be day when `period` is greater than 30 days."))
-    }
-    
-  }
-  if (isTRUE(.multiplier != 1) && .timeframe == "d") {
-    message(paste0("multiplier must be 1 when `timeframe` is day. Setting to 1."))
-    .multiplier <- 1
-  } 
-  # Get the timeframe in human readable
-  .timeframe <- list(m = c("Minutes", "Min"), h = c("Hours", "H"), d = c("Days", "D"))[[.timeframe]]
+  .timeframe <- check_timeframe(.timeframe, .period)
   
   #  date_end ----
   # Mon May 18 11:00:40 2020
-  if (!is.null(date_end)) {
-    `-` <- lubridate::`.__T__-:base`
-    `+` <- lubridate::`.__T__+:base`
+  if (is.null(date_end)) {
+    .date <- NULL
+  } else {
     .ac <- lubridate::as_date(account(live)$created_at)
     .date <- lubridate::as_date(try_date(date_end))
     if (.date <= .ac) {
-      .date <- lubridate::as_date(.ac + .lp)
-     rlang::warn(paste0("`date_end`: ",.date,", is before account creation date. `date_end` set to ", .ac, " + `period`:", .lp,"=", .date))
-      
+      rlang::warn(paste0("`date_end`: ",.date,", is before account creation date. `date_end` set to ",lubridate::as_date(.ac + .period$period)))
+      .date <- lubridate::as_date(.ac + .period$period)
     }
-  } else {
-    .date <- NULL
   }
   
-
-  # if either arg was null, message
-  if (is.null(timeframe) || isFALSE(str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T))) || isFALSE(str_detect(timeframe, stringr::regex(as.character(.multiplier))))) {
-    message(paste0("Timeframe set to ", .multiplier," ", .timeframe[1]))
-  }
   # Send request ----
   # Mon May 18 11:49:14 2020
   headers <- get_headers(live)
@@ -456,18 +374,141 @@ account_portfolio <-
     "history"
   ),
   list(
-    period = paste0(.pmultiplier, .period),
-    timeframe = paste0(.multiplier, .timeframe[2]),
+    period = paste0(.period$multiplier, .period$api_units),
+    timeframe = paste0(.timeframe$multiplier, .timeframe$api_units),
     date_end = .date,
     extended_hours = extended_hours
   ),
   live = live)
   
-  if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(.url)
   .resp <- httr::GET(.url, headers)
   out <- port_transform(.resp)
   return(out)
 }
+
+
+check_timeframe <- function(timeframe, period) {
+  .p_num <- as.numeric(factor(period$api_units, levels = c("D", "W", "M", "A")))
+  # set minimum timeframes if null
+  if (period$period <= lubridate::weeks(1) && !timeframe$api_units %in% c("H","D") && .p_num < 2) {
+    timeframe$api_units <- "Min"
+    timeframe$units <- "minutes"
+    if (isTRUE(!timeframe$multiplier %in% c(1, 5, 15))) {
+      timeframe$multiplier <- 5
+      message(paste0("timeframe multiplier must be 1,5, or 15 when `timeframe` is minutes. `timeframe` set to 5Min."))
+    }
+  } else if ((period$period > lubridate::weeks(1) && period$period <= lubridate::days(30)) && !timeframe$api_units %in% c("H","D") && .p_num < 3) {
+    timeframe$api_units <- "Min"
+    if (isTRUE(!period$multiplier %in% c(5, 15))) {
+      timeframe$multiplier <- 5
+      message(paste0("multiplier must be 5 or 15 when `timeframe` is minutes and `period` or `date_end` to the present is > 7 days & < 30 days. `timeframe` set to 5Min."))
+    }
+  } else if (period$period >= lubridate::days(30)) {
+    if (timeframe$api_units != "D") message(paste0("`timeframe` must be day when `period` > 30 days."))
+    timeframe <- list(api_units = "D",
+                   multiplier = 1,
+                   units = "days")
+  }
+  if (isTRUE(timeframe$multiplier != 1) && timeframe$api_units == "D") {
+    message(paste0("`timeframe` multiplier must be 1 when `timeframe` is day. `timeframe` set to 1D."))
+    timeframe <- list(api_units = "D",
+                      multiplier = 1,
+                      units = "days")
+  }
+  timeframe
+}
+
+period_list <- function(x) {
+  .p <- list(
+    year = x@year,
+    month = x@month,
+    day = x@day,
+    hour = x@hour,
+    minute = x@minute,
+    seconds = x@.Data
+  ) %>% 
+    `[`(. > 0) 
+  # compute weeks
+  if (.p$day %||% FALSE)
+    if (.p$day %% 7 == 0) {
+      .p$week <- .p$day %/% 7
+      .p$day <- NULL
+    }
+  .p
+}
+
+
+
+period_multiplier <- function(x) {
+  UseMethod("period_multiplier")
+}
+
+#' @export
+period_multiplier.character <- function(x) {
+  as.numeric(stringr::str_extract(x, "^\\d+"))
+}
+
+
+#' @export
+period_multiplier.Period <- function(x) {
+  period_list(x)
+}
+
+
+period_api_units <- function(x) {
+  UseMethod("period_api_units")
+}
+
+#' @export
+period_api_units.character <- function(x) {
+  stringr::str_extract(x, "[A-Za-z]+$") %>%
+    match_letters(c(day = "D", week = "W", month = "M", year = "A", year = "Y"), capitalize = TRUE) %>% 
+    ifelse(. == "Y", "A", .)
+}
+
+#' @export
+period_api_units.Period <- function(x) {
+  .p <- period_list(x)
+  c(day = "D", week = "W", month = "M", year = "A")[names(.p)]
+}
+
+
+period_units <- function(x) {
+  UseMethod("period_units")
+}
+
+#' @export
+period_units.character <- function(x) {
+  .lp <- match_letters(stringr::str_extract(x, "[A-Za-z]+$"), "days", "weeks", "months", "A", "years")
+  ifelse(.lp == "a", "years", .lp)
+}
+
+#' @export
+period_units.Period <- function(x) {
+  names(period_list(x))
+}
+
+
+account_period <- function(x) {
+  UseMethod("account_period")
+}
+
+#' @export
+account_period.character <- function(x) {
+  lubridate::period(period_multiplier(x), period_units(x))
+}
+
+#' @export
+account_period.Duration <- function(x) {
+  lubridate::as.period(x)
+}
+
+#' @export
+account_period.default <- function(x) {
+  x
+}
+
+
 
 
 #' @title account activities transform
