@@ -79,11 +79,9 @@ watchlist <-
   # logical indicating if new_name is present
   .nn <- !missing(new_name)
   
-  ## non-destructive action assumption
-  .action <- purrr::when(.nn, 
-  # if new_name is present, and action != "update", assume action = "add" (non-destructive rename)
-              . && action != "u" ~ "a",
-              ~ action)
+  ## if new_name is present, and action = "add"
+  if (.nn && action != "u") 
+    symbols <- c(watchlist(watchlist_id)$symbol, symbols)
   
   # convenience action assumption
   action <- purrr::when(action,
@@ -93,6 +91,8 @@ watchlist <-
                         .nn ~ "u",
                         ~ action)
   
+  
+  
   # Select the appropriate action
   fn <- switch(action, 
               g = httr::GET,
@@ -101,7 +101,7 @@ watchlist <-
               u = httr::PUT,
               d = httr::DELETE)
   
-  
+  # If add
   # Make body
   bodyl <- purrr::compact(list2(
     name = purrr::when(action,
