@@ -8,7 +8,7 @@ match_letters(
   x,
   ...,
   n = 1,
-  several.ok = FALSE,
+  multiple = FALSE,
   ignore.case = FALSE,
   capitalize = FALSE
 )
@@ -16,9 +16,14 @@ match_letters(
 \arguments{
 \item{x}{\code{(character)} to match on}
 
-\item{...}{\code({character}) vectors to match against}
+\item{...}{\code{(character)} vectors to match against}
 
 \item{n}{\code{(numeric)} how many characters of \code{x} to use in matching. Set to \code{NULL} to use all}
+
+\item{multiple}{\code{(logical)} are multiple matches allowed? If \code{FALSE} (Default) only the first match is returned.}
+
+\item{ignore.case}{if \code{FALSE}, the pattern matching is \emph{case
+      sensitive} and if \code{TRUE}, case is ignored during matching.}
 
 \item{capitalize}{\code{(logical)} whether to capitalize the result}
 }

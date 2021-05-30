@@ -13,7 +13,7 @@ arrange.grouped_tsymble <- arrange.tsymble_ts
 
 #' @export
 select.tsymble_ts <- function(.data, ...) {
-  loc <- tidyselect::eval_select(dplyr::expr(c(...)), .data) #TODO where does eval_select come from?
+  loc <- tidyselect::eval_select(dplyr::expr(c(...)), .data) 
   data_cp <- .data
   names(data_cp)[loc] <- names(loc)
   bind_tsibble(NextMethod(), data_cp, position = "after") %>%
