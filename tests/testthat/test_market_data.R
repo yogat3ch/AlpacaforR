@@ -86,7 +86,7 @@ test_that("bars_bounds returns boundaries as anticipated", {
       if (!is.null(get_tibble(.expected))) {
         test_that(.lab, {
           # check that all time points are present
-          expect_equal(.object$AMZN[[tsibble::index(.object$AMZN)]], .expected$AMZN[[tsibble::index(.expected$AMZN)]], ignore_attr = TRUE)
+          expect_equal(time_index(.object$AMZN, "v"), time_index(.expected$AMZN, "v"), ignore_attr = TRUE)
           # check that the mean of each column is with 5% of the expected mean
           purrr::walk2(
             colMeans(dplyr::select(as.data.frame(.object$AMZN), where(is.numeric))),
@@ -113,6 +113,7 @@ test_that("bars_bounds returns boundaries as anticipated", {
       .expected <- dplyr::ungroup(test_market_data$bars) %>%
         dplyr::filter(multiplier == .vars$multiplier & timeframe == .vars$timeframe) %>%
         dplyr::pull(paste0(.pre, "_complete")) %>% magrittr::extract2(1)
+      browser(expr = !is.null(get_tibble(.expected)))
       if (!is.null(get_tibble(.expected))) {
         vcr::use_cassette(.lab, match_requests_on = "uri", {
           .object <- bars_complete(bars = .bars, evar = evar)

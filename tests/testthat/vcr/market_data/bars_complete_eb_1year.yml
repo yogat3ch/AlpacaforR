@@ -15,15 +15,15 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx/1.19.2
-      date: Fri, 28 May 2021 22:03:51 GMT
+      date: Sat, 29 May 2021 17:17:21 GMT
       content-type: application/json
       content-length: '127'
       connection: keep-alive
-      x-request-id: 3a4c523efb8efe5d1c37cbba389dc0f3
+      x-request-id: e38fd5f162cb3486d350abc4c309ce91
       strict-transport-security: max-age=15724800; includeSubDomains
     body:
       encoding: UTF-8
       file: no
-      string: '{"ticker":"AMZN","queryCount":0,"resultsCount":0,"adjusted":true,"status":"OK","request_id":"3a4c523efb8efe5d1c37cbba389dc0f3"}'
-  recorded_at: 2021-05-28 22:03:51 GMT
+      string: '{"ticker":"AMZN","queryCount":0,"resultsCount":0,"adjusted":true,"status":"OK","request_id":"e38fd5f162cb3486d350abc4c309ce91"}'
+  recorded_at: 2021-05-29 17:17:21 GMT
   recorded_with: vcr/0.5.4, webmockr/0.6.2

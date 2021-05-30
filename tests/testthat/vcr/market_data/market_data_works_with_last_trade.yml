@@ -1,0 +1,94 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last/stocks/TWTR
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Sat, 29 May 2021 17:19:04 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '156'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"TWTR","last":{"price":57.99,"size":100,"exchange":15,"cond1":0,"cond2":0,"cond3":0,"cond4":0,"timestamp":1622231996916723455}}'
+  recorded_at: 2021-05-29 17:19:05 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last/stocks/BYND
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Sat, 29 May 2021 17:19:04 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '157'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"BYND","last":{"price":145.54,"size":100,"exchange":15,"cond1":0,"cond2":0,"cond3":0,"cond4":0,"timestamp":1622231994373969418}}'
+  recorded_at: 2021-05-29 17:19:05 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/last/stocks/AAPL
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Sat, 29 May 2021 17:19:05 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '159'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"success","symbol":"AAPL","last":{"price":124.65,"size":2655,"exchange":15,"cond1":0,"cond2":12,"cond3":0,"cond4":0,"timestamp":1622232051649469681}}'
+  recorded_at: 2021-05-29 17:19:05 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
