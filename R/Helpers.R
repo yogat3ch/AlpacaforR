@@ -209,7 +209,7 @@ date_try <- function(x, tz = Sys.timezone()) {
 #' @export
 
 try_date <- function(.x, timeframe = "day", tz = NULL) {
-  timeframe <- match_letters(timeframe, mi = "minute", ho = "hour", da = "day", we = "week", Mo = "month", qu = "quarter", ye = "year", x = 2)
+  timeframe <- match_letters(timeframe, mi = "minute", ho = "hour", da = "day", we = "week", Mo = "month", qu = "quarter", ye = "year", n = 2)
   .out <- withCallingHandlers(date_try(.x, tz), warning = rlang::cnd_muffle, message = rlang::cnd_muffle) 
   if (!timeframe %in% c("minute", "hour")) { 
     .fn <- switch(as.character(timeframe),
@@ -234,14 +234,23 @@ try_date <- function(.x, timeframe = "day", tz = NULL) {
 
 is_error <- function(x) inherits(x, "try-error")
 
-#' @title Match the first x letters to supplied arguments
+#' @title Match the first `n` letters to supplied arguments
 #' @description Case insensitive matching of argument to possibilities provided in ellipsis.
+#' @param x \code{(character)} to match on
+#' @param ... \code({character}) vectors to match against
+#' @param n \code{(numeric)} how many characters of `x` to use in matching. Set to `NULL` to use all
+#' @inheritParams base match.arg
+#' @inheritParams base grep
+#' @param capitalize \code{(logical)} whether to capitalize the result
+#' @return \code{(character)} vector of matches
 #' @export
-match_letters <- function(arg, ..., x = 1, several.ok = FALSE, ignore.case = FALSE, capitalize = FALSE) {
-  if (is.null(arg)) {
-    out <- arg
+match_letters <- function(x, ..., n = 1, several.ok = FALSE, ignore.case = FALSE, capitalize = FALSE) {
+  if (!is.null(n))
+    x <- substr(x, 0, n)
+  if (is.null(x)) {
+    out <- x
   } else {
-    out <- tryCatch(grep(paste0("^",substr(ifelse(length(arg) > 1, paste0("^",arg, collapse = "|"), arg), 0, x)), purrr::flatten(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
+    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), purrr::flatten(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
                     error = function(e) {
                       message(paste0(e))
                     })

@@ -1,9 +1,9 @@
 vcr::vcr_configure(dir = file.path(dirname(.log_path), "helpers"))
 
 test_that("match_letters", {
-  expect_identical(match_letters("m", "minutes", "months", "weeks", capitalize = TRUE, several.ok = TRUE), c("minutes", "months"))
+  expect_identical(match_letters("m", "minutes", "months", "weeks", capitalize = TRUE, several.ok = TRUE), c("Minutes", "Months"))
   expect_identical(match_letters(c("account_alpaca", "data_alpaca"), "account_alpaca", "data_alpaca", "polygon", several.ok = TRUE), c("account_alpaca", "data_alpaca"))
-  expect_identical(match_letters("mo", mi = "minute", ho = "hour", da = "day", we = "week", Mo = "month", qu = "quarter", ye = "year", x = 2), c(Mo = "month"))
+  expect_identical(match_letters("M", mi = "minute", ho = "hour", da = "day", we = "week", Mo = "Month", qu = "quarter", ye = "year", n = 2), c(Mo = "Month"))
 })
 
 test_that("date_try", {

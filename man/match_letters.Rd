@@ -2,16 +2,28 @@
 % Please edit documentation in R/Helpers.R
 \name{match_letters}
 \alias{match_letters}
-\title{Match the first x letters to supplied arguments}
+\title{Match the first \code{n} letters to supplied arguments}
 \usage{
 match_letters(
-  arg,
+  x,
   ...,
-  x = 1,
+  n = 1,
   several.ok = FALSE,
   ignore.case = FALSE,
   capitalize = FALSE
 )
+}
+\arguments{
+\item{x}{\code{(character)} to match on}
+
+\item{...}{\code({character}) vectors to match against}
+
+\item{n}{\code{(numeric)} how many characters of \code{x} to use in matching. Set to \code{NULL} to use all}
+
+\item{capitalize}{\code{(logical)} whether to capitalize the result}
+}
+\value{
+\code{(character)} vector of matches
 }
 \description{
 Case insensitive matching of argument to possibilities provided in ellipsis.
