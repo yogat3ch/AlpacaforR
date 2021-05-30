@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: PKSW0MA43EEJNIJBAI45
-      APCA-API-SECRET-KEY: 4WS4FhopE29g2LbQcvklXcWMywOonS6ALsNvqNu7
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -16,16 +16,16 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.16.1
-      date: Tue, 29 Dec 2020 16:44:18 GMT
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 13:09:25 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '147'
+      content-length: '148'
       connection: keep-alive
-      access-control-allow-credentials: 'true'
+      access-control-allow-origin: '*'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
-      string: '{"timestamp":"2020-12-29T11:44:18.502340731-05:00","is_open":true,"next_open":"2020-12-30T09:30:00-05:00","next_close":"2020-12-29T16:00:00-05:00"}'
-  recorded_at: 2020-12-29 16:44:18 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"timestamp":"2021-05-30T09:09:25.804459516-04:00","is_open":false,"next_open":"2021-06-01T09:30:00-04:00","next_close":"2021-06-01T16:00:00-04:00"}'
+  recorded_at: 2021-05-30 13:09:25 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

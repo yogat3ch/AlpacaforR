@@ -2,12 +2,9 @@
 % Please edit documentation in R/Account.R
 \name{account}
 \alias{account}
-\alias{get_account}
 \title{Get Account Details}
 \usage{
 account(live = get_live())
-
-get_account(live = get_live())
 }
 \arguments{
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
@@ -31,8 +28,6 @@ Account \code{(list)} An \href{https://alpaca.markets/docs/api-documentation/api
 }
 \description{
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account's ability to trade. See the \href{https://alpaca.markets/docs/api-documentation/api-v2/account/}{Account} Endpoint in the API v2 Docs for full details.
-
-\code{get_account} is deprecated please use \code{\link[AlpacaforR]{account}} instead.
 }
 \examples{
 account()
@@ -40,7 +35,6 @@ account()
 account(live = FALSE)
 # For access to live accounts, you must submit as live = TRUE
 account(live = TRUE)
-get_account()
 }
 \seealso{
 Other Account: 
@@ -49,4 +43,3 @@ Other Account:
 \code{\link{account_portfolio}()}
 }
 \concept{Account}
-\concept{Accounts}

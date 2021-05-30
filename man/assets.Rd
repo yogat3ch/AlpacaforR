@@ -23,6 +23,7 @@ Asset \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 \item{\code{shortable}}{ \code{(logical)} Asset is shortable on Alpaca or not.}
 \item{\code{easy_to_borrow}}{ \code{(logical)} Asset is easy-to-borrow or not (filtering for \code{easy_to_borrow = TRUE} is the best way to check whether the name is currently available to short at Alpaca).}
 }
+@details Errors will be caught and surfaced but the function will always return a \code{(tibble)} to prevent error breaks when retrieving a large vector of assets.
 }
 \description{
 The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag \code{tradable = FALSE}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/assets#get-an-asset}{Assets: GET} for details.

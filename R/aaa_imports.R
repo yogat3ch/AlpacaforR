@@ -32,7 +32,7 @@
 #' @importFrom stringr str_sub
 
 # R/Clock.R
-#' @importFrom lubridate `.__T__-:base` as_datetime is.POSIXct with_tz hours force_tz
+#' @importFrom lubridate `.__T__-:base`  as_datetime is.POSIXct with_tz hours force_tz
 #' @importFrom httr GET
 #' @importFrom purrr map_if
 

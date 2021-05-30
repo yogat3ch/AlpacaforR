@@ -13,7 +13,14 @@ account_portfolio(
 )
 }
 \arguments{
-\item{period}{\code{(character/Duration/Period)} \emph{Optional} The period of time with which the data will extend backwards from \code{date_end} in \code{number + unit} format. Such as \code{"1D"}, where \code{unit} can be \code{"D"} for day, \code{"W"} for week, \code{"M"} for month and \code{"A"/"Y"} for year. Defaults to \code{"1M"}. Accepts any number for multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} objects.}
+\item{period}{\code{(character/Duration/Period)} \emph{Optional} The period of time previous starting at \code{date_end} in \code{number + unit} format over which data will be provided. Such as one day \code{"1D"}.
+\itemize{
+\item{\code{`"D"`}}{ day }
+\item{\code{`"W"`}}{ week }
+\item{\code{`"M"`}}{ month }
+\item{\code{`"A/Y"`}}{ year }
+}
+Defaults to \code{"1M"}. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period} & \link[lubridate]{Duration}} objects.}
 
 \item{timeframe}{\code{(character)} \emph{Optional} The timeframe of the returned data in \code{"MT"} format where \code{M} is a multiplier and \code{T} is the timeframe from one of the following (non case-sensitive):
 #' \itemize{
@@ -41,7 +48,7 @@ A \href{https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#
 }
 }
 \description{
-The \href{https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/}{portfolio history endpoint} returns the timeseries data for equity and profit loss information of the account in a requested timespan (optional) for a given timeframe.
+The \href{https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/}{portfolio history endpoint} returns a timeseries of equity and profit/loss summaries for the account over a \code{period} previous aggregated by a given \code{timeframe}.
 }
 \details{
 All \code{(Date/POSIXlt)} will parse correctly if in \code{YYYY-MM-DD} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or \code{(Datetime/POSIXct)}, \verb{YYYY-MM-DD HH:MM} \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly.

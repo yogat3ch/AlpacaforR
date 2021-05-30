@@ -2,33 +2,9 @@
 % Please edit documentation in R/Account.R
 \name{account_config}
 \alias{account_config}
-\alias{get_config}
-\alias{set_config}
 \title{Get Account Configurations}
 \usage{
 account_config(
-  dtbp_check,
-  fractional_trading,
-  max_margin_multiplier,
-  no_shorting,
-  pdt_check,
-  suspend_trade,
-  trade_confirm_email,
-  live = get_live()
-)
-
-get_config(
-  dtbp_check,
-  fractional_trading,
-  max_margin_multiplier,
-  no_shorting,
-  pdt_check,
-  suspend_trade,
-  trade_confirm_email,
-  live = get_live()
-)
-
-set_config(
   dtbp_check,
   fractional_trading,
   max_margin_multiplier,
@@ -64,11 +40,6 @@ AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-docume
 }
 \description{
 The account configuration API serves an important role in setting the way you want. See \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/}{Account Configurations} for details.
-
-\code{get_config} is deprecated, please use \code{\link[AlpacaforR]{account_config}} instead.
-
-\code{set_config} is deprecated. Please use \code{\link[AlpacaforR]{account_config}} instead.
-See \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/}{Account Configurations} for details.
 }
 \examples{
 account_config(live = FALSE)
@@ -78,7 +49,6 @@ account_config()
 account_config(live = TRUE)
 account_config(dtbp_check = "both", no_shorting = TRUE)
 account_config("default")
-get_config()
 }
 \seealso{
 Other Account: 
