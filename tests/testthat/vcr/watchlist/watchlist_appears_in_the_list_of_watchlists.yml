@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
-      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -16,17 +16,17 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.16.1
-      date: Tue, 19 Jan 2021 15:20:49 GMT
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 12:15:51 GMT
       content-type: application/json; charset=UTF-8
       content-length: '611'
       connection: keep-alive
-      access-control-allow-credentials: 'true'
+      access-control-allow-origin: '*'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
-      string: '[{"id":"f2da8074-ccac-4636-8144-23b5782cd682","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2020-05-27T11:43:43.331111Z","updated_at":"2020-05-27T11:43:43.331111Z","name":"Primary"},{"id":"a9bf310b-fa7d-4095-b141-7ec7873001a6","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2020-09-03T18:25:25.386938Z","updated_at":"2020-09-03T18:25:25.386938Z","name":"Primary
-        Watchlist"},{"id":"f4d840bb-d221-414f-b785-6bbcd8914c69","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-01-19T15:20:49.219193Z","updated_at":"2021-01-19T15:20:49.219193Z","name":"test"}]'
-  recorded_at: 2021-01-19 15:20:48 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '[{"id":"1ac6a8d5-fd79-489a-85a7-c08305236e2d","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-04-16T15:20:20.153867Z","updated_at":"2021-04-16T15:20:20.153867Z","name":"Primary"},{"id":"a9bf310b-fa7d-4095-b141-7ec7873001a6","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2020-09-03T18:25:25.386938Z","updated_at":"2020-09-03T18:25:25.386938Z","name":"Primary
+        Watchlist"},{"id":"c044247a-273f-4a00-88b5-ed63472c4e4b","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-05-30T12:15:49.256273Z","updated_at":"2021-05-30T12:15:49.256273Z","name":"test"}]'
+  recorded_at: 2021-05-30 12:15:50 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

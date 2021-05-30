@@ -7,8 +7,8 @@ http_interactions:
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
-      APCA-API-KEY-ID: APCA-PAPER-API-KEY-ID
-      APCA-API-SECRET-KEY: APCA-PAPER-API-SECRET-KEY
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -16,17 +16,17 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.16.1
-      date: Tue, 19 Jan 2021 15:20:49 GMT
+      server: nginx/1.19.10
+      date: Sun, 30 May 2021 12:15:52 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '434'
+      content-length: '454'
       connection: keep-alive
-      access-control-allow-credentials: 'true'
+      access-control-allow-origin: '*'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
-      string: '{"id":"f4d840bb-d221-414f-b785-6bbcd8914c69","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-01-19T15:20:49.219193Z","updated_at":"2021-01-19T15:20:49.219193Z","name":"test","assets":[{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
-        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true}]}'
-  recorded_at: 2021-01-19 15:20:49 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"id":"c044247a-273f-4a00-88b5-ed63472c4e4b","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-05-30T12:15:49.256273Z","updated_at":"2021-05-30T12:15:49.256273Z","name":"test","assets":[{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true}]}'
+  recorded_at: 2021-05-30 12:15:52 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2
