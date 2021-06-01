@@ -209,7 +209,18 @@ date_try <- function(x, tz = Sys.timezone()) {
 #' @export
 
 try_date <- function(.x, timeframe = "day", tz = NULL) {
-  timeframe <- match_letters(timeframe, mi = "minute", ho = "hour", da = "day", we = "week", Mo = "month", qu = "quarter", ye = "year", n = 2)
+  timeframe <-
+    match_letters(
+      timeframe,
+      mi = "minute",
+      ho = "hour",
+      da = "day",
+      we = "week",
+      Mo = "month",
+      qu = "quarter",
+      ye = "year",
+      n = 2
+    )
   .out <- withCallingHandlers(date_try(.x, tz), warning = rlang::cnd_muffle, message = rlang::cnd_muffle) 
   if (!timeframe %in% c("minute", "hour")) { 
     .fn <- switch(as.character(timeframe),
@@ -251,7 +262,7 @@ match_letters <- function(x, ..., n = 1, multiple = FALSE, ignore.case = FALSE, 
   if (is.null(x)) {
     out <- x
   } else {
-    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), purrr::flatten(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
+    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), unlist(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
                     error = function(e) {
                       message(paste0(e))
                     })
