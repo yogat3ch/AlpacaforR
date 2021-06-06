@@ -46,21 +46,21 @@ get_secret <- function(live = get_live()) {
   get_cred(paste0("APCA-", ifelse(live, "LIVE", "PAPER"), "-SECRET"))
 }
 
-tax_form <- function(year, cost_basis = c("fifo", "lifo", "hc", "lc")[1]) {
-  tx <- account_activities("FILL", live = TRUE)
-  slider::slide(tx, ~{
-    if (.x$side == "sell") {
-       # Find an appropriate buy order to link it to
-       # Calculate cost basis
-       # Calcuate gain/loss
-       
-    }
-  })
-  # Output in 1099-B format
-  # Add gain/loss calculation options
-  # https://www.investopedia.com/terms/c/costbasis.asp
-  
-}
+# tax_form <- function(year, cost_basis = c("fifo", "lifo", "hc", "lc")[1]) {
+#   tx <- account_activities("FILL", live = TRUE)
+#   slider::slide(tx, ~{
+#     if (.x$side == "sell") {
+#        # Find an appropriate buy order to link it to
+#        # Calculate cost basis
+#        # Calcuate gain/loss
+#        
+#     }
+#   })
+#   # Output in 1099-B format
+#   # Add gain/loss calculation options
+#   # https://www.investopedia.com/terms/c/costbasis.asp
+#   
+# }
 
 
 #' @title time_index
@@ -80,15 +80,11 @@ time_index <- function(x, type = "character"){
   
   if (inherits(x, "list")) x <- get_tibble(x)
   
-  .type <- switch(match_letters(type,
-                                     v = "value",
-                                     c = "character",
-                                     l = "language",
-                                     s = "symbol") %>% names(),
-                  v = "value",
-                  c = "character",
-                  l = ,
-                  s = "language")
+  .type <- match_letters(type,
+                         v = "value",
+                         c = "character",
+                         l = "language",
+                         s = "symbol")
   
   
   if (tsibble::is_tsibble(x)) {
@@ -103,7 +99,7 @@ time_index <- function(x, type = "character"){
   
   if (.type == "value") {
     out <- x[[out]]
-  } else if (.type == "language") {
+  } else if (.type %in% c("language", "symbol")) {
     out <- rlang::sym(out)
   }
   return(out)
@@ -142,6 +138,7 @@ time_interval <- function(x) {
   }
   out
 }
+
 
 valid_date <- function(x, .out) {
   if (!inherits(.out, c("numeric"))) {
@@ -257,12 +254,13 @@ is_error <- function(x) inherits(x, "try-error")
 #' @export
 
 match_letters <- function(x, ..., n = 1, multiple = FALSE, ignore.case = FALSE, capitalize = FALSE) {
+  if (!is.character(x)) return(x)
   if (!is.null(n))
     x <- substr(x, 0, n)
   if (is.null(x)) {
     out <- x
   } else {
-    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), unlist(rlang::dots_list(...)), perl = TRUE, value = TRUE, ignore.case = ignore.case),
+    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), unlist(rlang::dots_list(...), use.names = FALSE), perl = TRUE, value = TRUE, ignore.case = ignore.case),
                     error = function(e) {
                       message(paste0(e))
                     })
