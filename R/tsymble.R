@@ -57,8 +57,6 @@ as_tsymble <-
   } else {
     index <- grep("(?:^date$)|(?:^time$)", names(x), value = TRUE, perl = TRUE)
   }
-  
-  
     
   dx <- do.call(tsibble::build_tsibble, rlang::list2(
     dx,
@@ -114,7 +112,7 @@ merge_query <- function(.) {
 
 bind_rows <- function (..., .id = NULL) {
   . <- purrr::compact(rlang::dots_list(...))
-  .zero_row <- purrr::map_lgl(., ~nrow(.x) == 0)
+  .zero_row <- purrr::map_lgl(., ~nrow(.x %||% data.frame()) == 0) #handles null
   if (any(.zero_row)) . <- .[!.zero_row]
   .sym <- unique(do.call(c, purrr::map(., get_sym)))
   .query <- merge_query(.)
