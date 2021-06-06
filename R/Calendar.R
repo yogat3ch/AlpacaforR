@@ -81,3 +81,35 @@ cal_transform <- function(resp, .tz = "America/New_York") {
     ) %>%
     dplyr::select(date, everything(), dow, day, session)
 }
+
+
+#' @title Expand the calendar time index
+#' @description Expands a calendar object returned from `calendar` to contain each timepoint for a given `multiplier` & `timeframe` combination for timeframes of of minute, hour, and day.
+#' @param cal \code{(calendar)}
+#' @inheritParams market_data
+#' @param market_hours \code{(logical)} Return market hours only? Default `TRUE`
+#' @export
+
+expand_calendar <- function(cal, timeframe, multiplier, market_hours = TRUE) {
+  force(timeframe)
+  force(multiplier)
+  force(cal)
+  # args to seq.POSIXct
+  out <- list(
+    from = lubridate::floor_date(lubridate::int_start(cal$day[1]), timeframe),
+    to = lubridate::floor_date(lubridate::int_end(cal$day[length(cal$day)]), timeframe),
+    by = paste(multiplier, ifelse(timeframe == "minute", "min", timeframe))
+  ) 
+  # floor date so start and end of sequence is correct
+  
+  
+  out <- tsibble::tsibble(
+    time = purrr::when(market_hours, 
+                       . ~ do.call(c, purrr::map(cal$day, ~{
+                         seq(lubridate::ceiling_date(lubridate::int_start(.x), timeframe), lubridate::int_end(.x), by = paste0(multiplier," ", match_letters(timeframe, n = 2, "sec", "min", "hour", "day", "DSTday", "week", "month", "quarter", "year", ignore.case = TRUE)))})),
+                       ~ do.call(seq.POSIXt, out)),
+    index = "time"
+  ) 
+  
+  return(out)
+}
