@@ -94,7 +94,7 @@ pos_recursive <- . %>%
 #' @keywords internal
 pos_transform <- function(pos) {
   
-  if (class(pos) == "response") {
+  if (inherits(pos,"response")) {
     .method <- pos$request$method
     .url <- httr::parse_url(pos$url)
     .sym <- stringr::str_extract(.url$path, "\\w+$")
@@ -115,7 +115,7 @@ pos_transform <- function(pos) {
   
   # if close_all
   .all <- isTRUE(as.logical(.url$query$cancel_orders))
-  if (.all) {
+  if (.all && !rlang::is_empty(.pos$body)) {
     out <- dplyr::bind_cols(.pos[!names(.pos) %in% "body"], dplyr::rename(.pos$body, order_status = "status", order_symbol = "symbol")) 
     out <- pos_recursive(out)
     if ("legs" %in% names(out))
@@ -151,7 +151,7 @@ pos_transform <- function(pos) {
         ))
     })
     
-  } else if(length(.pos) == 0) {
+  } else if(rlang::is_empty(.pos$body)) {
     message("No positions are open at this time.")
     out <- .pos
   } else if (length(.pos) > 1 && !(grepl("DELETE", .method, ignore.case = TRUE) && .sym == "positions")) {
