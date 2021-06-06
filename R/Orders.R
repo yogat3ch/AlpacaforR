@@ -72,7 +72,7 @@ orders <-
   
   headers = get_headers(live)
   # set status if abbreviated
-  status <- c(o = "open", c = "closed", a = "all")[tolower(substr(status, 0, 1))]
+  status <- match_letters(status, o = "open", c = "closed", a = "all")
   # check if id
   .is_id <- is_id(symbol_id)
   if (.is_id) {
@@ -231,32 +231,57 @@ order_submit <-
            trail_percent,
            live = get_live()) {
     
+    if (isTRUE(tolower(type) %in% c("trailing_stop", "ts")) || (!missing(trail_percent) || !missing(trail_price))) {
+      if (is.null(type))
+        type <- "trailing_stop"
+      .mc <- match.call()
+      stop_price <- grep("^trail", names(.mc), value = TRUE)
+      stopifnot(length(stop_price) == 1)
+      stop <- round(.mc[[stop_price]], 2)
+    } else {
+      stop_price <- "stop_price"
+    }
   
-  
+    ovar <- environment()
+    ovar$.vn <-
+      list(
+        symbol_id = "character",
+        action = "character",
+        side = c("character", "NULL"),
+        type = c("character", "NULL"), 
+        qty = c("numeric", "integer", "NULL"),
+        time_in_force = "character",
+        limit = c("numeric", "integer", "NULL"),
+        stop = c("numeric", "integer", "NULL"),
+        stop_price = c("character", "numeric"),
+        extended_hours = c("logical", "NULL"),
+        client_order_id = c("logical","character", "NULL"),
+        order_class = c("character", "NULL"),
+        take_profit = c("list", "NULL"),
+        stop_loss = c("list", "NULL"),
+        trail_price = c("numeric", "integer"),
+        trail_percent = c("numeric", "integer"),
+        live = "logical"
+      )
+    
   .cancel_all <- any(grepl("cancel_all", as.character(match.call()), ignore.case = T))
   if (!.cancel_all) {
     action <- substr(tolower(action), 0, 1)
     # if the order tbl is supplied directly, extract the id
-    order_symbol_id(symbol_id, side, action, qty, client_order_id)
-  }
-    
-  # change args in the event of trailing stop
-  if (!missing(trail_price) || !missing(trail_percent)) {
-    type <- "trailing_stop"
-  }
-  if (isTRUE(type == "trailing_stop")) {
-    .mc <- match.call()
-    stop_price <- grep("^trail", names(.mc), value = TRUE)
-    stop <- round(eval(.mc[[stop_price]]), 2)
+    order_symbol_id(symbol_id)
   } else {
-    stop_price <- "stop_price"
-  }
+    action = "c"
+  } 
+  
+  
+  
+  rlang::env_bind(ovar, type = type, action = action)
   
   # smart detect: type, order_class, extended_hours
   # fix names for take_profit, stop_loss if partialed
   # or throw errors/warnings for specific criteria
   if (any(action %in% c("s", "r", "c"))) {
-    ot <- order_check(environment()) 
+    order_check() 
   }
   
   .is_id <- is_id(symbol_id)
@@ -301,21 +326,23 @@ order_submit <-
   #Set URL & Headers
   headers = get_headers(live)
   .path <- c("orders")
-  if (action %in% c("r","c")) {
+  if (action %in% c("r","c") && !.cancel_all) {
     # if replacing or canceling, append the order ID
     .path <- append(.path, symbol_id)
   }
   .url <- get_url(.path, live = live)
-  if (action  == "s") {
-    out = httr::POST(url = .url, body = bodyl, encode = "raw", headers)
-  } else if (action == "r") {
-    out = httr::PATCH(url = .url, body = bodyl, encode = "raw", headers)
-  } else if (action == "c" || .cancel_all) {
-    out <- httr::DELETE(url = .url, headers)
-  }
+  .f <- switch(action,
+         s = httr::POST,
+         r = httr::PATCH,
+         c = httr::DELETE)
+  .args <- switch(action,
+         s = ,
+         r = list(url = .url, body = bodyl, encode = "raw", headers),
+         c = list(url = .url, headers))
+  out <- rlang::exec(.f, !!!.args)
   out <- order_transform(out)
   return(out)
-  }
+}
 
 #' @title Transform order objects
 #' @description Replaces character quantities with numeric and character dates with POSIXct
@@ -402,33 +429,10 @@ order_transform <- function(o) {
 #' @param ... named arguments. Will automatically get arguments from enclosing environment. 
 #' @return \code{(list)} returns list with appropriate arguments, to be merged with parent environment via `list2env`
 #' @keywords internal
-order_check <- function(penv = NULL, ...) {
-  # add the arguments to the environment ----
-  # Thu Apr 30 17:29:18 2020
-  .o <- try(list2env(as.list(penv), environment()))
-  if (class(.o) == "try-error") {
-    .vn <-
-      list(
-        symbol_id = "character",
-        action = "character",
-        type = "character",
-        qty = c("numeric", "integer"),
-        side = "character",
-        time_in_force = "logical",
-        limit = c("numeric", "integer"),
-        stop = c("numeric", "integer"),
-        extended_hours = "logical",
-        client_order_id = "character",
-        order_class = "character",
-        take_profit = "list",
-        stop_loss = "list",
-        trail_price = c("numeric", "integer"),
-        trail_percent = c("numeric", "integer")
-      )
-    fetch_vars(.vn, ...)
-  }
-  
-  
+order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())) {
+  force(ovar)
+  fetch_vars(ovar$.vn[!names(ovar$.vn) %in% c("trail_price", "trail_percent")], ..., evar = ovar)
+
   #  smart detect order_class ----
   # Fri May 15 13:48:32 2020
   if (!is.null(order_class)) {
@@ -450,14 +454,8 @@ order_check <- function(penv = NULL, ...) {
       type <- tolower(type)
       if (grepl("^s", type) && grepl("(?<!i)l", type, perl = TRUE)) {
         type <- "stop_limit"
-      } else if (grepl("^t", type) && grepl("s", type)) {
-        type <- "trailing_stop"
-      } else if (substr(type,1,1) == "s") {
-        type <- "stop"
-      } else if (substr(type,1,1) == "l") {
-        type <- "limit"
-      } else if (substr(type,1,1) == "m") {
-        type <- "market"
+      } else {
+        type <- match_letters(type, n = 3, "trailing_stop", "stop", "limit", "market")
       }
     }
     
@@ -478,21 +476,17 @@ order_check <- function(penv = NULL, ...) {
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      .pos <- suppressWarnings(positions(symbol_id, live = live))
-      .ss <- symbol_id[!symbol_id %in% .pos[["symbol"]]]
+      .pos <- try(positions(symbol_id, live = live), silent = TRUE)
       
-      if (!rlang::is_empty(.ss)) {
-        warning("No positions exist for ",paste0(.ss, collapse = ", "),". This order will be a short sell.", immediate. = TRUE)
+      if (is_error(.pos) && grepl("position does not exist", attributes(.pos)$condition$message)) {
+        cli::cli_alert_warning(paste0("No positions exist for ",paste0(symbol_id, collapse = ", "),". This order will be a short sell."))
       }
     } else if (side == "buy" && (!is.null(stop))) {
-      if (stop_price == "stop_price") {
-        .warn_msg <- paste0("reaches ", stop)
-      } else if (stop_price == "trail_price") {
-        .warn_msg <- paste0("decreases by ", stop)
-      } else if (stop_price == "trail_percent") {
-        .warn_msg <- paste0("decreases by ", stop, " percent")
-      }
-      warning("This stop buy order will execute when the price ", .warn_msg , immediate. = TRUE)
+      .warn_msg <- switch(stop_price, 
+             stop_price = paste0("reaches ", stop),
+             trail_price = paste0("decreases by ", stop),
+             trail_percent = paste0("decreases by ", stop, " percent"))
+      cli::cli_alert_warning(paste0("This stop buy order will execute when the price ", .warn_msg))
     }
     
     # if quantity is missing ----
@@ -574,6 +568,7 @@ order_check <- function(penv = NULL, ...) {
   } else if (action == "c") {
     if (is.null(symbol_id)) rlang::abort("`symbol_id` is NULL, the order may not have been placed successfully?")
   } 
+  
   out <- list(
     symbol_id = symbol_id,
     action = action,
@@ -583,13 +578,14 @@ order_check <- function(penv = NULL, ...) {
     time_in_force = time_in_force,
     limit = limit,
     stop = stop,
+    stop_price = stop_price,
     extended_hours = extended_hours,
     client_order_id = client_order_id,
     order_class = order_class,
     take_profit = take_profit,
     stop_loss = stop_loss
   )
-  rlang::env_bind(penv, !!!out)
+  rlang::env_bind(ovar, !!!out)
 }
 
 #' @title retrieve the order id if an order object is supplied
@@ -597,7 +593,8 @@ order_check <- function(penv = NULL, ...) {
 #' @inheritParams order_submit
 #' @keywords internal
 
-order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
+order_symbol_id <- function(symbol_id, ..., ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())) {
+  fetch_vars(ovar$.vn[c("side", "action", "qty", "client_order_id")], ..., evar = ovar)
   # symbol_id ----
   # Fri May 01 11:15:39 2020
   # Check if ticker is an id or order tbl
@@ -606,7 +603,6 @@ order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
   
   if (inherits(symbol_id, "data.frame")) {
     if (is_id(symbol_id$id)) {
-      
       if (action == "s") {
         if (symbol_id$side == "buy") {
           # Create message update
@@ -633,8 +629,11 @@ order_symbol_id <- function(symbol_id, side, action, qty, client_order_id) {
     
     
   } else {
-    symbol_id <- toupper(symbol_id)
-    if (any(duplicated(symbol_id))) symbol_id <- symbol_id[!duplicated(symbol_id)]
+    symbol_id <- unique(toupper(symbol_id))
+    # If client_order_id is TRUE but the symbol_id is not an order, change it back to NULL
+    client_order_id <- purrr::when(isTRUE(client_order_id),
+                                   . ~ NULL,
+                                   ~ client_order_id)
   }
-  rlang::env_bind(rlang::caller_env(), symbol_id = symbol_id, side = side, action = action, qty = qty, client_order_id = client_order_id)
+  rlang::env_bind(ovar, symbol_id = symbol_id, side = side, action = action, qty = qty, client_order_id = client_order_id)
 }
