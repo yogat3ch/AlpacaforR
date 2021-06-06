@@ -27,7 +27,7 @@ has_any_key <- function(j, x) {
 
 
 is_key_dropped <- function(x) {
-  if (!dplyr::is_grouped_ts(x)) {
+  if (!tsibble::is_grouped_ts(x)) {
     tsibble::key_drop_default(x)
   } else {
     key_vars <- tsibble::key_vars(x)
@@ -59,7 +59,7 @@ update_meta2 <- function(new, old, ordered = TRUE, interval = TRUE,
                          validate = FALSE) {
   old_key <- select(tsibble::key_data(old), !!!tsibble::key(old))
   if (rlang::is_empty(old_key)) {
-    return(tsibble::update_meta(
+    return(update_meta(
       new, old,
       ordered = ordered, interval = interval, validate = validate
     ))
@@ -76,17 +76,23 @@ update_meta2 <- function(new, old, ordered = TRUE, interval = TRUE,
 }
 
 is_index_null <- function(x) {
-  if (is_null(x %@% "index")) {
+  if (is.null(x %@% "index")) {
     abort("The `index` has been dropped somehow. Please reconstruct tsibble.")
   }
 }
 
 has_index <- function(j, x) {
-  tsibble::is_index_null(x)
+  is_index_null(x)
   index <- c(tsibble::index_var(x), tsibble::index2_var(x))
   any(index %in% j)
 }
 
+remove_key <- function (.data, .vars) 
+{
+  sel_key <- c(.vars[.vars %in% tsibble::key_vars(.data)], ".rows")
+  attr(.data, "key") <- tsibble::key_data(.data)[sel_key]
+  .data
+}
 
 #' @export
 bind_tsymble <- function(data, template, position = c("before", "after")) {
@@ -95,7 +101,7 @@ bind_tsymble <- function(data, template, position = c("before", "after")) {
   key_vars <- setdiff(key_vars(template), data_cols)
   key_data <- vctrs::vec_unique(select(tsibble::key_data(template), key_vars))
   if (vctrs::vec_size(key_data) == 1) {
-    template <- tsibble::remove_key(template, setdiff(tsibble::key_vars(template), key_vars))
+    template <- remove_key(template, setdiff(tsibble::key_vars(template), key_vars))
   }
   tsbl_vars <- setdiff(c(tsibble::index_var(template), tsibble::key_vars(template)), data_cols)
   if (position == "before") {
@@ -115,7 +121,7 @@ validate_order <- function(x) {
     any(x)
   } else if (rlang::is_bare_numeric(x) && all(x < 0)) {
     TRUE
-  } else if (rlang::vec_duplicate_any(x) > 0) {
+  } else if (vctrs::vec_duplicate_any(x) > 0) {
     abort(sprintf("Duplicated indices: %s", comma(x[vctrs::vec_duplicate_detect(x)])))
   } else {
     is_ascending(x, na.rm = TRUE, strictly = TRUE)
