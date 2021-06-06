@@ -274,7 +274,7 @@ check_response <- function(resp) {
 
 is_id <- function(.) {
   out <- tryCatch({
-    .out <- grepl("[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}", .) && !is.na(.) && !is.null(.)
+    .out <- grepl("[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}", .) && !is.na(.) && !is.null(.) && is.character(.)
     isTRUE(.out)
   }, error = function(e) FALSE)
   return(out)
