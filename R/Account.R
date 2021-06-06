@@ -345,9 +345,9 @@ account_portfolio <-
   } else {
     .timeframe <- list(
       multiplier = as.numeric(stringr::str_extract(timeframe, "\\d+")),
-      units = match_letters(stringr::str_extract(timeframe, "[A-Za-z]+"), "minutes", "hours", "days")
+      units = match_letters(stringr::str_extract(timeframe, "[A-Za-z]+"), "minutes", "hours", "days", ignore.case = TRUE)
     )
-    .timeframe$api_units <- match_letters(.timeframe$units, "Min", "H", "D", capitalize = TRUE)
+    .timeframe$api_units <- match_letters(.timeframe$units, "Min", "H", "D", capitalize = TRUE, ignore.case = TRUE)
   }
   
   .timeframe <- check_timeframe(.timeframe, .period)
@@ -462,7 +462,7 @@ period_api_units <- function(x) {
 #' @export
 period_api_units.character <- function(x) {
   stringr::str_extract(x, "[A-Za-z]+$") %>%
-    match_letters(c(day = "D", week = "W", month = "M", year = "A", year = "Y"), capitalize = TRUE) %>% 
+    match_letters(c(day = "D", week = "W", month = "M", year = "A", year = "Y"), capitalize = TRUE, ignore.case = TRUE) %>% 
     ifelse(. == "Y", "A", .)
 }
 
@@ -479,8 +479,8 @@ period_units <- function(x) {
 
 #' @export
 period_units.character <- function(x) {
-  .lp <- match_letters(stringr::str_extract(x, "[A-Za-z]+$"), "days", "weeks", "months", "A", "years")
-  ifelse(.lp == "a", "years", .lp)
+  .lp <- match_letters(stringr::str_extract(x, "[A-Za-z]+$"), "days", "weeks", "months", "A", "years", ignore.case = TRUE)
+  ifelse(.lp == "A", "years", .lp)
 }
 
 #' @export
