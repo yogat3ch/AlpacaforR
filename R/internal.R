@@ -252,18 +252,18 @@ response_text_clean <- function(x){
   return(out)
 }
 
-check_response <- function(resp) {
-  
-  query <- get_query(resp)
+check_response <- function(resp, query = NULL) {
+  query <- query %||% get_query(resp)
   if (rlang::is_empty(query) && "error" %in% names(resp)) {
     rlang::abort(paste("code:", resp$status, "\nmessage:", resp$error))
-  } else {
-    if (grepl(pattern = "^5", x = query$status_code)) {
-      
-    } else if(grepl(pattern = "^4", x = query$status_code))
-      glubort("code: {query$status_code}\nmessage: {resp$message}")
+  } else if(grepl(pattern = "^4", x = query$status_code)) {
+    glubort("code: {query$status_code}\nmessage: {resp$message}")
   }
   
+  .warn <- try({NROW(resp) > 0})
+  if (is_error(.warn)) 
+    rlang::warn(paste0(query$symbol, " returned no data."))
+
 }
 
 #' @title Check if value provided is an Alpaca ID

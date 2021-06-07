@@ -15,17 +15,17 @@
  
 #' @param timeframe \code{(character)} For the `v1` API, one of
 #' \itemize{
-#'  \item{`'tr'/'lt'/'trade'/'last_trade'`}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
-#'  \item{`'qu'/'lq'/'quote'/'last_quote'`}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
-#'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
-#'  \item{`'d'`/`'day'`}{ (`multiplier` will be `1`)}
+#'  \item{\code{'tr'/'lt'/'trade'/'last_trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+#'  \item{\code{'qu'/'lq'/'quote'/'last_quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
+#'  \item{\code{'m'/'min'`/`'minute'}}{ (`multiplier` can be `1`/`5`/`15`)}
+#'  \item{\code{'d'/'day'}}{ (`multiplier` will be `1`)}
 #' } 
 #' For the `v2` \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
 #' \itemize{
-#'  \item{`'lt'/'last_trade'`}{ The Latest trade API provides the latest trade data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade}{Latest Trades}}
-#'  \item{`'tr'/'trade'`}{ For historical trade data for a given ticker symbol on a specified date. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades}{Trades}. **WARNING** The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning two days had 68 pages and took ~ 3m to retrieve.}
-#'  \item{`'lq'/'last_quote'`}{The Latest quote API provides the latest quote data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote}{Latest Quote}}
-#'  \item{`'qu'/'quote'`}{ The Quotes endpoint provides NBBO quotes for a given ticker symbol at a specified date. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes}{Quotes}, **WARNING** The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.}
+#'  \item{\code{'lt'/'last_trade'}}{ The Latest trade API provides the latest trade data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade}{Latest Trades}}
+#'  \item{\code{'tr'/'trade'}}{ For historical trade data for a given ticker symbol on a specified date *`from/to` required*. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades}{Trades}. **WARNING** The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning two days had 68 pages and took ~ 3m to retrieve.}
+#'  \item{\code{'lq'/'last_quote'}}{The Latest quote API provides the latest quote data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote}{Latest Quote}}
+#'  \item{\code{'qu'/'quote'}}{ The Quotes endpoint provides NBBO quotes for a given ticker symbol at a specified date *`from/to` required*. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes}{Quotes}, **WARNING** The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.}
 #'   \item{\code{"ss"/"snapshot"}}{ The Snapshot endpoint provides the latest trade, latest quote, minute bar daily bar and previous daily bar data for a symbol or a set of symbols. See \href{Snapshot - Multipler Tickers}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---multiple-tickers} & \href{Snapshot - Ticker}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---ticker}}
 #'  \item{`'m'`/`'min'`/`'minute'`}
 #'  \item{`'h'`/`'hour'`}
@@ -53,52 +53,28 @@
 #' @param unadjusted *polygon only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. **Default** `FALSE`.
 #' @details All values to `from/after/to/until` will parse correctly if a numeric year, in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `polygon` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `polygon`. For the `polygon` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively. 
 #' For a full overview of how the Polygon.io Aggregates endpoint behaves, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
-#' @return \code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+#' @return \code{tsymble} object if just one symbol is requested, otherwise a `named list` of `tsymble` objects for each ticker symbol.
+#' A \code{tsymble} is a `tsibble` object with the following columns:
 #' \itemize{
-#'  \item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+#'  \item{\code{time}}{ the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
 #'  \item{\code{open}}{ \code{(numeric)} open price}
 #'  \item{\code{high}}{ \code{(numeric)} high price}
 #'  \item{\code{low}}{ \code{(numeric)} low price}
 #'  \item{\code{close}}{ \code{(numeric)} close price}
 #'  \item{\code{volume}}{ \code{(numeric)} volume (in millions)}
+#'  \item{\code{vw *polygon only*}}{ \code{(numeric)} the volume weighted average price}
 #'  \item{\code{n *polygon only*}}{ \code{(numeric)} Number of items in aggregate window}
 #' }
-#' Additionally, a "query" attribute is attached to each symbol's `data.frame` with the "query" data as a `list` for each of the calls required to return it. This is accessed via \code{\link[base]{attr}}. Each call is a list with the following items:
-#' \itemize{
-#'  \item{\code{ticker}}{ Ticker symbol requested.}
-#'  \item{\code{status}}{ The API status code for the response in English}
-#'  \item{\code{queryCount}}{ Number of aggregate ( min or day ) used to generate the response.}
-#'  \item{\code{resultsCount}}{ Total number of results generated}
-#'  \item{\code{adjusted}}{ If this response was adjusted for splits}
-#'  \item{\code{status_code}}{ The API status code as an integer.}
-#' }
+#' Each `tsymble` has a "query" attribute with the "query" data as a `list` for each of the calls required to return it and a "symbol" attribute with the ticker symbol for the data. These attributes are easily accessed via `get_query` and `get_sym` respectively.
 #' @examples
-#' # Getting one or more symbols from the v1 API: 
-#' market_data(symbol = c("INTC","MSFT"))
-#' # Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each symbol.
-#' market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175)
-#' # Get three months of hourly data for Beyond Meat from the v2 Polygon API when full = F:
-#' bars <- market_data(symbol = c("BYND"), v = 'polygon', from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h")
-#' # Returns successfully
-#' purrr::map(bars, nrow) # Note the number of rows
-#' purrr::map(bars, ~range(.x$time)) # Note that Some data is missing
-#' # Let's take a closer look:
-#' plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
-#' axis(1, bars$BYND$time, format(bars$BYND$time, "%b %d"), cex.axis = .7)
-#' # Only about 10% of the requested data is present. Does the query status metadata indicate anything is wrong?
-#' attr(bars$BYND, "query") # everything checks out, so how do we get all the data we requested?
-#' # Set full = T
-#' bars <- market_data(symbol = c("BYND"), v = 2, from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h", full = TRUE)
-#' purrr::map(bars, nrow) # A big difference in the number of rows
-#' purrr::map(bars, ~range(.x$time)) # The range appears the same
-#' # A closer look:
-#' plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
-#' axis(1, bars$BYND$time, format(bars$BYND$time, "%b %d"), cex.axis = .7)
-#' # That's more like it!
-#' # Get the last quote for a symbol (or multiple):
-#' market_data("TWTR", timeframe = "q")
-#' # or the last trade for multiple symbols:
-#' market_data(c("TWTR","AAPL","BYND"), timeframe = "t")
+#' # Getting data for the last week from the v1 API: 
+#' market_data(symbol = c("INTC","MSFT"), v = 1, from = Sys.Date() - lubridate::weeks(1))
+#' # Getting price data with specific date ranges and timeframes with limit on the number of bars returned
+#' market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175, v = 1)
+#' # Get the last trade for a symbol (or multiple):
+#' market_data("TWTR", timeframe = "lt")
+#' # or the last quote for multiple symbols:
+#' market_data(c("TWTR","AAPL","BYND"), timeframe = "lq")
 #' @importFrom stringr str_detect str_extract regex
 #' @importFrom purrr map_chr map_lgl keep
 #' @importFrom rlang abort warn
@@ -130,19 +106,15 @@ market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from =
     bounds = c("list"),
     cal = c("data.frame", "tibble"),
     tqs = "character",
-    is_tqs = "logical",
-    is_ss = "logical"
+    is_tqs = "logical"
   )
+  
   evar$tqs <- c("lt", "tr", "lq", "qu", "ss")
   evar$is_tqs <- FALSE
-  evar$is_ss <- FALSE
+  
   
   # Process & Bind important variables:  Thu Mar 26 08:40:24 2020 ----
   evar_bind() 
-  
-  
-  
-  
   
   if (full && v != 2) {
     # V2 has pagination - so the cobbling together of data with bars_complete is not necessary with this API.
@@ -161,6 +133,10 @@ market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from =
     bars <- bars_get(.url)
     # End case where full = F ---- Fri Mar 27 11:19:05 2020
   }
+  # Return single tibble when only one symbol is requested
+  bars <- purrr::when(length(symbol) == 1 && v == 1, 
+              isTRUE(.) ~ get_tibble(bars),
+              ~ bars)
   return(bars)
 }
 
@@ -310,14 +286,13 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
     "multiplier",
     "bounds",
     "is_tqs",
-    "tqs",
-    "is_ss"
+    "tqs"
   )]
   fetch_vars(.vn, ...)
   
   # Format symbol:  Thu Mar 26 08:48:03 2020 ----
-  if (v == 1 || is_ss) {
-    .symbol = ifelse(length(symbol) > 1, paste0(trimws(symbol), collapse = ","), symbol)
+  if (((v == 1 && !timeframe %in% c("qu", "tr")) || timeframe == "ss") && length(symbol) > 1) {
+    .symbol = paste0(trimws(symbol), collapse = ",")
   } else {
     .symbol = symbol
   }
@@ -352,9 +327,9 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
                               v == 2 && . == "tr" ~ list("stocks", symbol = .symbol, "trades"),
                               v == 2 && . == "lq" ~ list("stocks", symbol = .symbol, "quotes", "latest"),
                               v == 2 && . == "qu" ~ list("stocks", symbol = .symbol, "quotes"),
-                              v == 2 && is_ss ~ list("stocks","snapshots"),
-                              v == 2 && . == "ss" && length(.symbol) == 1 ~ list("stocks", symbol = .symbol,"snapshot"),
-                              v == 1 && !. %in% tqs ~  list("bars", as.character(timeframe)), 
+                              v == 2 && . == "ss" && length(symbol) == 1 ~ list("stocks", symbol = .symbol,"snapshot"),
+                              v == 2 && . == "ss" ~ list("stocks","snapshots"),
+                              v == 1 && !. %in% tqs ~  list("bars", paste0(multiplier, timeframe)), 
                               v == 2 && !. %in% tqs ~ list("stocks", symbol = .symbol, "bars"))
     
     #full = F Make API requests:  Tue Mar 17 21:37:35 2020 ----
@@ -365,7 +340,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
     # Query for v1 or v2
     .query <- purrr::compact(purrr::when(
       v,
-      . == 1 ~ list(
+      . == 1 && !is_tqs ~ list(
         symbols = .symbol,
         limit = limit,
         start = bounds$from,
@@ -373,53 +348,53 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         end = bounds$to,
         until = bounds$until
       ),
-      . == 2 && is_ss ~ list(symbols = .symbol),
+      . == 2 && timeframe == "ss" && length(symbol) > 1 ~ list(symbols = .symbol),
       . == 2 ~ list(
         start = bounds$from %||% bounds$after,
         end = bounds$to %||% bounds$until,
         limit = limit,
         page_token = rlang::dots_list(...)$page_token,
-        timeframe = paste0(ifelse(v == 2, 1, multiplier), timeframe)
+        timeframe = paste0(multiplier, timeframe)
       )
     ))
     if (v == 2 && timeframe %in% tqs)
       .query$timeframe = NULL
     # Build the url
-    if (v == 1) {
+    if (isTRUE(length(.symbol) == 1)) {
       .url <- get_url(
         path = .path,
         query = .query,
         data = TRUE,
         v = v)
-    } else if (v == 2) {
-      if (!is_ss) {
-        .url <- purrr::map_chr(stats::setNames(.path$symbol, .path$symbol), ~{
-          .url <- get_url(
-            path = purrr::list_modify(.path, symbol = .x),
-            query = .query
-            , data = TRUE, v = v)
-        })
-      } else {
-        .url <- get_url(path = .path, query = .query, data =  TRUE, v = v)
-      }
-      
+    } else if (isTRUE(length(.symbol) > 1)) {
+      .url <- purrr::map_chr(stats::setNames(.path$symbol, .path$symbol), ~{
+        .url <- get_url(
+          path = purrr::list_modify(.path, symbol = .x),
+          query = .query
+          , data = TRUE, v = v)
+      })
     }
     
   } else if (v == "p") {
-    .url <- purrr::map_chr(stats::setNames(.symbol, .symbol), ~{
-      .url <- get_url(list(
-        ep = "aggs",
-        "ticker",
-        ticker = .x,
-        "range",
-        multiplier = multiplier,
-        timeframe = as.character(timeframe),
-        from = as.character(lubridate::as_date(bounds[[1]])),
-        to = as.character(lubridate::as_date(bounds[[2]]))
-      ),
-      query = list(unadjusted = unadjusted)
-      , api = "api", poly = TRUE, data = TRUE, v = 2)
-    })
+    .args <- list(path = list(
+      ep = "aggs",
+      "ticker",
+      ticker = .symbol,
+      "range",
+      multiplier = multiplier,
+      timeframe = as.character(timeframe),
+      from = as.character(lubridate::as_date(bounds[[1]])),
+      to = as.character(lubridate::as_date(bounds[[2]]))
+    ),
+    query = list(unadjusted = unadjusted)
+    , api = "api", poly = TRUE, data = TRUE, v = 2)
+    .url <- purrr::when(length(.symbol) == 1, 
+                isTRUE(.) ~ rlang::exec(get_url, !!!.args),
+                ~ purrr::map_chr(stats::setNames(.symbol, .symbol), ~{
+                  .args$path <- purrr::list_modify(.args$path, ticker = .x)
+                  rlang::exec(get_url, !!!.args)
+                }))
+    
   }
   return(.url)
 }
@@ -433,8 +408,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
 #' @keywords Internal
 
 get_tibble <- function(x, nm = "time", depth = FALSE) {
-  if (!is.null(x)) {
-    d <- 
+  if (!is.null(x) && !rlang::is_empty(x)) {
     i <- 0
     .o <- x
     while (!nm %in% names(.o) && purrr::vec_depth(.o) > 1) {
@@ -443,6 +417,8 @@ get_tibble <- function(x, nm = "time", depth = FALSE) {
     }
     if (depth)
       .o <- i
+    if (is.null(.o[[1]]))
+      .o <- .o[[1]]
   } else {
     .o <- x
   }
@@ -496,7 +472,7 @@ bars_pagination <- function(bar, ..., evar = get0("evar", mode = "environment", 
   out <- rlang::exec(bind_rows, get_tibble(bar), !!!bars)
   .interval <- do.call(tsibble::new_interval,
           purrr::when(evar$is_tqs,
-                      . ~ time_interval(.bar) %>%
+                      . ~ time_interval(out) %>%
                         {rlang::list2(!!.$timeframe := .$multiplier)},
                       rlang::list2(!!timeframe := multiplier)
           )
@@ -523,7 +499,7 @@ bars_pagination <- function(bar, ..., evar = get0("evar", mode = "environment", 
 
 bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env()), just_tibble = FALSE) {
   force(evar)
-  fetch_vars(evar$.vn[c("v", "timeframe", "is_tqs", "is_ss")], ...)
+  fetch_vars(evar$.vn[c("v", "timeframe", "is_tqs", "tqs")], ...)
   
   if (is_tqs && v == 1) {
     headers = get_headers()
@@ -533,8 +509,10 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
       .out <- bars_transform(agg_quote, ...)
       e$query <- append(e$query, list(attr(.out, "query")))
       return(.out)
-    })
+    }) %>% 
+      tibble::add_column(symbol = names(url), .before = 0)
     attr(bars, "query") <- e$query
+    attr(bars, "symbol") <- bars$symbol
   } else if (v == 1) {
     agg_quote = httr::GET(url = url, get_headers())
     bars <- bars_transform(agg_quote, ...)
@@ -546,8 +524,8 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
     # Remove excess depth
     .depth <- get_tibble(bars, depth = TRUE)
     if (.depth > 2) {
-      for (i in 1:(.depth - ifelse(is_ss, 2, 1))) {
-        bars <- unlist(bars, recursive = FALSE, use.names = ifelse(is_ss, TRUE, FALSE))
+      for (i in 1:(.depth - ifelse(timeframe == "ss", 2, 1))) {
+        bars <- unlist(bars, recursive = FALSE, use.names = ifelse(timeframe == "ss", TRUE, FALSE))
       }
       .nms <- do.call(c,purrr::map(bars, get_sym)) %||% names(bars)
       bars <- stats::setNames(bars, .nms)
@@ -596,58 +574,65 @@ bars_getv2 <- function(.url, v, evar = get0("evar", mode = "environment", envir 
 bars_transform <- function(agg_quote, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
   force(evar)
   
-  fetch_vars(evar$.vn[c("v", "timeframe", "multiplier", "is_tqs", "is_ss")], ...)
+  fetch_vars(evar$.vn[c("v", "timeframe", "multiplier", "is_tqs", "symbol")], ...)
   
   .quote = response_text_clean(agg_quote)
-  check_response(.quote)
   .query <- get_query(.quote)
-  if (v == "p" || (v == 2 && !is_tqs)) {
-    # Mirror V1 response as list with nested symbol data
-    .quote <- rlang::list2(!!(.query$ticker %||% .query$symbol) := .quote)
-  } 
+  check_response(.quote, .query)
+  .is_list <- inherits(.quote, "list") 
+  
   if (!is_tqs) {
     # only check output if it's a bars request
-    purrr::iwalk(.quote, ~{
-      .warn <- try({NROW(.x) > 0})
-      if (inherits(.warn, "try-error")) {
-        rlang::warn(paste0(.y, " returned no data."))
-      }  
-    })
+    purrr::when(.is_list, 
+                isTRUE(.) ~ purrr::walk(.quote, check_response, query = .query), 
+                ~ check_response(.quote))
+    
   }
-  if (is_ss) {
-    bars <- purrr::map_depth(.quote, 2, bars_tidy, timeframe = timeframe, evar = evar)
+  if (timeframe == "ss") {
+    bars <- purrr::map_depth(.quote[!names(.quote) %in% "symbol"], get_tibble(.quote, "t", depth = T), bars_tidy, timeframe = timeframe, evar = evar)
+    attr(bars, "query") <- .query[c("status_code", "url", "ts")]
+    attr(bars, "symbol") <- .query$symbol
   } else if (is_tqs) {
     
     # if last quote or trade
     .sym <- .quote$symbol
     .obj_nm <- grep("(?:^last)|(?:^quote)|(?:^trade)", names(.quote), value = TRUE)
     bars <- tibble::as_tibble(.quote[[.obj_nm]])
+    
     # return raw quote if zero length
-    if (isTRUE(bars %|z|% TRUE)) {
-      message(paste0("The symbol ", .sym, " returned no data."))
-      return(.quote)
-    } 
-    if (v == 2) {
-      bars <- dplyr::select(bars, time = "t", everything())
-      bars <- suppressMessages(dplyr::mutate(bars, time = lubridate::as_datetime(time, tz = "America/New_York")))
+    if (rlang::is_empty(bars)) {
+      cli::cli_alert_warning(paste0("The symbol ", .sym, " returned no data."))
+      bars <- NULL
     } else {
-      bars <- dplyr::mutate(bars, timestamp = lubridate::as_datetime(timestamp / 1e9, tz = "America/New_York", origin = lubridate::origin))
-    }
-    attr(bars, "query") <- .query[!names(.query) %in% .obj_nm]
-    attr(bars, "symbol") <- .sym
-  } else {
-    bars = purrr::imap(.quote, ~bars_tidy(.x, .y, timeframe))  
-    # Transform to tsymble
-    bars <- purrr::imap(bars, ~{
-      if (NROW(.x) > 0 || !rlang::is_empty(.x)) { # handle empty
-        as_tsymble(.x, index = "time", query = .query, symbol = .y, interval = do.call(tsibble::new_interval, rlang::list2(!!timeframe := multiplier)))
+      if (v == 2) {
+        bars <- dplyr::select(bars, time = "t", everything())
+        bars <- suppressMessages(dplyr::mutate(bars, time = lubridate::as_datetime(time, tz = "America/New_York")))
       } else {
-        .x
+        bars <- dplyr::mutate(bars, timestamp = lubridate::as_datetime(timestamp / 1e9, tz = "America/New_York", origin = lubridate::origin))
       }
-    })
+      attr(bars, "query") <- .query[!names(.query) %in% .obj_nm]
+      attr(bars, "symbol") <- .sym
+    }
+    
+  } else {
+    bars <- purrr::when(.is_list, 
+                isTRUE(.) ~ purrr::imap(.quote, bars_tidy, timeframe = timeframe), 
+                ~ bars_tidy(.quote, .quote$symbol, timeframe))
+    bars <- purrr::when(.is_list, 
+                        isTRUE(.) ~ purrr::imap(bars, to_tsymble, query = .query, interval = rlang::list2(!!timeframe := multiplier)), 
+                        ~ to_tsymble(bars, query = .query, interval = rlang::list2(!!timeframe := multiplier)))  
   }
   
   return(bars)
+}
+
+
+to_tsymble <- function(quote, symbol = NULL, query, interval) {
+  if (NROW(quote) > 0 || !rlang::is_empty(quote)) { # handle empty
+    as_tsymble(quote, index = "time", query = query, symbol = symbol %||% query$symbol %||% query$ticker, interval = do.call(tsibble::new_interval, interval))
+  } else {
+    quote
+  }
 }
 
 bars_tidy <- function(.x, .y, timeframe, evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
@@ -700,43 +685,6 @@ bars_tidy <- function(.x, .y, timeframe, evar = get0("evar", mode = "environment
     everything()
   )
 }
-
-
-#' @title Expand calendar to contain each timepoint in the set of market hours
-#' @description A full set of expanded timepoints for timeframes of minute, hour, day.
-#' @param cal \code{(calendar)}
-#' @inheritParams market_data
-#' @keywords internal
-
-expand_calendar <- function(cal, timeframe, multiplier) {
-  force(timeframe)
-  force(multiplier)
-  force(cal)
-  # args to seq.POSIXct
-  out <- list(
-    from = lubridate::int_start(cal$day[1]),
-    to = lubridate::int_end(cal$day[length(cal$day)]),
-    by = paste(multiplier, ifelse(timeframe == "minute", "min", timeframe))
-  ) %>% 
-    purrr::map_if(~!is.character(.x), lubridate::floor_date, timeframe)
-  # floor date so start and end of sequence is correct
-  
-  out <- tsibble::tsibble(
-  time = do.call(seq.POSIXt, out),
-  index = "time"
-) %>%
-  dplyr::mutate(
-    d = lubridate::as_date(time),
-    fd = lubridate::floor_date(time, "day"),
-    dur = lubridate::as.duration(time - fd)
-  ) %>%
-  dplyr::filter(
-    suppressWarnings(dplyr::between(dur, lubridate::dhours(9) + lubridate::dminutes(30), lubridate::dhours(16) + lubridate::dminutes(30))) & d %in% cal$date
-  )
-
-  return(out)
-}
-
 
 
 #' @title bars_missing
@@ -1066,14 +1014,14 @@ evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rla
                           ss = ,
                           snapshot = "ss",
       )
-      is_ss <- (is_tqs && timeframe == "ss" && length(symbol) > 1)
+      
       # .url <- bars_url(symbol = symbol, timeframe = timeframe, from = from, to = to, after = after, until = until)
       # .out <- bars_get(.url, timeframe = timeframe)
       # return(.out)
     } else {
       .idx <- list(v1 = c(1,3), v2 = 1:3)
       .t <- match_letters(timeframe, .tf_opts[.idx[[v]]], ignore.case = TRUE, multiple = FALSE)
-      if (length(.t) < 1) {
+      if (rlang::is_empty(.t) || is.na(.t)) {
         stop(paste0("`",timeframe,"` is not a valid timeframe for the v",v," API. See ?market_data documentation."))
       } 
       # Get the timeframe
@@ -1100,7 +1048,7 @@ evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rla
   }
   # Get the timeframe as a numeric
   tf_num <- which(tf_order %in% timeframe)
-  rlang::env_bind(evar, timeframe = timeframe, multiplier = multiplier, tf_num = tf_num, tf_order = tf_order, v = v, is_tqs = is_tqs, is_ss = is_ss)
+  rlang::env_bind(evar, timeframe = timeframe, multiplier = multiplier, tf_num = tf_num, tf_order = tf_order, v = v, is_tqs = is_tqs)
   # If bounds not created, create, if passed as variable, bind.
   if (!"bounds" %in% names(.vars)) {
     bounds <- bars_bounds(from = from, to = to, after = after, until = until)
