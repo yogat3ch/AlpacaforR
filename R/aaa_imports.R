@@ -55,6 +55,7 @@
 
 # R/Helpers.R
 #' @importFrom lubridate year parse_date_time with_tz years origin as_date as_datetime
+#' @importFrom DescTools Mode
 #' @importFrom purrr map some map_if map_chr
 #' @importFrom dplyr between
 #' @importFrom rlang cnd_muffle exec dots_list
@@ -114,7 +115,7 @@
 
 # R/tsibble-dependencies.R
 #' @importFrom rlang is_null sym is_empty is_bare_logical is_bare_numeric vec_duplicate_any
-#' @importFrom dplyr grouped_df new_grouped_df summarise is_grouped_ts group_vars group_by_drop_default left_join group_data
+#' @importFrom dplyr grouped_df new_grouped_df summarise group_vars group_by_drop_default left_join group_data
 #' @importFrom tibble as_tibble
 #' @importFrom vctrs vec_duplicate_any list_of vec_unique vec_size vec_duplicate_detect
 #' @import tsibble

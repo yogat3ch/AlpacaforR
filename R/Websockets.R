@@ -202,7 +202,7 @@ lgl_pcdnce <- function(...) {
   if (...length() == 1) .d <- unlist(.d, recursive = FALSE)
   # if highest precedence is TRUE, return TRU
   if (isTRUE(.d[[1]])) TRUE
-  if (purrr:::some(.d, isTRUE)) {# If some true
+  if (purrr::some(.d, isTRUE)) {# If some true
     # filter NULLS
     .d <- .d[- which(purrr::map_lgl(.d, is.null))]
     # false indices
@@ -340,13 +340,20 @@ channel_set <- function(channel, socket) {
 
 #' @title Determine the socket from the channel
 #' @param channel \code{(character)} Name of the channel
+#' @return \code{(character)} socket name based on channel
 
-channel_bars <- function(channel) {
+socket_detect <- function(channel) {
   # Detect socket based on channel
   purrr::when(channel,
+              stringr::str_detect(., "^\\w{1,2}\\.") ~ "Polygon",
+              ~ "Alpaca",
+              )
+}
+
+channel_bars <- function(channel) {
+  purrr::when(channel,
               is.null(.) ~ FALSE,
-              stringr::str_detect(., "^\\w{1,2}\\.") ~ TRUE,
-              names(channel) == "bars")
+              stringr::str_detect(., "^\\w{1,2}\\.") ~ TRUE)
 }
 
 channel_get <- function(channel, private) {
@@ -464,7 +471,7 @@ AlpacaSocket <- R6::R6Class(
       })
       self$connect()
     },
-    #' @field opts Options supplied to `AlpacaStreams$new()` are stored here. Channel specific streams are stored in nested lists with the channel name. All of these options can be altered after the websocket has been activated, with the exception of `write_dir`.
+    #' @field opts Options supplied to `AlpacaStreams$new()` are stored here. Channel specific streams are stored in nested lists with the channel/stream name. All of these options can be altered after the websocket has been activated, with the exception of `write_dir`.
     opts = NULL,
     #' @description Returns the last message received by the socket
     lastmessage = function() {
@@ -482,15 +489,16 @@ AlpacaSocket <- R6::R6Class(
                   . == "Alpaca" && .ch ~ list(log = private$.log, bars = private$.bars),
                   . == "Alpaca" && !.ch ~ channel_get(channel, private))
     },
-    #' @description Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in  \link[AlpacaforR]{AlpacaStreams$initialize} unless overridden. **Notes** 1. the Polygon website is only available to Polygon subscribers. 2. The `sip` data stream is only available to Alpaca PRO subscribers.
+    #' @description Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden. **Notes** 1. the Polygon website is only available to Polygon subscribers. 2. The `sip` data stream is only available to Alpaca PRO subscribers.
     #' @param channel The channel to join. 
 #' \itemize{
 #'   \item{For Alpaca v1: \code{(character)} vector of symbols}
-#'   \item{For Alpaca Data v2: \code{(list)} with named character vectors. Names of `trades`, `quotes`, `bars` are accepted. See the \href{Alpaca v2 Data Streaming websocket docs}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time#subscribe} for details.}
+#'   \item{For Alpaca Data v2: \code{(named list)} Items with names `trades`, `quotes`, `bars` are accepted. See the \href{Alpaca v2 Data Streaming websocket docs}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time#subscribe} for details.}
 #'   \item{For Polygon: \code{(character)} vector of channels formatted according to the \href{https://polygon.io/docs/websockets/subscribe}{websocket documentation}.}
 #' }
     #' @param subscribe \code{(logical)} **Default `TRUE`**. Set to `FALSE` to unsubscribe from specified channel(s).
     #' @param overwrite \code{(logical)} **Default** `FALSE`. Set to `TRUE` to overwrite data from previous instances of this channel socket.
+    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this `\link[R6]{R6class}`.
     #' @param ... Named arguments from \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}}
     #' @details 
 
@@ -501,15 +509,10 @@ AlpacaSocket <- R6::R6Class(
       subscribe = TRUE,
       overwrite = FALSE,
       msg_action = NULL,
-      socket = "Alpaca",
       ...
     ) {
-      .socket <- match_letters(socket, "Alpaca", "Polygon", capitalize = TRUE)
-      
-      # set the channel
-      channel <- channel_set(channel, socket)
-        
-      
+  
+      socket <- socket_detect(channel)
       # Save options
       .d <- rlang::dots_list(...)
       .d$msg_action <- msg_action
@@ -691,7 +694,7 @@ AlpacaStreams <- R6::R6Class(
                           live = get_live(),
                           ...) {
       
-      socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", several.ok = TRUE)
+      socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", several.ok = TRUE, n = NULL)
       # Set default opts
       .opts <- ls() 
       .opts <- rlang::env_get_list(nms = .opts[!.opts %in% c("self", "socket", "msg_action")], default = NULL)
@@ -739,23 +742,23 @@ AlpacaStreams <- R6::R6Class(
     #' @param channel The channel to join
     #' @param subscribe \code{(logical)} **Default `TRUE`**. Set to `FALSE` to unsubscribe from specified channel(s).
     #' @param overwrite \code{(logical)} **Default** `FALSE`. Set to `TRUE` to overwrite data from previous instances of this channel socket.
+    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this `\link[R6]{R6class}`.
     #' @param ... Named parameters of \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}} to be applied to this particular channel.
     #' @details If `log = TRUE` for a Polygon channel, all non-status messages will be stored as tibbles named according to their respective channel name and accessed via the `$logs()` method.
     #' @export 
     channel = function(channel = NULL,
-                       socket = "Alpaca",
                        subscribe = TRUE,
                        overwrite = FALSE,
-                       v = 2,
                        msg_action,
                        ...
     ) {
-      socket <- match_letters(socket, c("Alpaca", "Polygon"), capitalize = TRUE)
+      # set the channel
+      socket <- socket_detect(channel)
       if (!missing(msg_action)) msg_action <- rlang::enquo(msg_action)
       else
         msg_action <- NULL
       
-      .list <- rlang::dots_list(.preserve_empty = )
+      .list <- rlang::dots_list()
       # Detect socket based on channel
       ws <- purrr::when(socket,
                   . == "Polygon" ~ self$Polygon,
@@ -766,35 +769,27 @@ AlpacaStreams <- R6::R6Class(
         
     },
     #' @description Retrieve *Socket Logs/Bars
-    #' @param channel \code{(character)} The name of the channel for which to retrieve logs. The socket is auto-filled if a matching channel is available. If missing, `socket` can be specified to retrieve all logs for the specified socket
-    #' @param socket \code{(character)} The name of the socket from which to retrieve logs. If missing when `channel = 'status'`, logs for both sockets will be retrieved. 
+    #' @param channel \code{(character)} The name of the channel for which to retrieve logs. The socket is auto-filled if a matching channel is available. If blank, all logs are returned.
     #' @export
-    logs = function(channel, socket) {
-      .ch <- missing(channel)
-      if (missing(socket)) {
-        .s <- TRUE
+    logs = function(channel) {
+      if (missing(channel)) {
+        out <- list()
+        if (!is.null(self$Alpaca))
+          out$Alpaca <- purrr::map(self$Alpaca, ~.x$logs())
+        if (!is.null(self$Polygon))
+          out$Polygon <- self$Polygon$logs()
       } else {
-        # match partial to socket
-        socket <- match.arg(stringr::str_to_title(socket), c("Alpaca", "Polygon"))
+        socket <- socket_detect(channel)
+        ind <- list(socket)
+        # If it's a bars channel and the socket is Alpaca
+        if (channel_bars(channel) && socket == "Alpaca")
+          ind <- append(ind, "data")
+        ind <- append(ind, channel)
+        out <- rlang::exec(purrr::pluck, !!!ind)$logs()
       }
-      if (channel_bars(channel))
-        self$Polygon$logs(channel)
-      else
-        purrr::compact(purrr::when(.ch,
-                  . && .s ~ list(
-                    if (!is.null(self$Alpaca)) Alpaca = self$Alpaca$logs() else NULL
-                        ,
-                        if (!is.null(self$Polygon)) Polygon = self$Polygon$logs() else NULL
-                    ),
-                  . && !.s ~ self[[socket]]$logs(),
-                  !. && .s ~ list(
-                    if (!is.null(self$Alpaca)) Alpaca = self$Alpaca$logs(channel) else NULL
-                            ,
-                    if (!is.null(self$Polygon)) Polygon = self$Polygon$logs(channel) else NULL
-                              ),
-                  !. && !.s~ self[[socket]]$logs(channel)))
+      out
     },
-    #' @field Alpaca slot for \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}}
+    #' @field Alpaca slot for \code{\href{../../AlpacaforR/html/AlpacaSocket.html}{AlpacaSocket}}. Contains a socket for the v1 account websocket and the v2 data websocket.
     Alpaca = NULL,
     #' @field Polygon slot for \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}}
     Polygon = NULL,
@@ -803,14 +798,14 @@ AlpacaStreams <- R6::R6Class(
     connect = function(...) self$initialize(...),
     #' @description Closes connections for both \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}} & \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}}.
     close = function() {
-      if (!is.null(self$Alpaca)) purrr::map(self$Alpaca, ~.x$close())
+      if (!is.null(self$Alpaca)) purrr::walk(self$Alpaca, ~.x$close())
       if (!is.null(self$Polygon)) self$Polygon$close()
     }
   ),
   private = list(
     finalize = function() {
       if (!is.null(self$Alpaca))
-        if (any(purrr::map_lgl(self$Alpaca, ~.x$readyState() == 1))) purrr::map(self$Alpaca, ~.x$close())
+        if (any(purrr::map_lgl(self$Alpaca, ~.x$readyState() == 1))) purrr::walk(self$Alpaca, ~.x$close())
       if (!is.null(self$Polygon)) self$Polygon$close()
     }
   )
