@@ -151,7 +151,7 @@ pos_transform <- function(pos) {
         ))
     })
     
-  } else if(rlang::is_empty(.pos$body)) {
+  } else if(rlang::is_empty(.pos$body %||% .pos$asset_id)) {
     message("No positions are open at this time.")
     out <- .pos
   } else if (length(.pos) > 1 && !(grepl("DELETE", .method, ignore.case = TRUE) && .sym == "positions")) {
