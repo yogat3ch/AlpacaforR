@@ -68,48 +68,48 @@ orders <-
            nested = T,
            live = get_live()) {
     
-  #Set URL & Headers
-  
-  headers = get_headers(live)
-  # set status if abbreviated
-  status <- match_letters(status, o = "open", c = "closed", a = "all")
-  # check if id
-  .is_id <- is_id(symbol_id)
-  if (.is_id) {
-    # if it's an order_id
-    .o_id <- symbol_id
-  } else {
-    # if its a ticker symbol
-    .o_id <- NULL
-    symbol_id <- toupper(symbol_id)
-  }
-  if (isTRUE(client_order_id)) {
-    .url <- get_url("orders:by_client_order_id", client_order_id = .o_id, live = live)
-  } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
-    .url <- get_url(c("orders", .o_id),
-                         list(status = status,
-                              limit = limit,
-                              after = after,
-                              until = until,
-                              direction = direction,
-                              nested = nested),
-                    live = live)
+    #Set URL & Headers
     
-  }
-  # yogat3ch: Create Query 2020-01-11 2157
-  
-  
-  if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
-  # Query
-  out <- httr::GET(.url, headers)
-  # Clean
-  out <- order_transform(out)
-  
-  
-  if (isTRUE(inherits(symbol_id, "character") && nchar(symbol_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
-    out = dplyr::filter(out, symbol %in% symbol_id)
-  }
-  return(out)
+    headers = get_headers(live)
+    # set status if abbreviated
+    status <- match_letters(status, o = "open", c = "closed", a = "all")
+    # check if id
+    .is_id <- is_id(symbol_id)
+    if (.is_id) {
+      # if it's an order_id
+      .o_id <- symbol_id
+    } else {
+      # if its a ticker symbol
+      .o_id <- NULL
+      symbol_id <- toupper(symbol_id)
+    }
+    if (isTRUE(client_order_id)) {
+      .url <- get_url("orders:by_client_order_id", client_order_id = .o_id, live = live)
+    } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
+      .url <- get_url(c("orders", .o_id),
+                      list(status = status,
+                           limit = limit,
+                           after = after,
+                           until = until,
+                           direction = direction,
+                           nested = nested),
+                      live = live)
+      
+    }
+    # yogat3ch: Create Query 2020-01-11 2157
+    
+    
+    if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
+    # Query
+    out <- httr::GET(.url, headers)
+    # Clean
+    out <- order_transform(out)
+    
+    
+    if (isTRUE(inherits(symbol_id, "character") && nchar(symbol_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
+      out = dplyr::filter(out, symbol %in% symbol_id)
+    }
+    return(out)
   }
 
 
@@ -241,7 +241,7 @@ order_submit <-
     } else {
       stop_price <- "stop_price"
     }
-  
+    
     ovar <- environment()
     ovar$.vn <-
       list(
@@ -264,32 +264,33 @@ order_submit <-
         live = "logical"
       )
     
-  .cancel_all <- any(grepl("cancel_all", as.character(match.call()), ignore.case = T))
-  if (!.cancel_all) {
-    action <- substr(tolower(action), 0, 1)
-    # if the order tbl is supplied directly, extract the id
-    order_symbol_id(symbol_id)
-  } else {
-    action = "c"
-  } 
-  
-  
-  
-  rlang::env_bind(ovar, type = type, action = action)
-  
-  # smart detect: type, order_class, extended_hours
-  # fix names for take_profit, stop_loss if partialed
-  # or throw errors/warnings for specific criteria
-  if (any(action %in% c("s", "r", "c"))) {
-    order_check() 
-  }
-  
-  .is_id <- is_id(symbol_id)
-  # detect the argument provided to symbol_id
-  if (action == "s") {
-  
-    #Create body with order details if action is submit or replace
-    bodyl <-
+    .cancel_all <- any(grepl("cancel_all", as.character(match.call()), ignore.case = T))
+    if (!.cancel_all) {
+      action <- substr(tolower(action), 0, 1)
+      # if the order tbl is supplied directly, extract the id
+      order_symbol_id(symbol_id)
+    } else {
+      action = "c"
+    } 
+    
+    
+    
+    rlang::env_bind(ovar, type = type, action = action)
+    
+    # smart detect: type, order_class, extended_hours
+    # fix names for take_profit, stop_loss if partialed
+    # or throw errors/warnings for specific criteria
+    if (any(action %in% c("s", "r", "c")) && !.cancel_all) {
+      order_check() 
+    }
+    
+    if (!.cancel_all)
+      .is_id <- is_id(symbol_id)
+    # detect the argument provided to symbol_id
+    if (action == "s") {
+      
+      #Create body with order details if action is submit or replace
+      bodyl <-
         append(purrr::modify_depth(purrr::compact(
           rlang::list2(
             symbol = symbol_id,
@@ -301,48 +302,48 @@ order_submit <-
             !!stop_price := stop,
             client_order_id = client_order_id,
             order_class = order_class
-            )
+          )
         ),-1, .f = as.character, .ragged = TRUE),
         purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
-        stop_loss = stop_loss)), -1, .f = as.character, .ragged = TRUE))
+                                                stop_loss = stop_loss)), -1, .f = as.character, .ragged = TRUE))
+      
+      bodyl$extended_hours <- extended_hours
+      bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
+    } else if (action == "r") {
+      bodyl <-
+        jsonlite::toJSON(
+          purrr::modify_depth(purrr::compact(
+            list(
+              qty = qty,
+              side = side,
+              time_in_force = time_in_force,
+              limit_price = limit,
+              stop_price = stop,
+              client_order_id = client_order_id)
+          ),-2, .f = as.character),
+          auto_unbox = TRUE)
+    }
     
-    bodyl$extended_hours <- extended_hours
-    bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
-  } else if (action == "r") {
-    bodyl <-
-      jsonlite::toJSON(
-        purrr::modify_depth(purrr::compact(
-          list(
-            qty = qty,
-            side = side,
-            time_in_force = time_in_force,
-            limit_price = limit,
-            stop_price = stop,
-            client_order_id = client_order_id)
-        ),-2, .f = as.character),
-        auto_unbox = TRUE)
+    #Set URL & Headers
+    headers = get_headers(live)
+    .path <- c("orders")
+    if (action %in% c("r","c") && !.cancel_all) {
+      # if replacing or canceling, append the order ID
+      .path <- append(.path, symbol_id)
+    }
+    .url <- get_url(.path, live = live)
+    .f <- switch(action,
+                 s = httr::POST,
+                 r = httr::PATCH,
+                 c = httr::DELETE)
+    .args <- switch(action,
+                    s = ,
+                    r = list(url = .url, body = bodyl, encode = "raw", headers),
+                    c = list(url = .url, headers))
+    out <- rlang::exec(.f, !!!.args)
+    out <- order_transform(out)
+    return(out)
   }
-  
-  #Set URL & Headers
-  headers = get_headers(live)
-  .path <- c("orders")
-  if (action %in% c("r","c") && !.cancel_all) {
-    # if replacing or canceling, append the order ID
-    .path <- append(.path, symbol_id)
-  }
-  .url <- get_url(.path, live = live)
-  .f <- switch(action,
-         s = httr::POST,
-         r = httr::PATCH,
-         c = httr::DELETE)
-  .args <- switch(action,
-         s = ,
-         r = list(url = .url, body = bodyl, encode = "raw", headers),
-         c = list(url = .url, headers))
-  out <- rlang::exec(.f, !!!.args)
-  out <- order_transform(out)
-  return(out)
-}
 
 #' @title Transform order objects
 #' @description Replaces character quantities with numeric and character dates with POSIXct
@@ -432,7 +433,7 @@ order_transform <- function(o) {
 order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())) {
   force(ovar)
   fetch_vars(ovar$.vn[!names(ovar$.vn) %in% c("trail_price", "trail_percent")], ..., evar = ovar)
-
+  
   #  smart detect order_class ----
   # Fri May 15 13:48:32 2020
   if (!is.null(order_class)) {
@@ -476,16 +477,16 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
     
     # Short sell/stop buy warning
     if (side == "sell") {
-      .pos <- try(positions(symbol_id, live = live), silent = TRUE)
+      .pos <- suppressMessages(try(positions(symbol_id, live = live), silent = TRUE))
       
       if (is_error(.pos) && grepl("position does not exist", attributes(.pos)$condition$message)) {
         cli::cli_alert_warning(paste0("No positions exist for ",paste0(symbol_id, collapse = ", "),". This order will be a short sell."))
       }
     } else if (side == "buy" && (!is.null(stop))) {
       .warn_msg <- switch(stop_price, 
-             stop_price = paste0("reaches ", stop),
-             trail_price = paste0("decreases by ", stop),
-             trail_percent = paste0("decreases by ", stop, " percent"))
+                          stop_price = paste0("reaches ", stop),
+                          trail_price = paste0("decreases by ", stop),
+                          trail_percent = paste0("decreases by ", stop, " percent"))
       cli::cli_alert_warning(paste0("This stop buy order will execute when the price ", .warn_msg))
     }
     
