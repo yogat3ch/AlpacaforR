@@ -454,6 +454,14 @@ period_multiplier.Period <- function(x) {
   period_list(x)
 }
 
+#' @export
+period_multiplier.interval <- function(x) {
+  unlist(x) %>% 
+    {.[which(. > 0)]}
+}
+
+
+
 
 period_api_units <- function(x) {
   UseMethod("period_api_units")
@@ -486,6 +494,11 @@ period_units.character <- function(x) {
 #' @export
 period_units.Period <- function(x) {
   names(period_list(x))
+}
+
+#' @export
+period_units.interval <- function(x) {
+  names(period_multiplier(x))
 }
 
 
