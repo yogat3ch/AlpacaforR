@@ -169,18 +169,19 @@ get_url <-
     .url$path <- append(.url$path, path)
 
   # Add dots
-  if (rlang::dots_n(...) > 0) 
-    .url$query <- rlang::list2(
-      if (!missing(query)) query,
-      !!!rlang::dots_list(...))
+  
+    
   # Add polygon apiKey to end of query for Polygon EPs
-  if (!missing(query)) 
-    .url$query <- purrr::when(poly, 
-                              isTRUE(.) ~ append(query,
-                                                 list(apiKey = get_key(api = "p"))),
-                               ~ query
-                              )
-  return(utils::URLdecode(httr::build_url(.url)))
+  if (!missing(query)) {
+    if (rlang::dots_n(...) > 0)
+      query <- append(query, rlang::dots_list(...))
+    if (poly)
+      query <- append(query, list(apiKey = get_key(api = "p")))
+    #.url$query <- purrr::map_if(query, is.character, utils::URLencode, reserved = TRUE)
+    .url$query <- query
+  }
+    
+  return(httr::build_url(.url))
 }
 
 # Internals:  Sun Jan 12 10:20:31 2020 ----
@@ -238,7 +239,7 @@ check_response <- function(resp, query = NULL) {
   if (rlang::is_empty(query) && "error" %in% names(resp)) {
     rlang::abort(paste("code:", resp$status, "\nmessage:", resp$error))
   } else if(grepl(pattern = "^4", x = query$status_code)) {
-    glubort("code: {query$status_code}\nmessage: {resp$message}")
+    glubort("code: {query$status_code}\nmessage: {ifelse(length(resp) == 1, resp, resp$message)}")
   }
   
   .warn <- try({NROW(resp) > 0})
