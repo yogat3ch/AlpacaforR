@@ -33,6 +33,18 @@
   if (rlang::is_empty(lhs)) rhs else lhs
 }
 
+#' @title Does x contain information?
+#' @description Returns TRUE if x is non-empty, non-NA, and non-null
+#' @param x
+#' @return \code{(logical)}
+#' @export
+
+is_legit <- function(x) {
+  !(is.null(x) || rlang::is_empty(x) || is.na(x))
+}
+
+
+
 get_cred <- function(cred) {
   out <- Sys.getenv(cred, unset = NA)
   if (is.na(out)) rlang::abort(message = paste0(cred," is unset. Please set your API credentials as environmental variables. See vignette('Getting Started', 'AlpacaforR') for details."))

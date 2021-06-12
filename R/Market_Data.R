@@ -383,7 +383,8 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         path = .path,
         query = .query,
         data = TRUE,
-        v = v)
+        v = v) %>% 
+        stats::setNames(nm = .symbol)
     } else if (isTRUE(length(.symbol) > 1)) {
       .url <- purrr::map_chr(stats::setNames(.path$symbol, .path$symbol), ~{
         .url <- get_url(
@@ -407,7 +408,8 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
     query = list(unadjusted = unadjusted)
     , api = "api", poly = TRUE, data = TRUE, v = 2)
     .url <- purrr::when(length(.symbol) == 1, 
-                isTRUE(.) ~ rlang::exec(get_url, !!!.args),
+                isTRUE(.) ~ rlang::exec(get_url, !!!.args) %>% 
+                  stats::setNames(nm = .symbol),
                 ~ purrr::map_chr(stats::setNames(.symbol, .symbol), ~{
                   .args$path <- purrr::list_modify(.args$path, ticker = .x)
                   rlang::exec(get_url, !!!.args)
@@ -426,17 +428,16 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
 #' @keywords Internal
 
 get_tibble <- function(x, nm = "time", depth = FALSE) {
-  if (!is.null(x) && !rlang::is_empty(x)) {
+  if (is_legit(x)) {
     i <- 0
     .o <- x
-    while (!nm %in% names(.o) && purrr::vec_depth(.o) > 1) {
+    while (!nm %in% names(.o) && purrr::vec_depth(.o) > 1 && is_legit(x)) {
       .o <- .o[[1]]
       i <- i + 1
     }
     if (depth)
       .o <- i
-    if (is.null(.o[[1]]))
-      .o <- .o[[1]]
+    
   } else {
     .o <- x
   }
@@ -977,6 +978,8 @@ bars_complete <- function(bars, ..., evar = get0("evar", mode = "environment", e
     #}
     return(dplyr::arrange(ext$out, !!ext$index))
   })
+  if (length(.newbars) == 1)
+    .newbars <- get_tibble(.newbars)
   return(.newbars)
 }
 

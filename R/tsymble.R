@@ -112,7 +112,9 @@ merge_query <- function(.) {
 
 bind_rows <- function (..., .id = NULL) {
   . <- purrr::compact(rlang::dots_list(...))
-  .zero_row <- purrr::map_lgl(., ~nrow(.x %||% data.frame()) == 0) #handles null
+  .zero_row <- purrr::map_lgl(., ~{
+      !is_legit(.x) ||
+      tryCatch(!is_legit(.x[[1]]), error = rlang::as_function(~{TRUE}))}) #handles null
   if (any(.zero_row)) . <- .[!.zero_row]
   .sym <- unique(do.call(c, purrr::map(., get_sym)))
   .query <- merge_query(.)
