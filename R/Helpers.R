@@ -1,4 +1,28 @@
+#  Re-exports ----
+# Sun Sep 20 11:15:14 2020
+
+#' @title NULL Replacement
+#' @name grapes-or-or-grapes
+#' @inherit rlang::`%||%`
+#' @importFrom rlang `%||%`
+#' @export
+`%||%` <- rlang::`%||%`
+
+#' @title Vectorized NA replacement
+#' @name grapes-or-grapes
+#' @inherit rlang::`%|%`
+#' @importFrom rlang `%|%`
+#' @export
+`%|%` <- rlang::`%|%`
+
+#' @name grapes-at-grapes
+#' @inherit rlang::`%@%`
+#' @importFrom rlang `%@%`
+#' @export
+`%@%` <- rlang::`%@%`
+
 #' @title Default value for zero length variable
+#' @name grapes-or-z-or-grapes
 #' @description This infix replaces zero length variables with a default value
 #' @param x (lhs) If `x` is length zero,
 #' @param y (rhs)  will return `y`; otherwise returns `x`
