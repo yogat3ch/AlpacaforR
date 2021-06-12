@@ -1,23 +1,4 @@
 
-# Internal functions for market_data ----
-# Sat Mar 28 09:40:23 2020
-
-#  Re-exports ----
-# Sun Sep 20 11:15:14 2020
-#' @inherit rlang::`%||%`
-#' @importFrom rlang `%||%`
-#' @export
-`%||%` <- rlang::`%||%`
-
-#' @inherit rlang::`%|%`
-#' @importFrom rlang `%|%`
-#' @export
-`%|%` <- rlang::`%|%`
-
-#' @inherit rlang::`%@%`
-#' @importFrom rlang `%@%`
-#' @export
-`%@%` <- rlang::`%@%`
 
 glubort <- function(..., .sep = "", .envir = parent.frame()) {
   rlang::abort(glue(..., .sep = .sep, .envir = .envir))
