@@ -345,8 +345,9 @@ channel_set <- function(channel, socket) {
 socket_detect <- function(channel) {
   # Detect socket based on channel
   purrr::when(channel,
+              inherits(., "list") ~ "Alpaca", 
               stringr::str_detect(., "^\\w{1,2}\\.") ~ "Polygon",
-              ~ "Alpaca",
+              ~ "Alpaca"
               )
 }
 
@@ -531,14 +532,14 @@ AlpacaSocket <- R6::R6Class(
         )
       })
       # Create object
-      if (.socket == "Alpaca" && !any(.tbq %in% names(channel))) {
+      if (socket == "Alpaca" && !any(.tbq %in% names(channel))) {
         .listen <- list(jsonlite::toJSON(list(
           action = "listen",
           data = list(streams = channel))
           , auto_unbox = TRUE,
           pretty = TRUE
         ))
-      } else if (.socket == "Alpaca" && any(.tbq %in% names(channel))) {
+      } else if (socket == "Alpaca" && any(.tbq %in% names(channel))) {
         .listen <- list(jsonlite::toJSON(rlang::list2(
           action = ifelse(subscribe, "subscribe", "unsubscribe"),
           !!!purrr::map(channel, ~ purrr::when(length(.x) < 2, isTRUE(.) ~ list(.x), ~ .x))),
@@ -603,6 +604,7 @@ PolygonSocket <- R6::R6Class(
 #' \itemize{
 #'  \item{\code{"account"/"a"}}{ [Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
 #'  \item{\code{"trade"/"t"}}{ [Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
+#'   \item{\code{All V2 streaming data channels}}{ See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
 #' }
 #' ## [Available Polygon Channels](https://polygon.io/sockets):
 #' \itemize{
@@ -658,8 +660,11 @@ PolygonSocket <- R6::R6Class(
 #' @examples 
 #' \dontrun{
 #' AS <- AlpacaStreams$new()
-#' AS$Alpaca$channel()
-#' AS$Polygon$channel("AM.BYND")
+#' AS$channel()
+#' # Subscribe to by-minute data for Beyond Meat Inc
+#' AS$channel(list(bars = "BYND"))
+#' # Turn off console messages
+#' AS$Alpaca$data$opts$b.BYND$toConsole <- FALSE
 #' }
 #' @export
 
@@ -678,7 +683,7 @@ AlpacaStreams <- R6::R6Class(
     #' @param bars_limit \code{(numeric)} indicating the number of previous bars (per subscription feed) to retain in the log. **Default** `5000`. See Details for memory handling specifics.
     #' @param write_dir \code{(character/logical)} The directory in which to store logs on disk. Use `FALSE` to disable logging to disk. Folders will be created. **Default** `"AlpacaStreams"`.
     #' @param overwrite \code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. **Default** `TRUE`.
-    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this `\link[R6]{R6class}`. 
+    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \link[R6]{\code{R6class}}. 
     
     #' @param live See [market_data]
     #' @param ... Passed on to \link[websocket]{Websocket}
@@ -694,7 +699,8 @@ AlpacaStreams <- R6::R6Class(
                           live = get_live(),
                           ...) {
       
-      socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", several.ok = TRUE, n = NULL)
+      socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", multiple = TRUE)
+      
       # Set default opts
       .opts <- ls() 
       .opts <- rlang::env_get_list(nms = .opts[!.opts %in% c("self", "socket", "msg_action")], default = NULL)
@@ -789,7 +795,7 @@ AlpacaStreams <- R6::R6Class(
       }
       out
     },
-    #' @field Alpaca slot for \code{\href{../../AlpacaforR/html/AlpacaSocket.html}{AlpacaSocket}}. Contains a socket for the v1 account websocket and the v2 data websocket.
+    #' @field Alpaca slot for \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}}. Contains a socket for the v1 account websocket and the v2 data websocket.
     Alpaca = NULL,
     #' @field Polygon slot for \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}}
     Polygon = NULL,
