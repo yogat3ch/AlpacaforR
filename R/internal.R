@@ -239,7 +239,9 @@ check_response <- function(resp, query = NULL) {
   if (rlang::is_empty(query) && "error" %in% names(resp)) {
     rlang::abort(paste("code:", resp$status, "\nmessage:", resp$error))
   } else if(grepl(pattern = "^4", x = query$status_code)) {
-    glubort("code: {query$status_code}\nmessage: {ifelse(length(resp) == 1, resp, resp$message)}")
+    if (is_legit(.resp))
+      .m <- tryCatch(.resp$message, error = rlang::as_function(~{.resp}))
+    glubort("code: {query$status_code}\nmessage: {.m}")
   }
   
   .warn <- try({NROW(resp) > 0})
