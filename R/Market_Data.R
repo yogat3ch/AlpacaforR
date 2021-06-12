@@ -161,9 +161,9 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
   # check bounds
   if (length(bounds) != 2) {
     # add a placeholder
-    .subtract <- switch(as.character(timeframe), 
+    .tf <- switch(as.character(timeframe), 
                         minute = ,
-                        hour = ,
+                        hour = lubridate::duration(1, "days"),
                         day = ,
                         week = ,
                         month = lubridate::duration(multiplier, timeframe),
@@ -174,11 +174,29 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
                         lq = ,
                         qu = ,
                         ss = lubridate::duration(1, "day"))
-    .fills <- Sys.Date() %>% 
-    rlang::list2(to = .,
-                 until = .,
-                 from =  (bounds$to %||% .) - .subtract,
-                 after = (bounds$until %||% .) - .subtract)
+    .f <- switch(as.character(timeframe), 
+                  minute = ,
+                  hour = lubridate::as_datetime,
+                  day = ,
+                  week = ,
+                  month = ,
+                  quarter = ,
+                  year = ,
+                  lt = ,
+                  tr = ,
+                  lq = ,
+                  qu = ,
+                  ss = lubridate::as_date)
+    
+    .to <- rlang::exec(.f, (bounds$from %||% bounds$after %||% Sys.Date()))
+    .from <- rlang::exec(.f, (bounds$to %||% bounds$until %||% Sys.Date()))
+    
+    .fills <- rlang::list2(
+      to = .to + .tf,
+      until = .to + .tf,
+      from =  .from - .tf,
+      after = .from - .tf
+    )
     
     bounds <- append(bounds, 
                      purrr::when(names(bounds),
@@ -523,7 +541,7 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
                 ~ purrr::map(url, bars_getv2, v = v, evar = evar))
     # Remove excess depth
     .depth <- get_tibble(bars, depth = TRUE)
-    if (.depth > 2) {
+    if (isTRUE(.depth > 2)) {
       for (i in 1:(.depth - ifelse(timeframe == "ss", 2, 1))) {
         bars <- unlist(bars, recursive = FALSE, use.names = ifelse(timeframe == "ss", TRUE, FALSE))
       }
@@ -617,7 +635,7 @@ bars_transform <- function(agg_quote, ..., evar = get0("evar", mode = "environme
   } else {
     bars <- purrr::when(.is_list, 
                 isTRUE(.) ~ purrr::imap(.quote, bars_tidy, timeframe = timeframe), 
-                ~ bars_tidy(.quote, .quote$symbol, timeframe))
+                ~ bars_tidy(.quote, .query$symbol %||% .query$ticker, timeframe))
     bars <- purrr::when(.is_list, 
                         isTRUE(.) ~ purrr::imap(bars, to_tsymble, query = .query, interval = rlang::list2(!!timeframe := multiplier)), 
                         ~ to_tsymble(bars, query = .query, interval = rlang::list2(!!timeframe := multiplier)))  
@@ -995,6 +1013,8 @@ evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rla
   else
     v <- "p"
   
+  .idx <- list(v1 = c(1,3), v2 = 1:3, p = 1:7)
+  
   if (v %in% 1:2) {
     # Last trade and quote handling  ----
     if (grepl("(?:^lt$)|(?:^tr$)|(?:^t$)|(?:^trade$)|(?:^last_trade$)|((?:^q$))|(?:^qu$)|(?:^lq$)|(?:^quote$)|(?:^last_quote$)|(?:^sn$)|(?:^snapshot$)|(?:^ss$)", timeframe, ignore.case = TRUE)) {
@@ -1019,10 +1039,10 @@ evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rla
       # .out <- bars_get(.url, timeframe = timeframe)
       # return(.out)
     } else {
-      .idx <- list(v1 = c(1,3), v2 = 1:3)
+      
       .t <- match_letters(timeframe, .tf_opts[.idx[[v]]], ignore.case = TRUE, multiple = FALSE)
       if (rlang::is_empty(.t) || is.na(.t)) {
-        stop(paste0("`",timeframe,"` is not a valid timeframe for the v",v," API. See ?market_data documentation."))
+        stop(paste0("`",timeframe,"` is not a valid timeframe for the v",v," API.\nSee ?market_data documentation."))
       } 
       # Get the timeframe
       timeframe <- utils::tail(.tf_opts[.idx[[v]]][[.t]], 1)
@@ -1038,7 +1058,7 @@ evar_bind <- function(..., evar = get0("evar", mode = "environment", envir = rla
       } else if (v == 2) {
         if (multiplier != 1) {
           multiplier <- 1
-          rlang::warn("The v2 API only accepts 1 as a `multiplier` for the all timeframes. `multiplier` coerced to 1.")
+          rlang::warn("The v2 API only accepts 1 as a `multiplier` for all timeframes. `multiplier` coerced to 1.")
         }
       }
     }
