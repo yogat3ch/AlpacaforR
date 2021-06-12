@@ -14,6 +14,7 @@ Channels are joined by calling the \verb{$channel()} method. The socket is autom
 \itemize{
 \item{\code{"account"/"a"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2}{Alpaca account stream}}
 \item{\code{"trade"/"t"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates}{Alpaca trade stream}}
+\item{\code{All V2 streaming data channels}}{ See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
 }
 }
 
@@ -87,14 +88,17 @@ Messages returned by the Polygon Websocket depend on the channel:
 \examples{
 \dontrun{
 AS <- AlpacaStreams$new()
-AS$Alpaca$channel()
-AS$Polygon$channel("AM.BYND")
+AS$channel()
+# Subscribe to by-minute data for Beyond Meat Inc
+AS$channel(list(bars = "BYND"))
+# Turn off console messages
+AS$Alpaca$data$opts$b.BYND$toConsole <- FALSE
 }
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{Alpaca}}{slot for \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}}}
+\item{\code{Alpaca}}{slot for \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}}. Contains a socket for the v1 account websocket and the v2 data websocket.}
 
 \item{\code{Polygon}}{slot for \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}}}
 }
@@ -148,7 +152,7 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 
 \item{\code{overwrite}}{\code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. \strong{Default} \code{TRUE}.}
 
-\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \link[R6]{\code{R6class}}.}
 
 \item{\code{live}}{See \link{market_data}}
 
@@ -169,10 +173,8 @@ Sends request to websocket to join the specified channel. Channel options are in
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{AlpacaStreams$channel(
   channel = NULL,
-  socket = "Alpaca",
   subscribe = TRUE,
   overwrite = FALSE,
-  v = 2,
   msg_action,
   ...
 )}\if{html}{\out{</div>}}
@@ -186,6 +188,8 @@ Sends request to websocket to join the specified channel. Channel options are in
 \item{\code{subscribe}}{\code{(logical)} \strong{Default \code{TRUE}}. Set to \code{FALSE} to unsubscribe from specified channel(s).}
 
 \item{\code{overwrite}}{\code{(logical)} \strong{Default} \code{FALSE}. Set to \code{TRUE} to overwrite data from previous instances of this channel socket.}
+
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
 
 \item{\code{...}}{Named parameters of \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}} to be applied to this particular channel.}
 }
@@ -202,15 +206,13 @@ If \code{log = TRUE} for a Polygon channel, all non-status messages will be stor
 \subsection{Method \code{logs()}}{
 Retrieve *Socket Logs/Bars
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{AlpacaStreams$logs(channel, socket)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{AlpacaStreams$logs(channel)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{channel}}{\code{(character)} The name of the channel for which to retrieve logs. The socket is auto-filled if a matching channel is available. If missing, \code{socket} can be specified to retrieve all logs for the specified socket}
-
-\item{\code{socket}}{\code{(character)} The name of the socket from which to retrieve logs. If missing when \code{channel = 'status'}, logs for both sockets will be retrieved.}
+\item{\code{channel}}{\code{(character)} The name of the channel for which to retrieve logs. The socket is auto-filled if a matching channel is available. If blank, all logs are returned.}
 }
 \if{html}{\out{</div>}}
 }

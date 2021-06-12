@@ -4,12 +4,15 @@
 \alias{order_check}
 \title{order_check}
 \usage{
-order_check(penv = NULL, ...)
+order_check(
+  ...,
+  ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())
+)
 }
 \arguments{
-\item{penv}{\code{environment} the parent environment, otherwise a named list of arguments from the parent environment}
-
 \item{...}{named arguments. Will automatically get arguments from enclosing environment.}
+
+\item{penv}{\code{environment} the parent environment, otherwise a named list of arguments from the parent environment}
 }
 \value{
 \code{(list)} returns list with appropriate arguments, to be merged with parent environment via \code{list2env}

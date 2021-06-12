@@ -6,7 +6,7 @@
 \usage{
 market_data(
   symbol,
-  v = 1,
+  v = 2,
   timeframe = "day",
   multiplier = 1,
   from = NULL,
@@ -32,11 +32,16 @@ market_data(
 \itemize{
 \item{\code{'tr'/'lt'/'trade'/'last_trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
 \item{\code{'qu'/'lq'/'quote'/'last_quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
-\item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
-\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
+\item{\code{'m'/'min'`/`'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
+\item{\code{'d'/'day'}}{ (\code{multiplier} will be \code{1})}
 }
 For the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
 \itemize{
+\item{\code{'lt'/'last_trade'}}{ The Latest trade API provides the latest trade data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade}{Latest Trades}}
+\item{\code{'tr'/'trade'}}{ For historical trade data for a given ticker symbol on a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades}{Trades}. \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning two days had 68 pages and took ~ 3m to retrieve.}
+\item{\code{'lq'/'last_quote'}}{The Latest quote API provides the latest quote data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote}{Latest Quote}}
+\item{\code{'qu'/'quote'}}{ The Quotes endpoint provides NBBO quotes for a given ticker symbol at a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes}{Quotes}, \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.}
+\item{\code{"ss"/"snapshot"}}{ The Snapshot endpoint provides the latest trade, latest quote, minute bar daily bar and previous daily bar data for a symbol or a set of symbols. See \href{Snapshot - Multipler Tickers}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---multiple-tickers} & \href{Snapshot - Ticker}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---ticker}}
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}
 \item{\code{'h'}/\code{'hour'}}
 \item{\code{'d'}/\code{'day'}}
@@ -71,25 +76,19 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
 \item{unadjusted}{\emph{polygon only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. \strong{Default} \code{FALSE}.}
 }
 \value{
-\code{list} object for each ticker symbol containing a \code{data.frame} with the following columns:
+\code{tsymble} object if just one symbol is requested, otherwise a \verb{named list} of \code{tsymble} objects for each ticker symbol.
+A \code{tsymble} is a \code{tsibble} object with the following columns:
 \itemize{
-\item{\code{time}}{  the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
+\item{\code{time}}{ the time of the bar as \code{POSIXct} in yyyy-mm-dd for timeframe = day, and yyyy-mm-dd hh:mm:ss for timeframes < day}
 \item{\code{open}}{ \code{(numeric)} open price}
 \item{\code{high}}{ \code{(numeric)} high price}
 \item{\code{low}}{ \code{(numeric)} low price}
 \item{\code{close}}{ \code{(numeric)} close price}
 \item{\code{volume}}{ \code{(numeric)} volume (in millions)}
+\item{\code{vw *polygon only*}}{ \code{(numeric)} the volume weighted average price}
 \item{\code{n *polygon only*}}{ \code{(numeric)} Number of items in aggregate window}
 }
-Additionally, a "query" attribute is attached to each symbol's \code{data.frame} with the "query" data as a \code{list} for each of the calls required to return it. This is accessed via \code{\link[base]{attr}}. Each call is a list with the following items:
-\itemize{
-\item{\code{ticker}}{ Ticker symbol requested.}
-\item{\code{status}}{ The API status code for the response in English}
-\item{\code{queryCount}}{ Number of aggregate ( min or day ) used to generate the response.}
-\item{\code{resultsCount}}{ Total number of results generated}
-\item{\code{adjusted}}{ If this response was adjusted for splits}
-\item{\code{status_code}}{ The API status code as an integer.}
-}
+Each \code{tsymble} has a "query" attribute with the "query" data as a \code{list} for each of the calls required to return it and a "symbol" attribute with the ticker symbol for the data. These attributes are easily accessed via \code{get_query} and \code{get_sym} respectively.
 }
 \description{
 The bars API provides time-aggregated price and volume data for a single stock or multiple. \strong{The \code{v2} (Polygon) API is only available for live accounts and accepts the \code{from}, \code{to}, \code{timeframe}, \code{multiplier}, and \code{unadjusted} arguments.}
@@ -99,31 +98,13 @@ All values to \code{from/after/to/until} will parse correctly if a numeric year,
 For a full overview of how the Polygon.io Aggregates endpoint behaves, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
 }
 \examples{
-# Getting one or more symbols from the v1 API: 
-market_data(symbol = c("INTC","MSFT"))
-# Getting price data with specific date ranges and timeframes, by also limiting the amount of bars returned for each symbol.
-market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175)
-# Get three months of hourly data for Beyond Meat from the v2 Polygon API when full = F:
-bars <- market_data(symbol = c("BYND"), v = 'polygon', from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h")
-# Returns successfully
-purrr::map(bars, nrow) # Note the number of rows
-purrr::map(bars, ~range(.x$time)) # Note that Some data is missing
-# Let's take a closer look:
-plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
-axis(1, bars$BYND$time, format(bars$BYND$time, "\%b \%d"), cex.axis = .7)
-# Only about 10\% of the requested data is present. Does the query status metadata indicate anything is wrong?
-attr(bars$BYND, "query") # everything checks out, so how do we get all the data we requested?
-# Set full = T
-bars <- market_data(symbol = c("BYND"), v = 2, from = "2020-02-20", to = "2020-03-22", multiplier = 1, timeframe = "h", full = TRUE)
-purrr::map(bars, nrow) # A big difference in the number of rows
-purrr::map(bars, ~range(.x$time)) # The range appears the same
-# A closer look:
-plot(open ~ time, bars$BYND, xaxt = "n", type = "l")
-axis(1, bars$BYND$time, format(bars$BYND$time, "\%b \%d"), cex.axis = .7)
-# That's more like it!
-# Get the last quote for a symbol (or multiple):
-market_data("TWTR", timeframe = "q")
-# or the last trade for multiple symbols:
-market_data(c("TWTR","AAPL","BYND"), timeframe = "t")
+# Getting data for the last week from the v1 API: 
+market_data(symbol = c("INTC","MSFT"), v = 1, from = Sys.Date() - lubridate::weeks(1))
+# Getting price data with specific date ranges and timeframes with limit on the number of bars returned
+market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175, v = 1)
+# Get the last trade for a symbol (or multiple):
+market_data("TWTR", timeframe = "lt")
+# or the last quote for multiple symbols:
+market_data(c("TWTR","AAPL","BYND"), timeframe = "lq")
 }
 \concept{Market-Data}

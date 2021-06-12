@@ -15,11 +15,16 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
 \itemize{
 \item{\code{'tr'/'lt'/'trade'/'last_trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
 \item{\code{'qu'/'lq'/'quote'/'last_quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
-\item{\code{'m'}/\code{'min'}/\code{'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
-\item{\code{'d'}/\code{'day'}}{ (\code{multiplier} will be \code{1})}
+\item{\code{'m'/'min'`/`'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
+\item{\code{'d'/'day'}}{ (\code{multiplier} will be \code{1})}
 }
 For the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
 \itemize{
+\item{\code{'lt'/'last_trade'}}{ The Latest trade API provides the latest trade data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade}{Latest Trades}}
+\item{\code{'tr'/'trade'}}{ For historical trade data for a given ticker symbol on a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades}{Trades}. \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning two days had 68 pages and took ~ 3m to retrieve.}
+\item{\code{'lq'/'last_quote'}}{The Latest quote API provides the latest quote data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote}{Latest Quote}}
+\item{\code{'qu'/'quote'}}{ The Quotes endpoint provides NBBO quotes for a given ticker symbol at a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes}{Quotes}, \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.}
+\item{\code{"ss"/"snapshot"}}{ The Snapshot endpoint provides the latest trade, latest quote, minute bar daily bar and previous daily bar data for a symbol or a set of symbols. See \href{Snapshot - Multipler Tickers}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---multiple-tickers} & \href{Snapshot - Ticker}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---ticker}}
 \item{\code{'m'}/\code{'min'}/\code{'minute'}}
 \item{\code{'h'}/\code{'hour'}}
 \item{\code{'d'}/\code{'day'}}

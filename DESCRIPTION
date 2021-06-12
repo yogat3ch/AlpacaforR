@@ -40,7 +40,9 @@ Config/testthat/edition: 3
 Imports: 
     cli,
     crayon,
+    DescTools,
     dplyr,
+    generics,
     glue,
     httr,
     jsonlite,
@@ -53,6 +55,7 @@ Imports:
     tibble,
     tidyselect,
     tsibble,
+    usethis,
     utils,
     vctrs,
     websocket,

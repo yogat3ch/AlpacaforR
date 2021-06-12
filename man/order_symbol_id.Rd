@@ -4,7 +4,11 @@
 \alias{order_symbol_id}
 \title{retrieve the order id if an order object is supplied}
 \usage{
-order_symbol_id(symbol_id, side, action, qty, client_order_id)
+order_symbol_id(
+  symbol_id,
+  ...,
+  ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())
+)
 }
 \arguments{
 \item{symbol_id}{\code{(character)}  The stock symbol (\emph{Required} when \code{action = "submit"}) or Order object (single row tibble) (\emph{Required} when \code{action = "cancel"/"replace"}).
@@ -15,24 +19,6 @@ To expedite the setting of stops and limits for open positions, an Order ID from
 \item{\code{symbol_id} will be set to the symbol from the buy order.}
 \item{If \code{client_order_id = TRUE}, the \code{client_order_id} will be set to the buy Order ID provided, effectively linking the orders for your records.}
 \item{All other parameters can be specified as usual.}
-}}
-
-\item{side}{\code{(character)} The side of the trade. I.E \code{"buy"/"b"} or \code{"sell"/"s"}. (\emph{required} when \code{action = "submit"}). Assumed to be \code{"buy"} if \code{order_class = "bracket"}.}
-
-\item{action}{\code{(character)} The action to take:
-\itemize{
-\item{\code{"submit"/"s"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#request-a-new-order}{Request a new order} \strong{Default}}
-\item{\code{"replace"/"r"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#replace-an-order}{Replace an order}}
-\item{\code{"cancel"/"c"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#cancel-an-order}{Cancel an order}}
-\item{\code{"cancel_all"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#cancel-all-orders}{Cancel all orders}}
-}}
-
-\item{qty}{\code{(integer)} The amount of shares to trade (\emph{required} when \code{action = "submit"}, \emph{optional} when \code{action = 'replace'}).}
-
-\item{client_order_id}{\code{(character/logical)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
-\itemize{
-\item{\code{`action = 'replace'/'submit'`}}{ \emph{Optional} character vector}
-\item{\code{`action = 'submit'`}}{ If an Order object is provided to \code{symbol_id}, \code{TRUE} will set the \code{client_order_id} for the sell order to Order ID in \code{symbol_id}. Used to link buy & sell orders for your records.}
 }}
 }
 \description{

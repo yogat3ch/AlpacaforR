@@ -14,7 +14,7 @@ A \link[websocket]{Websocket} with modifications for Alpaca/Polygon websocket st
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{opts}}{Options supplied to \code{AlpacaStreams$new()} are stored here. Channel specific streams are stored in nested lists with the channel name. All of these options can be altered after the websocket has been activated, with the exception of \code{write_dir}.}
+\item{\code{opts}}{Options supplied to \code{AlpacaStreams$new()} are stored here. Channel specific streams are stored in nested lists with the channel/stream name. All of these options can be altered after the websocket has been activated, with the exception of \code{write_dir}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -98,14 +98,13 @@ Returns the message log
 \if{html}{\out{<a id="method-channel"></a>}}
 \if{latex}{\out{\hypertarget{method-channel}{}}}
 \subsection{Method \code{channel()}}{
-Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in  \link[AlpacaforR]{AlpacaStreams$initialize} unless overridden. \strong{Note} that the Polygon website is only available to subscribers.
+Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden. \strong{Notes} 1. the Polygon website is only available to Polygon subscribers. 2. The \code{sip} data stream is only available to Alpaca PRO subscribers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{AlpacaSocket$channel(
   channel = NULL,
   subscribe = TRUE,
   overwrite = FALSE,
   msg_action = NULL,
-  socket = "Alpaca",
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -116,13 +115,15 @@ Sends request to websocket to join the specified channel. Channel options are in
 \item{\code{channel}}{The channel to join.
 \itemize{
 \item{For Alpaca v1: \code{(character)} vector of symbols}
-\item{For Alpaca Data v2: \code{(list)} with named character vectors. Names of \code{trades}, \code{quotes}, \code{bars} are accepted. See the \href{Alpaca v2 Data Streaming websocket docs}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time#subscribe} for details.}
+\item{For Alpaca Data v2: \code{(named list)} Items with names \code{trades}, \code{quotes}, \code{bars} are accepted. See the \href{Alpaca v2 Data Streaming websocket docs}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time#subscribe} for details.}
 \item{For Polygon: \code{(character)} vector of channels formatted according to the \href{https://polygon.io/docs/websockets/subscribe}{websocket documentation}.}
 }}
 
 \item{\code{subscribe}}{\code{(logical)} \strong{Default \code{TRUE}}. Set to \code{FALSE} to unsubscribe from specified channel(s).}
 
 \item{\code{overwrite}}{\code{(logical)} \strong{Default} \code{FALSE}. Set to \code{TRUE} to overwrite data from previous instances of this channel socket.}
+
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
 
 \item{\code{...}}{Named arguments from \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}}}
 }
