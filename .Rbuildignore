@@ -5,3 +5,5 @@
 ^.*reprex.R$
 ^.*.code-workspace$
 ^\.deprecated
+^README.Rmd$
+^check.R$

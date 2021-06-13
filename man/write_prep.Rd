@@ -9,6 +9,8 @@ write_prep(write_dir, url, channel, overwrite, private)
 \arguments{
 \item{write_dir}{\code{(character/logical)} \strong{Default: "AlpacaStreams"} top-level directory in which to store log files.}
 
+\item{url}{\code{(character)} the url of the stream for labelling the folder in which it's logs will reside}
+
 \item{channel}{\code{(character)} The name of the channel (will be used as the filename)}
 
 \item{overwrite}{\code{(logical)} \strong{Default: \code{FALSE}} Indicator for whether to overwrite previous log files by making new files (\code{TRUE}) or to leave old files (\code{FALSE})}

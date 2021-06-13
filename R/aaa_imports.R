@@ -123,7 +123,7 @@
 
 # R/tsymble.R
 #' @importFrom tsibble new_tsibble build_tsibble new_interval is_grouped_ts is_tsibble index_var as_tsibble
-#' @importFrom tibble tibble as_tibble
+#' @importFrom tibble tibble as_tibble add_row
 #' @importFrom dplyr distinct mutate across bind_rows
 #' @importFrom rlang sym dots_list list2 is_empty
 #' @importFrom lubridate year
@@ -154,3 +154,4 @@
 #' @importFrom utils memory.size memory.limit
 #' @importFrom R6 R6Class
 #' @importFrom websocket WebSocket
+NULL

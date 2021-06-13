@@ -19,6 +19,8 @@ bars_getv2(
 \item{\code{2}}{ the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{Alpaca V2 API}: data.alpaca.markets/v2 endpoint will be used.}
 \item{\code{"p"/"polygon"}}{ the \href{https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor}{Aggregates Endpoint}: api.polygon.io/v2/aggs will be used. }
 }}
+
+\item{evar}{An environment that holds variable constants necessary for sub-functions.}
 }
 \value{
 \code{(tibble)} data after retrieving all pages

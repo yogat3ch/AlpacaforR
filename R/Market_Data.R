@@ -560,6 +560,7 @@ bars_get <- function(url, ..., evar = get0("evar", mode = "environment", envir =
 #' @title GET url with the v2 & polygon API
 #' @description GETs the API query for Polygon and Alpaca version 2 API's
 #' @param .url \code{(character)} The url to retrieve
+#' @inheritParams bars_bounds
 #' @inheritParams market_data
 #' @return \code{(tibble)} data after retrieving all pages
 #' @keywords Internal
@@ -711,6 +712,7 @@ bars_tidy <- function(.x, .y, timeframe, evar = get0("evar", mode = "environment
 #' @description A wrapper for \code{\link[tsibble]{count_gaps}}
 #' @param x \code{(tsymble)}
 #' @inheritParams market_data
+#' @inheritParams bars_bounds
 #' @inheritDotParams market_data
 
 bars_missing <- function(x, ..., evar = get0("evar", mode = "environment", envir = rlang::caller_env())) {
@@ -757,7 +759,8 @@ range0 <- function(..., na.rm = FALSE) {
 #' @title memorize the span of data that the API returns each time
 #' @param x \code{(tsymble)} returned from API call
 #' @param ext \code{(environment)} with cyclically modified variables in `bars_complete`
-#' @return \code{(\link[lubridate]{Interval})} of the time span returned by the API. Saved to the `ext` environment.
+#' @inheritParams market_data
+#' @return \code{(\link[lubridate]{interval})} of the time span returned by the API. Saved to the `ext` environment.
 #' @keywords Internal
 
 bars_span <- function(x, ext, timeframe) {
@@ -780,7 +783,6 @@ bars_span <- function(x, ext, timeframe) {
 
 #' @title What's the largest gap in the calendar?
 #' @description Gives the largest gap in the calendar, in interval units of the supplied bars
-#' @param .data \code{(tsibble)} 
 #' @inheritParams bars_span
 #' @inheritParams market_data
 #' @inheritParams bars_bounds

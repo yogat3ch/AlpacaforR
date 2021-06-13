@@ -5,7 +5,7 @@
 \alias{PolygonSocket}
 \title{AlpacaSocket}
 \description{
-A \link[websocket]{Websocket} with modifications for Alpaca/Polygon websocket streams. \lifecycle{experimental}
+A \link[websocket]{WebSocket} with modifications for Alpaca/Polygon websocket streams. \lifecycle{experimental}
 }
 \concept{AlpacaStreams}
 \section{Super class}{
@@ -62,7 +62,7 @@ Connect to an Alpaca websocket
 \describe{
 \item{\code{opts}}{passed from  \link[AlpacaforR]{AlpacaStreams}}
 
-\item{\code{...}}{passed on to \link[websocket]{Websocket}}
+\item{\code{...}}{passed on to \link[websocket]{WebSocket}}
 }
 \if{html}{\out{</div>}}
 }
@@ -123,9 +123,9 @@ Sends request to websocket to join the specified channel. Channel options are in
 
 \item{\code{overwrite}}{\code{(logical)} \strong{Default} \code{FALSE}. Set to \code{TRUE} to overwrite data from previous instances of this channel socket.}
 
-\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \code{\link[R6]{R6Class}}.}
 
-\item{\code{...}}{Named arguments from \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}}}
+\item{\code{...}}{Named arguments from \code{AlpacaStreams$new()}}
 }
 \if{html}{\out{</div>}}
 }

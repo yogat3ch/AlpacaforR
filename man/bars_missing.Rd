@@ -62,6 +62,8 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
     \item{\code{full}}{\code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the \strong{full} dataset. If FALSE, the request will be submitted to the API as is. \emph{Note on rate limits:} The \code{v1} API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. The \code{polygon} API free tier has a call limit of 5 requests per minute, if the rate limit is reached, queries will pause for 1 minute. \strong{Default} FALSE.}
     \item{\code{unadjusted}}{\emph{polygon only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. \strong{Default} \code{FALSE}.}
   }}
+
+\item{evar}{An environment that holds variable constants necessary for sub-functions.}
 }
 \description{
 A wrapper for \code{\link[tsibble]{count_gaps}}

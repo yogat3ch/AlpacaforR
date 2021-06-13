@@ -5,6 +5,7 @@
 #' @param polygon_api \code{(named character)} of length one: `key`
 #' @param pro \code{(logical)} of length one: Set as `TRUE` to use the \href{Alpaca Market Data Pro Subscription}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/#subscription-plans} otherwise the Basic plan will be used. **Default** `FALSE`
 #' @param live \code{(logical)}: the default option for whether to use the live account `TRUE` or paper account `FALSE`. This option can be overridden for functions that accept the `live` argument, or can be changed at a later time. **Default** `FALSE`
+#' @param scope \code{(character)} specify at which level of scope the changes to .Renviron should apply.
 #' @return Sets environment variables for this session and edits the .Renviron file in R's home directory `path.expand("~")` and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
 #' @importFrom purrr iwalk
 #' @importFrom glue glue

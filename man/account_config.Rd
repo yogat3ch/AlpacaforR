@@ -18,6 +18,10 @@ account_config(
 \arguments{
 \item{dtbp_check}{\code{(character)} both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks. Default NULL (no change). Set to "default" to set all configuration options back to defaults. See Value section for defaults.}
 
+\item{fractional_trading}{\code{(logical)}}
+
+\item{max_margin_multiplier}{\code{(numeric)}}
+
 \item{no_shorting}{\code{(logical)} If true, account becomes long-only mode. Default NULL (no change).}
 
 \item{pdt_check}{\code{(character)} Not documented.}
@@ -32,6 +36,8 @@ account_config(
 AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity}{AccountConfigurations}  object with the following parameters (defaults shown):
 \itemize{
 \item{\code{dtbp_check = "entry"}}
+\item{\code{fractional_trading = TRUE}}
+\item{\code{max_margin_multiplier = 4}}
 \item{\code{no_shorting = FALSE}}
 \item{\code{pdt_check = "entry"}}
 \item{\code{suspend_trade = FALSE}}

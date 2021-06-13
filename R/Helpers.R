@@ -24,8 +24,8 @@
 #' @title Default value for zero length variable
 #' @name grapes-or-z-or-grapes
 #' @description This infix replaces zero length variables with a default value
-#' @param x (lhs) If `x` is length zero,
-#' @param y (rhs)  will return `y`; otherwise returns `x`
+#' @param lhs If `lhs` is length zero,
+#' @param rhs will return `rhs`; otherwise returns `lhs`
 #' @examples 
 #' numeric(0) %|z|% NA_real_
 #' @export
@@ -35,12 +35,12 @@
 
 #' @title Does x contain information?
 #' @description Returns TRUE if x is non-empty, non-NA, and non-null
-#' @param x
+#' @param x input
 #' @return \code{(logical)}
 #' @export
 
 is_legit <- function(x) {
-  !(is.null(x) || rlang::is_empty(x) || is.na(x))
+  !(isTRUE(is.null(x)) || isTRUE(rlang::is_empty(x)) || isTRUE(is.na(x)))
 }
 
 

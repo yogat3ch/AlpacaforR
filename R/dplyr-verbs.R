@@ -1,5 +1,5 @@
 
-
+#' @inherit dplyr::arrange
 #' @export
 arrange.tsymble_ts <- function(.data, ...) {
   arr_data <- dplyr::arrange(dplyr::as_tibble(.data), ...)
@@ -7,10 +7,11 @@ arrange.tsymble_ts <- function(.data, ...) {
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
+#' @inherit dplyr::arrange
 #' @export
 arrange.grouped_tsymble <- arrange.tsymble_ts
 
-
+#' @inherit dplyr::select
 #' @export
 select.tsymble_ts <- function(.data, ...) {
   loc <- tidyselect::eval_select(dplyr::expr(c(...)), .data) 
@@ -20,21 +21,23 @@ select.tsymble_ts <- function(.data, ...) {
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
+#' @inherit dplyr::select
 #' @export
 select.grouped_tsymble <- select.tsymble_ts
 
-
+#' @inherit dplyr::transmute
 #' @export
 transmute.tsymble_ts <- function(.data, ...) {
   bind_tsibble(NextMethod(), .data, position = "before") %>%
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
+#' @inherit dplyr::transmute
 #' @export
 transmute.grouped_tsymble <- transmute.tsymble_ts
 
 
-
+#' @inherit dplyr::group_by
 #' @export
 group_by.tsymble_ts <- function(.data, ..., .add = FALSE,
                              .drop = dplyr::group_by_drop_default(.data)) {
@@ -67,7 +70,7 @@ group_by.tsymble_ts <- function(.data, ..., .add = FALSE,
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
-
+#' @inherit dplyr::ungroup
 #' @export
 ungroup.tsymble_ts <- function(x, ...) {
   tbl <- dplyr::ungroup(dplyr::as_tibble(x))
@@ -79,117 +82,41 @@ ungroup.tsymble_ts <- function(x, ...) {
     build_tsymble(query = get_query(x), symbol = get_sym(x))
 }
 
-
-
-#' distinct.tsymble_ts <- function(.data, ...) {
-#'   dplyr::distinct(dplyr::as_tibble(.data), ...)
-#'   #TODO Didn't we already redefine this?
-#' }
-#' 
-#' #' @export
-#' dplyr_row_slice.tbl_ts <- function(data, i, ..., preserve = FALSE) {
-#'   tbl <- dplyr::as_tibble(data)
-#'   loc_df <- dplyr::summarise(tbl, !!".loc" := rlang::list2(i))
-#'   ascending <- all(purrr::map_lgl(loc_df[[".loc"]], validate_order))
-#'   res <- dplyr::dplyr_row_slice(tbl, i, ..., preserve = preserve)
-#'   if (preserve) {
-#'     update_meta2(res, data, ordered = ascending, interval = tsibble::interval(data))
-#'   } else {
-#'     update_meta(res, data, ordered = ascending, interval = tsibble::interval(data))
-#'   }
-#' }
-#' 
-#' #' @export
-#' dplyr_row_slice.grouped_ts <- dplyr_row_slice.tbl_ts
-#' 
-#' #' @export
-#' dplyr_col_modify.tbl_ts <- function(data, cols) {
-#'   res <- dplyr::dplyr_col_modify(dplyr::as_tibble(data), cols)
-#'   idx_chr <- tsibble::index_var(data)
-#'   if (testthat::is_false(idx_chr %in% names(res))) { # index has been removed
-#'     rlang::abort(c(
-#'       "Column `%s` (index) can't be removed for a tsibble.",
-#'       i = sprintf("Do you need `as_tibble()` to work with data frame?"), idx_chr))
-#'   }
-#'   
-#'   vec_names <- names(cols)
-#'   # either key or index is present in `cols`
-#'   # suggests that the operations are done on these variables
-#'   # validate = TRUE to check if tsibble still holds
-#'   val_idx <- has_index(vec_names, data)
-#'   if (val_idx) interval <- TRUE else interval <- tsibble::interval(data)
-#'   
-#'   val_key <- has_any_key(vec_names, data)
-#'   if (val_key) {
-#'     key_vars <- generics::setdiff(names(res), tsibble::measured_vars(data))
-#'     data <- remove_key(data, key_vars)
-#'   }
-#'   
-#'   validate <- val_idx || val_key
-#'   if (validate) {
-#'     res <- retain_tsibble(res, tsibble::key_vars(data), tsibble::index(data))
-#'   }
-#'   tsibble::build_tsibble(
-#'     res,
-#'     key = !!tsibble::key_vars(data),
-#'     key_data = if (val_key) NULL else tsibble::key_data(data), index = !!tsibble::index(data),
-#'     index2 = !!tsibble::index2(data), ordered = tsibble::is_ordered(data), interval = interval,
-#'     validate = FALSE, .drop = is_key_dropped(data)
-#'   )
-#' }
-#' 
-#' #' @export
-#' dplyr_col_modify.grouped_ts <- dplyr_col_modify.tbl_ts
-#' 
-#' #' @export
-#' dplyr_reconstruct.tbl_ts <- function(data, template) {
-#'   template <- rename_join_tsibble(data, template)
-#'   update_meta(data, template,
-#'               ordered = NULL, interval = tsibble::is_regular(template),
-#'               validate = TRUE)
-#' }
-#' 
-#' #' @export
-#' dplyr_reconstruct.grouped_ts <- function(data, template) {
-#'   data <- dplyr::grouped_df(data, dplyr::group_vars(template))
-#'   dplyr_reconstruct.tbl_ts(data, template)
-#' }
-#' 
-#' rename_join_tsibble <- function(data, template) {
-#'   nm <- names(template)
-#'   key_idx_pos <- vctrs::vec_match(c(tsibble::index_var(template), tsibble::key_vars(template)), nm)
-#'   names(template)[key_idx_pos] <- names(data)[key_idx_pos]
-#'   template
-#' }
-
-
+#' @inherit dplyr::dplyr_row_slice
+#' @inheritDotParams dplyr::dplyr_row_slice
 #' @export
-dplyr_row_slice.tsymble_ts <- function(data, i, ..., preserve = FALSE) {
+dplyr_row_slice.tsymble_ts <- function(data, i, ...) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
 
+#' @inherit dplyr::dplyr_row_slice
+#' @inheritDotParams dplyr::dplyr_row_slice
 #' @export
 dplyr_row_slice.grouped_tsymble <- dplyr_row_slice.tsymble_ts
 
-
+#' @inherit dplyr::dplyr_row_slice
+#' @inheritDotParams dplyr::dplyr_col_modify
 #' @export
 dplyr_col_modify.tsymble_ts <- function(data, cols) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
 
+#' @inherit dplyr::dplyr_col_modify
+#' @inheritDotParams dplyr::dplyr_col_modify
 #' @export
 dplyr_col_modify.grouped_tsymble <- dplyr_col_modify.tsymble_ts
 
-
+#' @inherit dplyr::dplyr_reconstruct
 #' @export
 dplyr_reconstruct.tsymble_ts <- function(data, template) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
 
+#' @inherit dplyr::dplyr_reconstruct
 #' @export
 dplyr_reconstruct.grouped_tsymble <- dplyr_reconstruct.tsymble_ts
 
-
+#' @inherit dplyr::summarise
 #' @export
 summarise.tsymble_ts <- function(.data, ..., .groups = NULL) { 
   
@@ -206,6 +133,6 @@ summarise.tsymble_ts <- function(.data, ..., .groups = NULL) {
   }
   return(out)
 }
-
+#' @inherit dplyr::summarise
 #' @export
 summarise.grouped_tsymble <- summarise.tsymble_ts

@@ -20,7 +20,7 @@ account_portfolio(
 \item{\code{`"M"`}}{ month }
 \item{\code{`"A/Y"`}}{ year }
 }
-Defaults to \code{"1M"}. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period} & \link[lubridate]{Duration}} objects.}
+Defaults to \code{"1M"}. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} & \code{\link[lubridate]{duration}} objects.}
 
 \item{timeframe}{\code{(character)} \emph{Optional} The timeframe of the returned data in \code{"MT"} format where \code{M} is a multiplier and \code{T} is the timeframe from one of the following (non case-sensitive):
 #' \itemize{

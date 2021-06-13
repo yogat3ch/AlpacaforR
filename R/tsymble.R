@@ -158,25 +158,16 @@ get_query <- function(x) x %@% "query"
 
 
 
-#' @title Add a row to a tsybble
+#' @title Add a row to a tsymble
 #' @description \lifecycle{experimental}
-#' Adds a row to a tsybble
+#' Adds a row to a tsymble
 #' @inheritParams tibble::add_row
+#' @inheritDotParams tibble::add_row
 #' @keywords internal
-
-#' @importFrom tibble add_row
 #' @export
-#' @inherit tibble::add_row
 add_row.tsymble_ts <- function(.data, ..., .before = NULL, .after = NULL)  {
   NextMethod()
 }
-
-
-# add_row.tsymble <- function(.data, ..., .before = NULL, .after = NULL) {
-#   .c <- class(.data)
-#   class(.data) <- .c[!.c %in% c("tsymble", "tbl_ts")]
-#   structure(tibble::add_row(.data, ..., .before = .before, .after = .after), class = .c)
-# }
 
 
 

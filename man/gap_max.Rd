@@ -43,8 +43,6 @@ For the \code{"p"/"polygon"} API, \code{multiplier} can be any positive \code{in
 }}
 
 \item{evar}{An environment that holds variable constants necessary for sub-functions.}
-
-\item{.data}{\code{(tsibble)}}
 }
 \description{
 Gives the largest gap in the calendar, in interval units of the supplied bars

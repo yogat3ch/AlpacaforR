@@ -152,11 +152,11 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 
 \item{\code{overwrite}}{\code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. \strong{Default} \code{TRUE}.}
 
-\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \link[R6]{\code{R6class}}.}
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \code{\link[R6]{R6Class}}.}
 
 \item{\code{live}}{See \link{market_data}}
 
-\item{\code{...}}{Passed on to \link[websocket]{Websocket}}
+\item{\code{...}}{Passed on to \link[websocket]{WebSocket}}
 
 \item{\code{v}}{\code{(integer)} Which version of the API to connect to. Either \code{1} or \code{2}.}
 
@@ -169,7 +169,7 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 \if{html}{\out{<a id="method-channel"></a>}}
 \if{latex}{\out{\hypertarget{method-channel}{}}}
 \subsection{Method \code{channel()}}{
-Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in  \link[AlpacaforR]{AlpacaStreams$initialize} unless overridden.
+Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in  \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{AlpacaStreams$channel(
   channel = NULL,
@@ -189,9 +189,9 @@ Sends request to websocket to join the specified channel. Channel options are in
 
 \item{\code{overwrite}}{\code{(logical)} \strong{Default} \code{FALSE}. Set to \code{TRUE} to overwrite data from previous instances of this channel socket.}
 
-\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
+\item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \code{\link[R6]{R6Class}}.}
 
-\item{\code{...}}{Named parameters of \href{../../AlpacaforR/html/AlpacaStreams.html}{\code{AlpacaStreams$new()}} to be applied to this particular channel.}
+\item{\code{...}}{Named parameters of \code{AlpacaStreams$new()} to be applied to this particular channel.}
 }
 \if{html}{\out{</div>}}
 }

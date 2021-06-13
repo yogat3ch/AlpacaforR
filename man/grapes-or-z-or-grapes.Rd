@@ -8,9 +8,9 @@
 lhs \%|z|\% rhs
 }
 \arguments{
-\item{x}{(lhs) If \code{x} is length zero,}
+\item{lhs}{If \code{lhs} is length zero,}
 
-\item{y}{(rhs)  will return \code{y}; otherwise returns \code{x}}
+\item{rhs}{will return \code{rhs}; otherwise returns \code{lhs}}
 }
 \description{
 This infix replaces zero length variables with a default value

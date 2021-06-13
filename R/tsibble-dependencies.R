@@ -94,25 +94,25 @@ remove_key <- function (.data, .vars)
   .data
 }
 
-#' @export
-bind_tsymble <- function(data, template, position = c("before", "after")) {
-  data <- tibble::as_tibble(data)
-  data_cols <- names(data)
-  key_vars <- setdiff(key_vars(template), data_cols)
-  key_data <- vctrs::vec_unique(select(tsibble::key_data(template), key_vars))
-  if (vctrs::vec_size(key_data) == 1) {
-    template <- remove_key(template, setdiff(tsibble::key_vars(template), key_vars))
-  }
-  tsbl_vars <- setdiff(c(tsibble::index_var(template), tsibble::key_vars(template)), data_cols)
-  if (position == "before") {
-    res <- bind_cols(tsibble::as_tibble(template)[tsbl_vars], data)
-  } else {
-    res <- bind_cols(data, template[tsbl_vars])
-  }
-  update_meta(res, template,
-              ordered = tsibble::is_ordered(template), interval = tsibble::interval(template)) %>%
-    build_tsymble(query = get_query(data), symbol = get_sym(data))
-}
+
+# bind_tsymble <- function(data, template, position = c("before", "after")) {
+#   data <- tibble::as_tibble(data)
+#   data_cols <- names(data)
+#   key_vars <- setdiff(key_vars(template), data_cols)
+#   key_data <- vctrs::vec_unique(select(tsibble::key_data(template), key_vars))
+#   if (vctrs::vec_size(key_data) == 1) {
+#     template <- remove_key(template, setdiff(tsibble::key_vars(template), key_vars))
+#   }
+#   tsbl_vars <- setdiff(c(tsibble::index_var(template), tsibble::key_vars(template)), data_cols)
+#   if (position == "before") {
+#     res <- bind_cols(tsibble::as_tibble(template)[tsbl_vars], data)
+#   } else {
+#     res <- bind_cols(data, template[tsbl_vars])
+#   }
+#   update_meta(res, template,
+#               ordered = tsibble::is_ordered(template), interval = tsibble::interval(template)) %>%
+#     build_tsymble(query = get_query(data), symbol = get_sym(data))
+# }
 
 is_ascending <- Negate(is.unsorted)
 

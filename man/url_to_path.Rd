@@ -7,7 +7,7 @@
 url_to_path(url)
 }
 \arguments{
-\item{\code{(character)}}{url to convert to file path}
+\item{url}{\code{(character)} url to convert to file path}
 }
 \description{
 Convert url to valid file path

@@ -392,7 +392,6 @@
 
 polygon <- function(ep = NULL, ..., params = NULL) {
   if (is.null(ep) || !is.character(ep)) rlang::abort("Endpoint (char) required. See ?AlpacaforR::polygon for details.")
-  #TODO If pkg name changes, change this.
   # Is the user requesting the reference object?
   .ref <- grepl("\\+", ep)
   # get endpoint object

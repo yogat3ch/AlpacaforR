@@ -10,9 +10,38 @@ bars_span(x, ext, timeframe)
 \item{x}{\code{(tsymble)} returned from API call}
 
 \item{ext}{\code{(environment)} with cyclically modified variables in \code{bars_complete}}
+
+\item{timeframe}{\code{(character)} For the \code{v1} API, one of
+\itemize{
+\item{\code{'tr'/'lt'/'trade'/'last_trade'}}{ For the last trade price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/}{Last Trade}}
+\item{\code{'qu'/'lq'/'quote'/'last_quote'}}{ For the last quote price. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/}{Last Quote}}
+\item{\code{'m'/'min'`/`'minute'}}{ (\code{multiplier} can be \code{1}/\code{5}/\code{15})}
+\item{\code{'d'/'day'}}{ (\code{multiplier} will be \code{1})}
+}
+For the \code{v2} \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/}{IEX/SIP API} the following timeframes are supported:
+\itemize{
+\item{\code{'lt'/'last_trade'}}{ The Latest trade API provides the latest trade data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade}{Latest Trades}}
+\item{\code{'tr'/'trade'}}{ For historical trade data for a given ticker symbol on a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades}{Trades}. \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning two days had 68 pages and took ~ 3m to retrieve.}
+\item{\code{'lq'/'last_quote'}}{The Latest quote API provides the latest quote data for a given ticker symbol. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote}{Latest Quote}}
+\item{\code{'qu'/'quote'}}{ The Quotes endpoint provides NBBO quotes for a given ticker symbol at a specified date \emph{\code{from/to} required}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes}{Quotes}, \strong{WARNING} The server stores data by the nanosecond. Limit the time span requested otherwise this could take a very long time. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.}
+\item{\code{"ss"/"snapshot"}}{ The Snapshot endpoint provides the latest trade, latest quote, minute bar daily bar and previous daily bar data for a symbol or a set of symbols. See \href{Snapshot - Multipler Tickers}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---multiple-tickers} & \href{Snapshot - Ticker}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---ticker}}
+\item{\code{'m'}/\code{'min'}/\code{'minute'}}
+\item{\code{'h'}/\code{'hour'}}
+\item{\code{'d'}/\code{'day'}}
+}
+For the \code{"p"/"polygon"} API, \code{multiplier} can be any positive \code{integer} for any one of the following \code{timeframe}'s:
+\itemize{
+\item{\code{'m'}/\code{'min'}/\code{'minute'}}
+\item{\code{'h'}/\code{'hour'}}
+\item{\code{'d'}/\code{'day'}}
+\item{\code{'w'}/\code{'week'}}
+\item{\code{'M'}/\code{'mo'}/\code{'month'}}{ (\emph{Note} capitalize M for month)}
+\item{\code{'q'}/\code{'quarter'}}
+\item{\code{'y'}/\code{'year'}}
+}}
 }
 \value{
-\code{(\link[lubridate]{Interval})} of the time span returned by the API. Saved to the \code{ext} environment.
+\code{(\link[lubridate]{interval})} of the time span returned by the API. Saved to the \code{ext} environment.
 }
 \description{
 memorize the span of data that the API returns each time

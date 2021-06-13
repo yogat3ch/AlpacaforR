@@ -53,6 +53,8 @@ account <-
 #'
 #' @description The account configuration API serves an important role in setting the way you want. See [Account Configurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) for details.
 #' @param dtbp_check \code{(character)} both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks. Default NULL (no change). Set to "default" to set all configuration options back to defaults. See Value section for defaults.
+#' @param fractional_trading \code{(logical)}
+#' @param max_margin_multiplier \code{(numeric)}
 #' @param no_shorting \code{(logical)} If true, account becomes long-only mode. Default NULL (no change).
 #' @param pdt_check \code{(character)} Not documented.
 #' @param suspend_trade \code{(logical)} If true, new orders are blocked. Default NULL (no change).
@@ -61,6 +63,8 @@ account <-
 #' @return AccountConfigurations \code{(list)} [AccountConfigurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity)  object with the following parameters (defaults shown):
 #' \itemize{
 #'  \item{`dtbp_check = "entry"`}
+#'  \item{`fractional_trading = TRUE`}
+#'  \item{`max_margin_multiplier = 4`}
 #'  \item{`no_shorting = FALSE`}
 #'  \item{`pdt_check = "entry"`}
 #'  \item{`suspend_trade = FALSE`}
@@ -264,7 +268,7 @@ account_activities <-
 #'   \item{\code{`"M"`}}{ month }
 #'   \item{\code{`"A/Y"`}}{ year }
 #' }
-#' Defaults to `"1M"`. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period} & \link[lubridate]{Duration}} objects.
+#' Defaults to `"1M"`. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} & \code{\link[lubridate]{duration}} objects.
 #' @param timeframe `(character)` *Optional* The timeframe of the returned data in `"MT"` format where `M` is a multiplier and `T` is the timeframe from one of the following (non case-sensitive):
 #' #' \itemize{
 #'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
