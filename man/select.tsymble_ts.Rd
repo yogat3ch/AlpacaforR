@@ -4,7 +4,7 @@
 \alias{select.tsymble_ts}
 \title{Subset columns using their names and types}
 \usage{
-select.tsymble_ts(.data, ...)
+\method{select}{tsymble_ts}(.data, ...)
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a

@@ -4,7 +4,7 @@
 \alias{dplyr_col_modify.grouped_tsymble}
 \title{Extending dplyr with new data frame subclasses}
 \usage{
-dplyr_col_modify.grouped_tsymble(data, cols)
+\method{dplyr_col_modify}{grouped_tsymble}(data, cols)
 }
 \arguments{
 \item{data}{A tibble. We use tibbles because they avoid some inconsistent
@@ -12,12 +12,6 @@ subset-assignment use cases}
 
 \item{cols}{A named list used modify columns. A \code{NULL} value should remove
 an existing column.}
-
-\item{...}{
-  Arguments passed on to \code{\link[dplyr:dplyr_extending]{dplyr::dplyr_col_modify}}
-  \describe{
-    \item{\code{}}{}
-  }}
 }
 \description{
 \Sexpr[results=rd, stage=render]{lifecycle::badge("experimental")}

@@ -4,7 +4,7 @@
 \alias{arrange.tsymble_ts}
 \title{Arrange rows by column values}
 \usage{
-arrange.tsymble_ts(.data, ...)
+\method{arrange}{tsymble_ts}(.data, ...)
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a

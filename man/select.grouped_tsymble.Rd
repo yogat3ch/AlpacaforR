@@ -4,7 +4,7 @@
 \alias{select.grouped_tsymble}
 \title{Subset columns using their names and types}
 \usage{
-select.grouped_tsymble(.data, ...)
+\method{select}{grouped_tsymble}(.data, ...)
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a

@@ -4,7 +4,7 @@
 \alias{arrange.grouped_tsymble}
 \title{Arrange rows by column values}
 \usage{
-arrange.grouped_tsymble(.data, ...)
+\method{arrange}{grouped_tsymble}(.data, ...)
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a

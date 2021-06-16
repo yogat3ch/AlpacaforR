@@ -4,12 +4,7 @@
 \alias{group_by.tsymble_ts}
 \title{Group by one or more variables}
 \usage{
-group_by.tsymble_ts(
-  .data,
-  ...,
-  .add = FALSE,
-  .drop = dplyr::group_by_drop_default(.data)
-)
+\method{group_by}{tsymble_ts}(.data, ..., .add = FALSE, .drop = dplyr::group_by_drop_default(.data))
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a

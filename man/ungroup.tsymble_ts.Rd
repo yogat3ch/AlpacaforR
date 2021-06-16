@@ -4,7 +4,7 @@
 \alias{ungroup.tsymble_ts}
 \title{Group by one or more variables}
 \usage{
-ungroup.tsymble_ts(x, ...)
+\method{ungroup}{tsymble_ts}(x, ...)
 }
 \arguments{
 \item{x}{A \code{\link[dplyr:tbl]{tbl()}}}

@@ -20,7 +20,7 @@ This tutorial covers connecting `AlpacaforR` to the [Alpaca API](https://alpaca.
   - Trailing stop loss orders of all types are supported.
   
 #### 0.5.0 2020-05-24 Package Overhaul
- - This release includes an overhaul of the entire package that is **not backwards compatible** in some instances, that emphasizes the following:
+ - This release includes an overhaul of the entire package that is **not backwards compatible** that emphasizes the following:
       - Creates an experience of the package functionality that mirrors that of the Alpaca API documentation and provides for more intuitive navigation of the package for new users.
       - Extensive package documentation that links directly to the appropriate online documentation wherever necessary with attention paid to consistency between the two. Documentation inheritance, families, aliases and see also have been implemented. 
       - Robust error pre-empting and catching such that meaningful info is provided when the function encounters a user error. 
@@ -222,18 +222,18 @@ account(live = TRUE)
 The [Account Configuration Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) supports viewing and setting account configuration details. 
 
 Retrieve the account configuration
-```{r}
+```{r account_config}
 account_config()
 ```
 
 Change configuration settings as needed.
-```{r}
+```{r account_config_modify}
 # change a configuration: block all orders on the live account
 account_config(suspend_trade = T)
 ```
 
 Return all settings back to defaults with ease.
-```{r}
+```{r account_config_default}
 account_config("default")
 ```
 
@@ -359,18 +359,18 @@ Assets can be retrieved by providing:
 
 1. the asset symbol
 
-```{r}
+```{r assets}
 (amzn <- assets("AMZN"))
 
 ```
 2. a vector of asset symbols (not case-sensitive)
 
-```{r}
+```{r assets_multiple}
 assets(c("AMZN", "fb"))
 ```
 3. the asset id
 
-```{r}
+```{r assets_by_id}
 assets(amzn$id)
 ```
 
@@ -532,7 +532,7 @@ To replace all the symbols in a watchlist while renaming, specify `action = "upd
 Delete the watchlist to start fresh.
 
 ```{r watchlist_delete_final}
-watchlist("FAANG", a = "d")
+watchlist("FANG", a = "d")
 ```
 
 ## Market Data
@@ -1075,7 +1075,7 @@ nchar(client_order_id)
 
 The replacement order can now be placed with a higher stop and remain effectively linked to it's original buy order via the first 36 characters of it's `client_order_id`
 
-```{r, echo = FALSE}
+```{r sleep, echo = FALSE}
 Sys.sleep(30)
 ```
 
