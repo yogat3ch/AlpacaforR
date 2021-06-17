@@ -25,11 +25,12 @@
 #' @importFrom tibble tibble as_tibble
 
 # R/Calendar.R
-#' @importFrom purrr map_lgl map iwalk
-#' @importFrom lubridate today wday as_date interval ymd_hm
+#' @importFrom purrr map_lgl map iwalk when
+#' @importFrom lubridate today wday as_date interval ymd_hm floor_date int_start int_end ceiling_date
 #' @importFrom httr GET
 #' @importFrom dplyr mutate across starts_with select
 #' @importFrom stringr str_sub
+#' @importFrom tsibble tsibble
 
 # R/Clock.R
 #' @importFrom lubridate `.__T__-:base`  as_datetime is.POSIXct with_tz hours force_tz
@@ -37,7 +38,8 @@
 #' @importFrom purrr map_if
 
 # R/dplyr-verbs.R
-#' @importFrom dplyr arrange as_tibble expr group_by_drop_default enquos group_vars new_grouped_df ungroup group_by dplyr_col_modify
+#' @importFrom dplyr arrange as_tibble expr group_by_drop_default enquos group_vars new_grouped_df ungroup group_by dplyr_col_modify dplyr_reconstruct dplyr_row_slice transmute
+#' @importFrom magrittr `%>%`
 #' @importFrom tsibble interval index_var key_vars key_drop_default key_data build_tsibble index index2 is_ordered as_tsibble
 #' @importFrom tidyselect eval_select
 #' @importFrom generics union
@@ -54,15 +56,18 @@
 #' @importFrom cli cat_line col_blue col_white
 
 # R/Helpers.R
+#' @importFrom magrittr `%>%`
 #' @importFrom lubridate year parse_date_time with_tz years origin as_date as_datetime
-#' @importFrom DescTools Mode
 #' @importFrom purrr map some map_if map_chr
 #' @importFrom dplyr between
-#' @importFrom rlang cnd_muffle exec dots_list
-#' @importFrom tsibble yearweek yearmonth yearquarter
+#' @importFrom stats na.exclude
+#' @importFrom stringr str_extract regex
+#' @importFrom purrr map_lgl map_dbl map_chr map some map_if when
+#' @importFrom rlang `%||%` `%|%` `%@%` `%@%<-` is_empty abort sym cnd_muffle exec dots_list
+#' @importFrom tsibble is_tsibble index interval yearweek yearmonth yearquarter
 
 # R/internal.R
-#' @importFrom rlang `%||%` `%|%` `%@%` caller_env dots_list is_empty env_bind list2 abort dots_n as_function
+#' @importFrom rlang `%||%` `%|%` `%@%` abort caller_env dots_list is_empty env_bind list2 dots_n as_function warn
 #' @importFrom purrr iwalk when compact
 #' @importFrom lubridate duration with_tz parse_date_time
 #' @importFrom httr add_headers build_url content
@@ -71,27 +76,29 @@
 #' @importFrom jsonlite fromJSON
 
 # R/Market_Data.R
-#' @import rlang
-#' @import purrr
-#' @import lubridate
+#' @importFrom rlang caller_env exec list2 is_empty expr eval_bare dots_list env abort warn env_bind
+#' @importFrom purrr when keep map walk imap compact map_chr list_modify vec_depth imap_dfr map_depth map_dbl map_lgl
+#' @importFrom lubridate duration as_datetime as_date floor_date ceiling_date interval hour force_tz origin round_date year as.duration int_end int_start `%within%`
 #' @importFrom glue glue
+#' @importFrom cli make_spinner col_blue cat_line col_grey cli_alert_warning
 #' @importFrom stats setNames
 #' @importFrom stringr str_replace regex
 #' @importFrom httr parse_url GET build_url
 #' @importFrom tsibble new_interval tsibble index_var count_gaps index interval
-#' @importFrom tibble as_tibble tibble
-#' @importFrom dplyr select everything mutate across filter between slice_max
+#' @importFrom tibble as_tibble tibble add_column
+#' @importFrom dplyr select everything mutate across filter between slice_max arrange
 #' @importFrom tidyselect any_of
 #' @importFrom utils head tail
 
 # R/Orders.R
 #' @importFrom httr GET POST PATCH DELETE
 #' @importFrom dplyr filter mutate across ends_with
-#' @importFrom purrr modify_depth compact map imap_chr imap keep
-#' @importFrom rlang list2 warn `%||%` abort is_empty env_bind caller_env
+#' @importFrom purrr modify_depth compact map imap_chr imap keep when
+#' @importFrom rlang env_bind list2 exec warn `%||%` caller_env abort
 #' @importFrom jsonlite toJSON
 #' @importFrom lubridate ymd_hms
 #' @importFrom tibble as_tibble
+#' @importFrom cli cli_alert_warning
 
 # R/Polygon.R
 #' @importFrom lubridate as_date floor_date
@@ -106,7 +113,7 @@
 
 # R/Positions.R
 #' @importFrom httr DELETE GET parse_url
-#' @importFrom rlang expr warn
+#' @importFrom rlang expr warn is_empty
 #' @importFrom purrr map_dfr map when pwalk
 #' @importFrom dplyr mutate across bind_cols rename
 #' @importFrom tidyselect ends_with
@@ -114,20 +121,21 @@
 #' @importFrom stringr str_extract
 
 # R/tsibble-dependencies.R
-#' @importFrom rlang is_null sym is_empty is_bare_logical is_bare_numeric vec_duplicate_any
+#' @importFrom rlang is_null sym is_empty is_bare_logical is_bare_numeric
 #' @importFrom dplyr grouped_df new_grouped_df summarise group_vars group_by_drop_default left_join group_data
 #' @importFrom tibble as_tibble
 #' @importFrom vctrs vec_duplicate_any list_of vec_unique vec_size vec_duplicate_detect
-#' @import tsibble
+#' @importFrom tsibble key_vars is_grouped_ts key_drop_default key_data index build_tsibble index2 key index_var index2_var
 #' @importFrom purrr map_lgl
 
 # R/tsymble.R
-#' @importFrom tsibble new_tsibble build_tsibble new_interval is_grouped_ts is_tsibble index_var as_tsibble
+#' @importFrom tsibble new_tsibble build_tsibble new_interval is_grouped_ts is_tsibble index_var
 #' @importFrom tibble tibble as_tibble add_row
 #' @importFrom dplyr distinct mutate across bind_rows
-#' @importFrom rlang sym dots_list list2 is_empty
+#' @importFrom rlang sym dots_list list2 is_empty as_function
 #' @importFrom lubridate year
-#' @importFrom purrr map map_lgl flatten
+#' @importFrom purrr map map_lgl flatten compact map_chr
+#' @importFrom stringr str_replace
 
 # R/Watchlist.R
 #' @importFrom purrr when compact map list_merge map_at
@@ -141,9 +149,9 @@
 #' @importFrom rlang warn
 
 # R/Websockets.R
-#' @importFrom purrr map walk accumulate vec_depth compact map_if some map_lgl imap when list_modify
+#' @importFrom purrr when walk accumulate vec_depth compact map_if some map_lgl imap list_modify map pluck
 #' @importFrom jsonlite toJSON fromJSON
-#' @import rlang
+#' @importFrom rlang list2 exec dots_list abort trace_back as_function warn quo_expr get_expr env eval_bare env_get_list env_bind enquo call2
 #' @importFrom glue glue_data
 #' @importFrom httr parse_url
 #' @importFrom stringr str_split str_extract str_detect str_subset str_to_title
