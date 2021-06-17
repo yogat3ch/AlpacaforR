@@ -258,7 +258,7 @@ check_response <- function(resp, query = NULL) {
 
 is_id <- function(.) {
   out <- tryCatch({
-    .out <- grepl("[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}", .) && !is.na(.) && !is.null(.) && is.character(.)
+    .out <- all(grepl("[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}", .)) && all(!is.na(.)) && !is.null(.) && is.character(.)
     isTRUE(.out)
   }, error = function(e) FALSE)
   return(out)
@@ -270,8 +270,12 @@ is_id <- function(.) {
 #' 
 #' @description remove $ from cash quantity strings and convert to numeric
 #' @keywords internal 
-toNum <- function(x){
-  as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
+toNum <- function(x) {
+  out <- as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
+  if (all(is.na(out)))
+    x
+  else
+    out
 }
 
 
