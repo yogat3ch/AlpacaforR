@@ -1,6 +1,13 @@
 #  Re-exports ----
 # Sun Sep 20 11:15:14 2020
 
+
+
+
+#' @inherit magrittr::`%>%`
+#' @export
+`%>%` <- magrittr::`%>%`
+
 #' @title NULL Replacement
 #' @name grapes-or-or-grapes
 #' @inherit rlang::`%||%`
@@ -21,6 +28,11 @@
 #' @export
 `%@%` <- rlang::`%@%`
 
+#' @inherit rlang::`%@%`
+#' @name grapes-at-grapes
+#' @export
+`%@%<-` <- rlang::`%@%<-`
+
 #' @title Default value for zero length variable
 #' @name grapes-or-z-or-grapes
 #' @description This infix replaces zero length variables with a default value
@@ -40,7 +52,7 @@
 #' @export
 
 is_legit <- function(x) {
-  !(isTRUE(is.null(x)) || isTRUE(rlang::is_empty(x)) || isTRUE(is.na(x)))
+  !(isTRUE(is.null(x)) || isTRUE(rlang::is_empty(x)) || isTRUE(all(is.na(x))))
 }
 
 
@@ -164,10 +176,10 @@ time_interval <- function(x) {
   } else {
     out <- if (!is.atomic(x)) x[[time_index(x)]] else x
     out <- list(
-      multiplier = as.numeric(DescTools::Mode(purrr::map_dbl(1:30, ~{
+      multiplier = as.numeric(.mode(purrr::map_dbl(1:30, ~{
         abs(difftime(out[.x], out[.x + 1]))
       })))
-      ,  timeframe = gsub("s$", "", as.character(DescTools::Mode(purrr::map_chr(1:30, ~{
+      ,  timeframe = gsub("s$", "", as.character(.mode(purrr::map_chr(1:30, ~{
         units(difftime(out[.x], out[.x + 1]))
       }))))
     )
@@ -197,10 +209,10 @@ valid_date <- function(x, .out) {
 
 date_try.character <- function(x, tz) {
   .orders <- c("Ymd", "mdY", "dmY", "ymd", "mdy", "dmy")
-  if (grepl("T", x)) {
+  if (any(grepl("T", x))) {
     # if a character and datetime
     .out <- lubridate::parse_date_time(x, orders = c("YmdT", "YmdTz"), tz = tz)
-  } else if (grepl("\\:", x)) {
+  } else if (any(grepl("\\:", x))) {
     .out <- lubridate::parse_date_time(x, orders = paste(.orders,"R"), tz = tz)
   } else {
     # if a date
