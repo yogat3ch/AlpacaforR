@@ -71,6 +71,7 @@ account <-
 #'  \item{`trade_confirm_email = "all"`}
 #' }
 #' @examples 
+#' \dontrun{
 #' account_config(live = FALSE)
 #' # Which is similar to:
 #' account_config()
@@ -78,7 +79,7 @@ account <-
 #' account_config(live = TRUE)
 #' account_config(dtbp_check = "both", no_shorting = TRUE)
 #' account_config("default")
-#' @importFrom httr GET PATCH
+#' }
 #' @export
 account_config <-
   function(dtbp_check,

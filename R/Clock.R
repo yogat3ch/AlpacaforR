@@ -14,7 +14,9 @@
 #'  \item{\code{next_close}}{ \code{(POSIXct)} Next market close timestamp as a string.}
 #'  }
 #' @examples 
+#' \dontrun{
 #' clock()
+#' }
 #' @importFrom httr GET
 #' @importFrom lubridate as_datetime with_tz is.POSIXct force_tz `.__T__-:base`
 #' @importFrom purrr map_if

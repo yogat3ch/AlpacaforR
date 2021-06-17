@@ -20,10 +20,12 @@
 #' }
 #'@seealso \link[lubridate]{Interval-class}
 #' @examples 
+#' \dontrun{
 #' # Get all dates:
 #' calendar()
 #' # Get specific date range:
 #' calendar(from = "2019-01-01", to = "2019-04-01")
+#' }
 #' @export
 
 

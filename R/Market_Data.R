@@ -67,6 +67,7 @@
 #' }
 #' Each `tsymble` has a "query" attribute with the "query" data as a `list` for each of the calls required to return it and a "symbol" attribute with the ticker symbol for the data. These attributes are easily accessed via `get_query` and `get_sym` respectively.
 #' @examples
+#' \dontrun{
 #' # Getting data for the last week from the v1 API: 
 #' market_data(symbol = c("INTC","MSFT"), v = 1, from = Sys.Date() - lubridate::weeks(1))
 #' # Getting price data with specific date ranges and timeframes with limit on the number of bars returned
@@ -75,10 +76,7 @@
 #' market_data("TWTR", timeframe = "lt")
 #' # or the last quote for multiple symbols:
 #' market_data(c("TWTR","AAPL","BYND"), timeframe = "lq")
-#' @importFrom stringr str_detect str_extract regex
-#' @importFrom purrr map_chr map_lgl keep
-#' @importFrom rlang abort warn
-#' @importFrom dplyr `%>%`
+#' }
 #' @export
 
 # Generate the list in the docs:

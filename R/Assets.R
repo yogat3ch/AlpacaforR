@@ -22,14 +22,14 @@
 #'  }
 #'  @details Errors will be caught and surfaced but the function will always return a \code{(tibble)} to prevent error breaks when retrieving a large vector of assets.
 #' @examples
+#' \dontrun{
 #' # Get a tibble of all active assets: 
 #' assets()
 #' # Get a specific asset by symbol:
 #' (AAPL <- assets("AAPL"))
 #' # or by id:
 #' (AAPL <- assets(AAPL$id))
-#' @importFrom purrr map_dfr
-#' @importFrom httr GET
+#' }
 #' @export
 assets <- function(...){
   symbol_id <- do.call(c, rlang::dots_list(...))

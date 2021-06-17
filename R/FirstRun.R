@@ -7,8 +7,7 @@
 #' @param live \code{(logical)}: the default option for whether to use the live account `TRUE` or paper account `FALSE`. This option can be overridden for functions that accept the `live` argument, or can be changed at a later time. **Default** `FALSE`
 #' @param scope \code{(character)} specify at which level of scope the changes to .Renviron should apply.
 #' @return Sets environment variables for this session and edits the .Renviron file in R's home directory `path.expand("~")` and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
-#' @importFrom purrr iwalk
-#' @importFrom glue glue
+#' @export
 #' @examples 
 #' \dontrun{
 #' firstrun(
