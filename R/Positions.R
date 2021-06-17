@@ -33,14 +33,14 @@
 #' \item{`change_today`}{`(numeric)` Percent change from last day price (by a factor of 1).}
 #' }
 #' @examples 
-#' positions("AAPL", live = FALSE)
-#' positions("AAPL", live = TRUE)
+#' \dontrun{
 #' positions() # all paper positions
 #' positions(live = TRUE) # all live positions
-#' #close a single position with `action  = "close"`
-#' positions("aapl", a = "c")
 #' #cancel all paper positions
 #' positions(a = "close_all")
+#' # details for a specific position (errors if not present)
+#' positions("GOOG")
+#' }
 #' @export
 positions <-
   function(symbols = NULL,
@@ -49,9 +49,9 @@ positions <-
     
   if (is.character(symbols)) symbols <- toupper(symbols)
   
-  .all <- grepl("close_all", action, ignore.case = TRUE)
+  .all <- grepl("_all$", action, ignore.case = TRUE)
   if (!.all) {
-    action <- c(g = "get", c = "close")[substr(action,1,1)]
+    action <- match_letters(action, g = "get", c = "close", ignore.case = TRUE)
   }
   #Set URL, live = FALSE & Headers
   .url <- get_url("positions", live = live)
@@ -103,6 +103,7 @@ pos_transform <- function(pos) {
          url = pos$url)
     .pos <- response_text_clean(pos)
     .message <- .pos$message
+    .delete <- grepl("DELETE", .method, ignore.case = TRUE)
   } else {
     stop("`*_transform` requires a response object.")
   }
@@ -118,7 +119,7 @@ pos_transform <- function(pos) {
   if (.all && !rlang::is_empty(.pos$body)) {
     out <- dplyr::bind_cols(.pos[!names(.pos) %in% "body"], dplyr::rename(.pos$body, order_status = "status", order_symbol = "symbol")) 
     out <- pos_recursive(out)
-    if ("legs" %in% names(out))
+    if (is_legit(out$legs))
       out$legs <- purrr::map(
         out$legs,
         ~ purrr::when(
@@ -126,16 +127,17 @@ pos_transform <- function(pos) {
           isTRUE(.) ~ .x, isFALSE(.) ~ pos_recursive(.x)
         )
       )
+    
     purrr::pwalk(out, ~{
       .vars <- list(...)
       if (.vars$status == 200) 
         message(paste0(
           .vars$updated_at,
           " - ",
-          .vars$id, " for ",
+          .vars$id,":",
           .vars$symbol,
-          " is ",
-          .vars$order_status,
+          ifelse(.delete, paste0(" has been liquidated"), paste0(" is ",
+          .vars$order_status)),
           if (is.character(.vars$message) && !is.na(.vars$message)) paste0("\nmessage:", .vars$message)
               else
                 NULL
@@ -154,8 +156,8 @@ pos_transform <- function(pos) {
   } else if(rlang::is_empty(.pos$body %||% .pos$asset_id)) {
     message("No positions are open at this time.")
     out <- .pos
-  } else if (length(.pos) > 1 && !(grepl("DELETE", .method, ignore.case = TRUE) && .sym == "positions")) {
-    out <- order_transform(pos)
+  } else if (length(.pos) > 1 && !(.delete && .sym == "positions")) {
+    out <- order_transform(.pos)
   } 
   
   attr(out, "query") <- .q
