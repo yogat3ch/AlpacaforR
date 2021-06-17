@@ -59,7 +59,7 @@ watchlist()
 watchlist()
 # Get it
 (test <- watchlist("test"))
-all.equal(test,wl, check.attributes = F)
+all.equal(test,wl, check.attributes = FALSE)
 # Get that Watchlist's info
 attr(wl, "info")
 # Add "FB", "AMZN", "NFLX", "GOOG" and update the watchlist name to "FAANG"

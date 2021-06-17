@@ -3,14 +3,19 @@
 \name{grapes-at-grapes}
 \alias{grapes-at-grapes}
 \alias{\%@\%}
+\alias{\%@\%<-}
 \title{Infix attribute accessor and setter}
 \usage{
 x \%@\% name
+
+`\%@\%`(x, name) <- value
 }
 \arguments{
 \item{x}{Object}
 
 \item{name}{Attribute name}
+
+\item{value}{New value for attribute \code{name}.}
 }
 \description{
 This operator extracts or sets attributes for regular objects and

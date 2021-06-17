@@ -46,13 +46,13 @@ The positions API provides information about an account's current open positions
 \code{position} is vectorized and thus multiple arguments may be provided to \code{symbols} and the function will perform the \code{action} specified for each. \code{action} is not vectorized, and only one action may be performed for a set of symbols at a given time.
 }
 \examples{
-positions("AAPL", live = FALSE)
-positions("AAPL", live = TRUE)
 positions() # all paper positions
 positions(live = TRUE) # all live positions
-#close a single position with `action  = "close"`
-positions("aapl", a = "c")
 #cancel all paper positions
 positions(a = "close_all")
+\dontrun{
+# details for a specific position (errors if not present)
+positions("GOOG")
+}
 }
 \concept{Positions}
