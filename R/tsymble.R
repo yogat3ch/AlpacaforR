@@ -108,7 +108,12 @@ merge_query <- function(.) {
 
 
 
-#' @inherit dplyr::bind_rows
+#' @title bind_rows
+#' @description Replace `dplyr::bind_rows` for use with `tsymble_ts` objects.
+#' @inheritParams dplyr::bind_rows
+#' @inheritDotParams dplyr::bind_rows
+#' @inherit dplyr::bind_rows return
+#' @export
 
 bind_rows <- function (..., .id = NULL) {
   . <- purrr::compact(rlang::dots_list(...))
