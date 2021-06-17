@@ -765,7 +765,7 @@ AlpacaStreams <- R6::R6Class(
       else
         msg_action <- NULL
       
-      .list <- rlang::dots_list()
+      .list <- rlang::dots_list(...)
       # Detect socket based on channel
       ws <- purrr::when(socket,
                   . == "Polygon" ~ self$Polygon,
