@@ -178,27 +178,29 @@ orders <-
 #' @inheritParams account
 #' @inherit orders return
 #' @examples 
+#' \dontrun{
 #' # most orders (except limit) must be placed during market hours or they will not be filled until the next trading day. 
 #' .c <- clock()
-#' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
-#' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
-#' (so <- order_submit("AAPL", q = 1, side = "s", lim = 120))
 #' if (.c$is_open) {
+#' #' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
+#' # Or you can submit a limit order (`type` is assumed to be `"limit"` when only `limit` is set):
+#' lt <- market_data("AAPL", timeframe = "lt")
+#' (so <- order_submit("AAPL", q = 1, side = "s", limit = lt$p * .99))
 #' # cancel an order with `action = "cancel"`. symbol_id can be either the id of the order to cancel or the order tbl object.
 #' order_submit(so, a = "c")
 #' # expedite a simple "sell" order by providing the id of a buy order. This can be linked to it's original buy order on the Alpaca side via the `client_order_id` by simply setting `client_order_id = T`
-#' (so <- order_submit(bo, stop = 120, cli = TRUE)) # here the id is used
-#' so$client_order_id == bo$id
+#' (so <- order_submit(bo, stop = lt$p * .95, client = TRUE)) # here the id is used
+#' identical(so$client_order_id, bo$id)
 #' # replace `"r"` parameters for simple orders (Alpaca devs are working on replacement for complex orders as of 2020-05-06)
-#' order_submit(so, a = "r", stop = 123)
-#' # Complex orders can be submitted as well
+#' order_submit(so, a = "r", stop = lt$p * .94)
+#' # Complex orders
 #' # Here is an example of setting a "bracket" order
 #' # first retrieve the going price
-#' (.lq <- market_data("lq", symbol = "AMZN"))
+#' (.lt <- market_data(timeframe = "lt", symbol_id = "AMZN"))
 #' # sell if the price moves up 3% by setting `take_profit`
-#' tp <- list(l = .lq$askprice * 1.03)
+#' tp <- list(l = .lt$p * 1.03)
 #' # hedge risk by setting a stop if it loses 5% and limit if it loses 6% with `stop_loss`
-#' sl <- list(l = .lq$askprice * .94, s = .lq$askprice * .95)
+#' sl <- list(l = .lt$p * .94, s = .lt$p * .95)
 #' # note that the names of these list items can be partial
 #' (br_o <- order_submit("AMZN", order_class = "bracket", qty = 2, take_profit = tp, stop_loss = sl))
 #' # side is assumed to be buy, and type is assumed to be market
@@ -210,7 +212,9 @@ orders <-
 #' ts_o <- order_submit(m_o, trail_percent = 5)
 #' }
 #' # all open orders can be canceled with `action = "cancel_all"`
-#' order_submit(a = "cancel_all")
+#' order_submit(action = "cancel_all")
+#' }
+#' 
 #' @export
 
 order_submit <-
@@ -350,10 +354,8 @@ order_submit <-
 #' @param .o An order object
 #' @keywords internal
 o_transform <- function(.o) {
-  if ("cost_basis" %in% names(.o))
-    .o <- dplyr::mutate(.o, dplyr::across(.fns = ~ifelse(!is.na(as.numeric(.x)), as.numeric(.x), .x)))
   .o <- dplyr::mutate(.o, dplyr::across(dplyr::ends_with("at"), ~lubridate::ymd_hms(.x, tz = Sys.timezone())))
-  out <- dplyr::mutate(.o, dplyr::across(where(~is.character(.x) && !is.na(as.numeric(toNum(.x)))), toNum))
+  out <- dplyr::mutate(.o, dplyr::across(where(~is.character(.x)), toNum))
   return(out)
 }
 
@@ -395,7 +397,7 @@ order_transform <- function(o) {
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
     suppressMessages({
       suppressWarnings({
-        if (!is.null(.o$legs) && !is.na(.o$legs)) {
+        if (is_legit(.o$legs)) {
           if (inherits(.o$legs, "list")) {
             .o$legs <- purrr::map(.o$legs, ~{
               if (!is.null(.x)) {
@@ -461,7 +463,7 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
     }
     
     if (!is.null(side)) {
-      side <- match_letters(side, "buy", "sell")
+      side <- match_letters(side, "buy", "sell", ignore.case = TRUE)
       if (class(side) == "try-error") rlang::abort("Invalid value for `side`")
     } else if (is.null(side)) {
       if ((order_class %||% "none") %in% c("bracket", "oto")) {
