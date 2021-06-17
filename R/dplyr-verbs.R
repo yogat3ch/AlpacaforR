@@ -1,5 +1,7 @@
-
-#' @inherit dplyr::arrange
+#' @title arrange.tsymble_ts
+#' @description An S3 method for arranging `tsymble_ts` object
+#' @inheritParams dplyr::arrange
+#' @inherit dplyr::arrange return
 #' @export
 arrange.tsymble_ts <- function(.data, ...) {
   arr_data <- dplyr::arrange(dplyr::as_tibble(.data), ...)
@@ -7,11 +9,17 @@ arrange.tsymble_ts <- function(.data, ...) {
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
-#' @inherit dplyr::arrange
+#' @title arrange.grouped_tsymble
+#' @description An S3 method for arranging `tsymble_ts` object
+#' @inheritParams dplyr::arrange
+#' @inherit dplyr::arrange return
 #' @export
 arrange.grouped_tsymble <- arrange.tsymble_ts
 
-#' @inherit dplyr::select
+#' @title select.tsymble_ts
+#' @description An S3 method for selecting from a `tsymble_ts` object
+#' @inheritParams dplyr::select
+#' @inherit dplyr::select return
 #' @export
 select.tsymble_ts <- function(.data, ...) {
   loc <- tidyselect::eval_select(dplyr::expr(c(...)), .data) 
@@ -21,23 +29,34 @@ select.tsymble_ts <- function(.data, ...) {
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
-#' @inherit dplyr::select
+#' @title select.grouped_tsymble
+#' @description An S3 method for selecting from a `tsymble_ts` object
+#' @inheritParams dplyr::select
+#' @inherit dplyr::select return
 #' @export
 select.grouped_tsymble <- select.tsymble_ts
 
-#' @inherit dplyr::transmute
+#' @title transmute.tsymble_ts
+#' @description An S3 method for transmuting a `tsymble_ts` object
+#' @inheritParams dplyr::transmute
+#' @inherit dplyr::transmute return
 #' @export
 transmute.tsymble_ts <- function(.data, ...) {
   bind_tsibble(NextMethod(), .data, position = "before") %>%
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
-#' @inherit dplyr::transmute
+#' @title transmute.grouped_tsymble
+#' @description An S3 method for transmuting a `tsymble_ts` object
+#' @inheritParams dplyr::transmute
+#' @inherit dplyr::transmute return
 #' @export
 transmute.grouped_tsymble <- transmute.tsymble_ts
 
-
-#' @inherit dplyr::group_by
+#' @title group_by.tsymble_ts
+#' @description An S3 method for transmuting a `tsymble_ts` object
+#' @inheritParams dplyr::group_by
+#' @inherit dplyr::group_by return
 #' @export
 group_by.tsymble_ts <- function(.data, ..., .add = FALSE,
                              .drop = dplyr::group_by_drop_default(.data)) {
@@ -70,7 +89,10 @@ group_by.tsymble_ts <- function(.data, ..., .add = FALSE,
     build_tsymble(query = get_query(.data), symbol = get_sym(.data))
 }
 
-#' @inherit dplyr::ungroup
+#' @title ungroup.tsymble_ts
+#' @description An S3 method for ungrouping a `tsymble_ts` object
+#' @inheritParams dplyr::ungroup
+#' @inherit dplyr::ungroup return
 #' @export
 ungroup.tsymble_ts <- function(x, ...) {
   tbl <- dplyr::ungroup(dplyr::as_tibble(x))
@@ -82,41 +104,59 @@ ungroup.tsymble_ts <- function(x, ...) {
     build_tsymble(query = get_query(x), symbol = get_sym(x))
 }
 
-#' @inherit dplyr::dplyr_row_slice
+#' @title dplyr_row_slice.tsymble_ts
+#' @description An S3 method for slicing a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_row_slice
+#' @inherit dplyr::dplyr_row_slice return
 #' @inheritDotParams dplyr::dplyr_row_slice
 #' @export
 dplyr_row_slice.tsymble_ts <- function(data, i, ...) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
 
-#' @inherit dplyr::dplyr_row_slice
+#' @title dplyr_row_slice.grouped_tsymble
+#' @description An S3 method for slicing a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_row_slice
+#' @inherit dplyr::dplyr_row_slice return
 #' @inheritDotParams dplyr::dplyr_row_slice
 #' @export
 dplyr_row_slice.grouped_tsymble <- dplyr_row_slice.tsymble_ts
 
-#' @inherit dplyr::dplyr_row_slice
-#' @inheritDotParams dplyr::dplyr_col_modify
+#' @title dplyr_col_modify.tsymble_ts
+#' @description An S3 method for modifying a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_col_modify
+#' @inherit dplyr::dplyr_col_modify return
 #' @export
 dplyr_col_modify.tsymble_ts <- function(data, cols) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
 
-#' @inherit dplyr::dplyr_col_modify
-#' @inheritDotParams dplyr::dplyr_col_modify
+#' @title dplyr_col_modify.grouped_tsymble
+#' @description An S3 method for modifying a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_col_modify
+#' @inherit dplyr::dplyr_col_modify return
 #' @export
 dplyr_col_modify.grouped_tsymble <- dplyr_col_modify.tsymble_ts
 
-#' @inherit dplyr::dplyr_reconstruct
+#' @title dplyr_reconstruct.tsymble_ts
+#' @description An S3 method for reconstructing a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_reconstruct
+#' @inherit dplyr::dplyr_reconstruct return
 #' @export
 dplyr_reconstruct.tsymble_ts <- function(data, template) {
   build_tsymble(NextMethod(), query = get_query(data), symbol = get_sym(data))
 }
-
-#' @inherit dplyr::dplyr_reconstruct
+#' @title dplyr_reconstruct.grouped_tsymble
+#' @description An S3 method for reconstructing a `tsymble_ts` object
+#' @inheritParams dplyr::dplyr_reconstruct
+#' @inherit dplyr::dplyr_reconstruct return
 #' @export
 dplyr_reconstruct.grouped_tsymble <- dplyr_reconstruct.tsymble_ts
 
-#' @inherit dplyr::summarise
+#' @title summarise.tsymble_ts
+#' @description An S3 method for summarising a `tsymble_ts` object
+#' @inheritParams dplyr::summarise
+#' @inherit dplyr::summarise return
 #' @export
 summarise.tsymble_ts <- function(.data, ..., .groups = NULL) { 
   
@@ -133,6 +173,10 @@ summarise.tsymble_ts <- function(.data, ..., .groups = NULL) {
   }
   return(out)
 }
-#' @inherit dplyr::summarise
+
+#' @title summarise.grouped_tsymble
+#' @description An S3 method for summarising a `tsymble_ts` object
+#' @inheritParams dplyr::summarise
+#' @inherit dplyr::summarise return
 #' @export
 summarise.grouped_tsymble <- summarise.tsymble_ts
