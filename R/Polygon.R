@@ -24,8 +24,8 @@
   t = list(nm = "Tickers",
            desc = "Query all ticker symbols which are supported by Polygon.io. This API includes Indices, Crypto, FX, and Stocks/Equities.",
            href = "https://polygon.io/docs/#get_v2_reference_tickers_anchor",
-           url = "/v2/reference/tickers",
-           params = list(sort = c("ticker", "-ticker", "type"), type = list(NULL, "etp", "cs"), market = list(NULL, "stocks", "indices"), locale = list(NULL, "us", "g"), search = list(NULL, "microsoft"), perpage = 50, page = 1, active = list(NULL, TRUE, FALSE))),
+           url = "/v3/reference/tickers",
+           params = list(sort = list(NULL), type = list(NULL), market = list(NULL, "stocks", "fx", "crypto"), search = list(NULL, "microsoft"), active = list(NULL, TRUE, FALSE))),
   tt = list(nm = "Ticker Types",
             desc = "Get the mapping of ticker types to descriptions / long names",
             href = "https://polygon.io/docs/#get_v2_reference_types_anchor",
@@ -491,6 +491,12 @@ ep_parse <- function(x, .ref) {
   return(out)
 }
 
+date_columns <- function(x) {
+  names(purrr::keep(purrr::map_if(x, ~is.character(.x), ~{
+    if (suppressWarnings(all(na.rm = TRUE, stringr::str_detect(.x, "\\d{4}\\-\\d{2}\\-\\d{2}"))))
+      ""
+  }), is.character))
+}
 
 # poly_transform ----
 # Sun May 03 08:54:26 2020
@@ -523,28 +529,27 @@ poly_transform <- function(resp, e_p) {
   })
   .tf <- "minute"
   .o <- switch(ep,
-               t = list(.tbl = "tickers" , .vars = c("updated"), timeframe = .tf),
+               t = list(.tbl = "results" , timeframe = .tf),
                tt = ,
                m = ,
                l = list(.tbl = "results"),
-               td = list(.tbl = .resp, .vars = c("updated", "listdate"), timeframe = .tf),
-               tn = list(.tbl = "results", .vars = c("published_utc"), timeframe = .tf),
+               td = list(.tbl = .resp, timeframe = .tf),
+               tn = list(.tbl = "results", timeframe = .tf),
                sd = ,
-               ss = list(.tbl = "results", .vars = rlang::expr(tidyselect::ends_with("Date"))),
-               sf = list(.tbl = "results", .vars = c('calendarDate', 'reportPeriod', 'updated', 'dateKey')),
-               ms = list(.tbl = .resp, .vars = "serverTime", timeframe = .tf),
-               mh = list(.tbl = .resp, .vars = c("date")),
+               ss = list(.tbl = "results"),
+               sf = list(.tbl = "results"),
+               ms = list(.tbl = .resp, timeframe = .tf),
+               mh = list(.tbl = .resp),
                e = ,
                cm = list(.tbl = .resp),
                ht = ,
-               hq = list(.tbl = "results", .vars = "t", timeframe = .tf),
+               hq = list(.tbl = "results", timeframe = .tf),
                lt = ,
-               lq = list(.tbl = "last", .vars = "timestamp", timeframe = .tf),
-               do = list(.tbl = .resp[-1], .vars = "from", timeframe = .tf),
+               lq = list(.tbl = "last", timeframe = .tf),
+               do = list(.tbl = .resp[-1], timeframe = .tf),
                sa = ,
                st = ,
                sg = list(.tbl = eval(.s),
-                         .vars = c("lastQuote.t", "lastTrade.t", "updated")
                          , timeframe = .tf),
                pc = ,
                gd = list(.tbl = rlang::expr(dplyr::rename(.resp, time = 't', volume = "v", open = "o", high = "h", low = "l", close = "c", ticker = "T")), .vars = "time", timeframe = .tf)
@@ -559,27 +564,29 @@ poly_transform <- function(resp, e_p) {
 }
 
 
-poly_parse <- function(.tbl, .vars, .f = try_date, ..., .resp, ep) {
+poly_parse <- function(.tbl, .f = try_date, ..., .resp, ep) {
   if (is.character(.tbl)) 
     .q <- append(attr(.resp, "query"), .resp[!names(.resp) %in% .tbl])
   else
     .q <- attr(.resp, "query")
   #browser(expr = ep %in% c("st", "sa", "sg"))
   
-  if (!missing(.vars)) {
-    .args <- rlang::list2(
-      .data = tbl_parse(.tbl, .resp),
-      rlang::expr(dplyr::across(!!.vars, .f = .f, !!!rlang::dots_list(...))) 
-    )
+  .data <- tbl_parse(.tbl, .resp)
+  .dots <- rlang::dots_list(...)
+  .vars <- c(date_columns(.data), .dots$.vars)
+  if (is_legit(.dots$.vars))
+    .dots <- .dots[!names(.dots) %in% ".vars"]
+  .args <- rlang::list2(
+    .data = .data,
+  )
+  if (is_legit(.vars) || rlang::is_expression(.tbl)) {
+    .args <- append(.args, rlang::expr(dplyr::across(!!.vars, .f = .f, !!!.dots)))
     out <- rlang::eval_bare(rlang::call2(dplyr::mutate, !!!.args))
   } else if (is.character(.tbl)) {
     out <- .resp[[.tbl]]
   } else {
     out <- .tbl
   }
-  
-  
-  
   attr(out, "query") <- .q
   out
 }
