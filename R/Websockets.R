@@ -238,6 +238,12 @@ console_msg = function(msg, opts) {
   }
 }
 
+is_bars <- function(msg) {
+  suppressWarnings(isTRUE(any(purrr::map_lgl(purrr::keep(msg, is.character), ~stringr::str_detect(.x, "^Q|T|AM\\.")))))
+}
+
+
+
 #' @title message logging
 #' @description Logs message based on conditions supplied as options to *Socket object.
 #' @inheritParams console_prefix
@@ -247,11 +253,11 @@ console_msg = function(msg, opts) {
  
 log_msg <- function(msg, opts, private) {
   .channel <- unique(msg$channel)
-  if (length(.channel) > 1) rlang::abort("Channel must be length 1", trace = rlang::trace_back())
+  if (length(.channel) > 1) rlang::abort("Channel must be length 1")
   # if logging, log messages & bars
   if (opts[[.channel]]$log %||% opts$log) {
     # log bars
-    if (suppressWarnings(isTRUE(msg$ev %in% c("T", "Q", "A", "AM")))) {
+    if (is_bars(msg)) {
       .bars <- dplyr::bind_rows(private$.bars[[.channel]], msg[!names(msg) %in% c("socket","channel","ev", "sym")])
       if (NROW(.bars) > opts[[.channel]]$bars_limit %||% opts$bars_limit) {
         if (private$bars_warn) {
@@ -291,7 +297,7 @@ log_msg <- function(msg, opts, private) {
 #' @keywords Internal
 
 write_msg <- function(msg, private) {
-  .channel <- msg$stream %||% msg$channel
+  .channel <- suppressWarnings(msg$stream %||% msg$channel)
   .logfile <- private$.opts[[.channel]]$logfile
   if (is.character(.logfile)) {
     # remove superfluous columns if recording bars
@@ -532,7 +538,7 @@ AlpacaSocket <- R6::R6Class(
           private = private
         )
       })
-      # Create object
+      # Create json object
       if (socket == "Alpaca" && !any(.tbq %in% names(channel))) {
         .listen <- list(jsonlite::toJSON(list(
           action = "listen",
@@ -603,7 +609,6 @@ PolygonSocket <- R6::R6Class(
 #' Channels are joined by calling the `$channel()` method. The socket is automatically detected based on the channel request.
 #' ## [Available Alpaca Channels](https://alpaca.markets/docs/api-documentation/api-v2):
 #' \itemize{
-#'  \item{\code{"account_alpaca"/"a"}}{ [Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
 #'  \item{\code{"trade_alpaca"/"t"}}{ [Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
 #'   \item{\code{All V2 streaming data channels:}}{ V2 Streaming websocket channels are connected to by supplying a `named list` to `channel` with any or all of the following list items, each of which contains a `character vector` of symbol names - or `*` for `bars` to subscribe to all symbols:
 #' \itemize{
@@ -612,6 +617,7 @@ PolygonSocket <- R6::R6Class(
 #'   \item{\code{bars}}
 #' }
 #' See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
+#' \item{*Note*: The Alpaca V1 Streaming API has been superseded by the V2 API and is not supported.}
 #' }
 #' ## [Available Polygon Channels](https://polygon.io/sockets):
 #' \itemize{
@@ -782,7 +788,9 @@ AlpacaStreams <- R6::R6Class(
                   . == "Polygon" ~ self$Polygon,
                   . != "Polygon" && (is.null(channel) || !any(.tbq %in% names(channel))) ~ self$Alpaca$account_activities,
                   ~ self$Alpaca$data)
-      rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action, !!!.list)
+      if (is.null(channel))
+        channel <- "trade_updates"
+        rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action, !!!.list)
       
         
     },

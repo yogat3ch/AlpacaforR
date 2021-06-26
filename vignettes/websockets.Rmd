@@ -72,11 +72,11 @@ list.files("AlpacaStreams", recursive = TRUE)
 
 The location of the write directory can be changed by specifying the preferred directory or the disk writing behavior can be turned off by setting `write_dir = FALSE`.
 
-## Connecting to channels
+## `channel`: Connecting to channels
 If the websocket(s) have/has connected and authorized properly, channels can be subscribed to with the `$channel` method. See the documentation for `?AlpacaStreams` for usage of this method. The arguments to `channel` are as follows:
 
 \describe{
-\item{\code{channel}}{The channel to join}
+\item{\code{channel}}{The channel to join. **Default** Alpaca trade & account update channels.}
 
 \item{\code{subscribe}}{\code{(logical)} \strong{Default \code{TRUE}}. Set to \code{FALSE} to unsubscribe from specified channel(s).}
 
@@ -91,7 +91,15 @@ To quickly subscribe to both the Alpaca account `channel = 'a'` & trade `channel
 AS$channel()
 ```
 
-To subscribe to [Alpaca data websocket channels](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/)
+To subscribe to [Alpaca data websocket channels](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/) supply a `named list` to `channel` where each item has a `character vector` of symbols to subscribe to. Use `*` with `bars` to subscribe to all symbols.
+
+\itemize{
+  \item{\code{trades}}
+  \item{\code{quotes}}
+  \item{\code{bars}}
+}
+
+**Note** The following Polygon websocket endpoints are only available to Polygon paid subscribers.
 
 Polygon channels are formatted as follows:
 
@@ -102,40 +110,57 @@ Polygon channels are formatted as follows:
 \item{AM.* Aggregate ( per minute )}
 }
 
-Where * is the ticker symbol. To subscribe to Gamestop (GME) data by the second, use the following call:
-```{r 'gme subscribe'}
-AS$channel("a.gme")
+Where * is the ticker symbol. 
+
+The following subscribes to minute bars for `BYND` from the Alpaca Data websocket:
+```{r 'subscribe to minute bars for BYND via alpaca'}
+AS$channel(list(bars = "BYND"))
 ```
 
-The console starts filling up fast when subscribed to a stream sending messages on a second interval. The console output can be turned off by editing the options for the channel. Options for this channel can be found in the Polygon websocket. General options for all channels are listed in the `opts` field while options for individual channels can be found as list objects within. By setting the `toConsole` argument to `FALSE` for this channel the console output is effectively muted, while the logging & writing to disk continues silently.
+### Options
+
+General options for all channels on this socket are listed in the `opts` field while options for individual channels can be found as list objects within. 
+
+
+```{r show_options}
+AlpacaStreams$Alpaca$data$opts
+```
+
+
+The console will print each tick from the websocket. By setting the `toConsole` argument to `FALSE` for this channel the console output is effectively muted, while the logging & writing to disk continues silently.
 
 
 ```{r 'turn off console output'}
-AS$Polygon$opts$A.GME$toConsole <- FALSE
+AS$Alpaca$data$opts$b.BYND$toConsole <- FALSE
+```
+```{r 'wait a min', include =  FALSE}
+Sys.sleep(60)
 ```
 
-To unsubscribe from the by-second stream, call `$channel` with `subscribe = FALSE`
-```{r 'unsubscribe a.gme'}
-AS$channel("a.gme", FALSE)
-```
+## `lastmessage`: Retrieve the last message
 
+We can verify that the logs are still recording by checking the last message
+```{r 'last_message'}
+AS$Alpaca$data$lastmessage()
+```
 
 ## Logging
 
-If wondering what the last message was for a particular socket, use `$lastmessage`
-
-```{r 'last message'}
-AS$Polygon$lastmessage()
+The logs will contain a record of all messages sent over the socket (up to a point.)
+```{r view_logs}
+AS$Alpaca$data$logs()
 ```
 
-Though no longer subscribed to the by-second stream, the logs are still available by calling the `$logs` method for the given channel.
-
-```{r 'get the logs'}
-AS$logs("a.gme")
+To unsubscribe from the BYND stream, call `$channel` with `subscribe = FALSE`
+```{r 'unsubscribe a.gme'}
+AS$channel(list(bars = "BYND"), subscribe = FALSE)
 ```
+
+
 
 #### _A Note on RAM_ 
-In RAM logging of messages is capped at the number specified by `log_limit` & `bars_limit` where the former corresponds to all messages and the latter corresponds to messages from Polygon ticker streaming data specifically. The limit is applied to each instance IE `log_limit = 5000` will limit message logs for Polygon and Alpaca to 5000 message each, after which old message will be deleted.
+ ##COMBAK This needs revision
+Logging of messages in RAM is capped at the number specified by `log_limit` & `bars_limit` where the former corresponds to all messages and the latter corresponds to messages from Polygon ticker streaming data specifically. The limit is applied to each instance IE `log_limit = 5000` will limit message logs for Polygon and Alpaca to 5000 message each, after which old message will be deleted.
 `bars_limit` applies to each channel log. Using the example above, if both channels were subscribed to indefinitely, each would be limited to a 5000 row log. 
 If many channels are subscribed to and RAM usage reaches 95% capacity a warning will be given. At 98% capacity the websocket will be stopped to prevent an overflow.
 
