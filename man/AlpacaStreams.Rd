@@ -12,7 +12,6 @@ Channels are joined by calling the \verb{$channel()} method. The socket is autom
 \subsection{\href{https://alpaca.markets/docs/api-documentation/api-v2}{Available Alpaca Channels}:}{
 
 \itemize{
-\item{\code{"account_alpaca"/"a"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2}{Alpaca account stream}}
 \item{\code{"trade_alpaca"/"t"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates}{Alpaca trade stream}}
 \item{\code{All V2 streaming data channels:}}{ V2 Streaming websocket channels are connected to by supplying a \verb{named list} to \code{channel} with any or all of the following list items, each of which contains a \verb{character vector} of symbol names - or \code{*} for \code{bars} to subscribe to all symbols:
 \itemize{
@@ -21,6 +20,7 @@ Channels are joined by calling the \verb{$channel()} method. The socket is autom
 \item{\code{bars}}
 }
 See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
+\item{\emph{Note}: The Alpaca V1 Streaming API has been superseded by the V2 API and is not supported.}
 }
 }
 
