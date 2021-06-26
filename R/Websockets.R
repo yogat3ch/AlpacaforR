@@ -603,9 +603,15 @@ PolygonSocket <- R6::R6Class(
 #' Channels are joined by calling the `$channel()` method. The socket is automatically detected based on the channel request.
 #' ## [Available Alpaca Channels](https://alpaca.markets/docs/api-documentation/api-v2):
 #' \itemize{
-#'  \item{\code{"account"/"a"}}{ [Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
-#'  \item{\code{"trade"/"t"}}{ [Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
-#'   \item{\code{All V2 streaming data channels}}{ See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
+#'  \item{\code{"account_alpaca"/"a"}}{ [Alpaca account stream](https://alpaca.markets/docs/api-documentation/api-v2)}
+#'  \item{\code{"trade_alpaca"/"t"}}{ [Alpaca trade stream](https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates)}
+#'   \item{\code{All V2 streaming data channels:}}{ V2 Streaming websocket channels are connected to by supplying a `named list` to `channel` with any or all of the following list items, each of which contains a `character vector` of symbol names - or `*` for `bars` to subscribe to all symbols:
+#' \itemize{
+#'   \item{\code{trades}}
+#'   \item{\code{quotes}}
+#'   \item{\code{bars}}
+#' }
+#' See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
 #' }
 #' ## [Available Polygon Channels](https://polygon.io/sockets):
 #' \itemize{
@@ -675,9 +681,13 @@ AlpacaStreams <- R6::R6Class(
   "AlpacaStreams",
   public = list(
     #' @description Connect to and authorize Alpaca and Polygon websocket streams and set default options for these websockets.
-    #' @param socket \code{(character)} Which Websocket stream to connect to - either `"alpaca"` or `"polygon"` (or an abbreviation thereof). **Default** connects to Alpaca.
-    #' @param v \code{(integer)} Which version of the API to connect to. Either `1` or `2`.
-    #' @param pro \code{(logical)} Whether to use a Pro account. **Default** `FALSE`
+    #' @param socket \code{(character)} Which Websocket stream to connect to:
+    #' \itemize{
+    #'   \item{\code{`"account_alpaca"/"a"`}}{ Alpaca account updates}
+    #'   \item{\code{`"data_alpaca"/"a"`}}{ Alpaca real-time data websockets}
+    #'   \item{\code{`"polygon"/"p"`}}{ Polygon websockets **Polygon Subscription Required**}
+    #' }
+   
     #' @param toConsole \code{(logical)} flag for whether to report websocket messages to the console. **Default** `TRUE`.
     #' @param log \code{(logical)} flag for whether to retain a log of messages (from Alpaca) or messages & bars from symbol feeds from Polygon. **Default** `TRUE` to store logs.
     #' @param log_limit \code{(numeric)} indicating the number of previous messages to retain in the log. **Default** `5000`. See Details for memory handling specifics.
@@ -686,7 +696,8 @@ AlpacaStreams <- R6::R6Class(
     #' @param overwrite \code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. **Default** `TRUE`.
     #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}. 
     
-    #' @param live See [market_data]
+    #' @inheritParams market_data
+    #' @param pro \code{(logical)} Whether to use a Pro account. See \link{get_pro}
     #' @param ... Passed on to \link[websocket]{WebSocket}
      
      initialize = function(socket = c("account_alpaca", "data_alpaca", "polygon")[1:2],
@@ -698,6 +709,7 @@ AlpacaStreams <- R6::R6Class(
                           overwrite = TRUE,
                           msg_action = NULL,
                           live = get_live(),
+                          pro = get_pro(),
                           ...) {
       
       socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", multiple = TRUE)
@@ -718,7 +730,6 @@ AlpacaStreams <- R6::R6Class(
       }
       
       # fetch subscription
-      pro <- as.logical(get_cred("APCA-PRO"))
       if (any(grepl("alpaca", socket))) {
         .dots <- rlang::dots_list(...)
         wss <- purrr::compact(list(

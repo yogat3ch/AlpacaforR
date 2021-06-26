@@ -12,9 +12,15 @@ Channels are joined by calling the \verb{$channel()} method. The socket is autom
 \subsection{\href{https://alpaca.markets/docs/api-documentation/api-v2}{Available Alpaca Channels}:}{
 
 \itemize{
-\item{\code{"account"/"a"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2}{Alpaca account stream}}
-\item{\code{"trade"/"t"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates}{Alpaca trade stream}}
-\item{\code{All V2 streaming data channels}}{ See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
+\item{\code{"account_alpaca"/"a"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2}{Alpaca account stream}}
+\item{\code{"trade_alpaca"/"t"}}{ \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming#order-updates}{Alpaca trade stream}}
+\item{\code{All V2 streaming data channels:}}{ V2 Streaming websocket channels are connected to by supplying a \verb{named list} to \code{channel} with any or all of the following list items, each of which contains a \verb{character vector} of symbol names - or \code{*} for \code{bars} to subscribe to all symbols:
+\itemize{
+\item{\code{trades}}
+\item{\code{quotes}}
+\item{\code{bars}}
+}
+See the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/#subscribe}{V2 Streaming Documentation} for details.}
 }
 }
 
@@ -138,7 +144,12 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{socket}}{\code{(character)} Which Websocket stream to connect to - either \code{"alpaca"} or \code{"polygon"} (or an abbreviation thereof). \strong{Default} connects to Alpaca.}
+\item{\code{socket}}{\code{(character)} Which Websocket stream to connect to:
+\itemize{
+\item{\code{`"account_alpaca"/"a"`}}{ Alpaca account updates}
+\item{\code{`"data_alpaca"/"a"`}}{ Alpaca real-time data websockets}
+\item{\code{`"polygon"/"p"`}}{ Polygon websockets \strong{Polygon Subscription Required}}
+}}
 
 \item{\code{toConsole}}{\code{(logical)} flag for whether to report websocket messages to the console. \strong{Default} \code{TRUE}.}
 
@@ -154,11 +165,9 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 
 \item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \code{\link[R6]{R6Class}}.}
 
-\item{\code{live}}{See \link{market_data}}
+\item{\code{live}}{See \code{\link{market_data}}}
 
 \item{\code{...}}{Passed on to \link[websocket]{WebSocket}}
-
-\item{\code{v}}{\code{(integer)} Which version of the API to connect to. Either \code{1} or \code{2}.}
 
 \item{\code{pro}}{\code{(logical)} Whether to use a Pro account. \strong{Default} \code{FALSE}}
 }

@@ -63,6 +63,14 @@ get_cred <- function(cred) {
   out
 }
 
+#' @title Is the package configured to use Alpaca Unlimited Subscription
+#' @description Returns `TRUE` if APCA-PRO environmental variable is set to `TRUE`. Set this variable to `TRUE` if subscribed to [Alpaca's Unlimited Plan](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/#subscription-plans). See \link{firstrun} for details on setting this variable.
+#' @return \code{(logical)}
+#' @export
+get_pro <- function() {
+  as.logical(get_cred("APCA-PRO"))
+}
+
 #' @title Get the Alpaca API default live setting
 #' @description `live` is a logical argument to many package functions that indicates whether to use the live account (`TRUE`) or paper account (`FALSE`). The default is set by environmental variable, see \link[AlpacaforR]{firstrun} for details on setting up the default live setting.
 #' @return \code{(logical)} Alpaca API live setting
