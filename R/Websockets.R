@@ -238,7 +238,13 @@ console_msg = function(msg, opts) {
   }
 }
 
-is_bars <- function(msg) {
+#' @title Is a message a bar object
+#' @description Websockets receive many types of messages, this function uses regex to determine if the message is a bars object
+#' @param msg \code{(tibble)} the message
+#' @return \code{(logical)}
+#' @export
+
+is_ws_bars <- function(msg) {
   suppressWarnings(isTRUE(any(purrr::map_lgl(purrr::keep(msg, is.character), ~stringr::str_detect(.x, "^Q|T|AM\\.")))))
 }
 
@@ -257,7 +263,7 @@ log_msg <- function(msg, opts, private) {
   # if logging, log messages & bars
   if (opts[[.channel]]$log %||% opts$log) {
     # log bars
-    if (is_bars(msg)) {
+    if (is_ws_bars(msg)) {
       .bars <- dplyr::bind_rows(private$.bars[[.channel]], msg[!names(msg) %in% c("socket","channel","ev", "sym")])
       if (NROW(.bars) > opts[[.channel]]$bars_limit %||% opts$bars_limit) {
         if (private$bars_warn) {
@@ -778,7 +784,8 @@ AlpacaStreams <- R6::R6Class(
     ) {
       # set the channel
       socket <- socket_detect(channel)
-      if (!missing(msg_action)) msg_action <- rlang::enquo(msg_action)
+      if (!missing(msg_action)) 
+        msg_action <- rlang::enquo(msg_action)
       else
         msg_action <- NULL
       
@@ -790,7 +797,7 @@ AlpacaStreams <- R6::R6Class(
                   ~ self$Alpaca$data)
       if (is.null(channel))
         channel <- "trade_updates"
-        rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action, !!!.list)
+      rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action, !!!.list)
       
         
     },
