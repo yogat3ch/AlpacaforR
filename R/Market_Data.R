@@ -808,7 +808,7 @@ gap_max <- function(ext, timeframe, evar = get0("evar", mode = "environment", en
     .max
   }
   ext$missing <- bars_missing(ext$out, timeframe = timeframe)
-  dplyr::slice_max(dplyr::filter(ext$missing, lubridate::duration(.n, timeframe) > evar$max_gap), .n)[1,]
+  dplyr::slice_max(dplyr::filter(ext$missing, lubridate::duration(.n, timeframe) > evar$max_gap), .n, n = 1)
 } 
 
 #' @title ensure the gap returned from `gap_identify` is valid
