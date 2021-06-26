@@ -23,16 +23,16 @@ The handling of Websockets in `{AlpacaforR}`is accomplished with the help of `{R
 
 ## Creating a websocket connection
 
-`{AlpacaforR}` handles connecting and authentication with both the Alpaca & Polygon websockets internally provided the AlpacaforR environmental variables are already set-up (see `vignette("installation", package = "AlpacaforR")` if you're unsure what this means.) To create and authenticate both websockets, simply call the `new()` method as is. If you are not using a live account and thereby do not have access to Polygon, specify `"a"` or `"Alpaca"` as the first argument when calling the `new()` method on the `AlpacaStreams` object.
+`{AlpacaforR}` handles connecting and authentication with both the Alpaca & Polygon websockets internally provided the AlpacaforR environmental variables are already set-up (see the readme if you're unsure what this means.) To create and authenticate both websockets, simply call the `new()` method as is. Call the `new()` method on the `AlpacaStreams` object to invoke connections to the Alpaca account & trade updates websockets as well as the Alpaca v2 data websocket.
 
 The following code assumes that both paper & live accounts are set up and the latter is able to connect to Polygon.
 
 There are a number of options that can be supplied when creating a websocket:
 
 \describe{
-\item{\code{socket}}{\code{(character)} Which Websocket stream to connect to - either \code{"alpaca"} or \code{"polygon"} (or an abbreviation thereof). \strong{Default} connects to both.}
+\item{\code{socket}}{\code{(character)} Which Websocket stream to connect to - either \code{"alpaca"} or \code{"polygon"} (or an abbreviation thereof). \strong{Default} connects to Alpaca.}
 
-\item{\code{toConsole}}{\code{(logical)} flag for whether to report websocket messages to the console. \strong{Default} \code{TRUE}.}
+\item{\code{toConsole}}{\code{(logical)} flag for whether to report websocket messages to the console for all messages. \strong{Default} \code{TRUE}.}
 
 \item{\code{log}}{\code{(logical)} flag for whether to retain a log of messages (from Alpaca) or messages & bars from symbol feeds from Polygon. \strong{Default} \code{TRUE} to store logs.}
 
@@ -47,7 +47,7 @@ There are a number of options that can be supplied when creating a websocket:
 \item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These can act on the \code{msg} tibble object seen printed to the console when a message is received (it \code{toConsole = TRUE}. The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \verb{\link[R6]\{R6class\}}.}
 
 
-\item{\code{live}}{See \link{market_data}}
+\item{\code{live}}{See \code{\link{market_data}}}
 
 \item{\code{...}}{Passed on to \link[websocket]{Websocket}}
 }
@@ -60,16 +60,14 @@ Sys.sleep(10)
 
 If properly configured, the console will indicate that both sockets (or the specified socket) have/has been connected and authorized:
 ![Console confirmation of websocket connections](AS_connected.png)
+
 If errors occur, ensure that `{AlpacaforR}` is set-up correctly. See `vignette("installation", package = "AlpacaforR") for details.
 
-When a socket is instantiated with `write_dir = 'AlpacaStreams'` (the default), a folder is created called AlpacaStreams with sub-directories labelled according to each socket that was connected to which contain log files for each channel connected to via the socket. 
+When a socket is instantiated with `write_dir = 'AlpacaStreams'` (the default), a folder is created called AlpacaStreams with sub-directories labeled synonymous to each connected socket url that contain log files for each channel. 
 
 ```{r 'Log files present'}
-dir.exists("AlpacaStreams")
-dir.exists(file.path("AlpacaStreams", "Alpaca"))
-dir.exists(file.path("AlpacaStreams", "Polygon"))
-file.exists(file.path("AlpacaStreams", "Alpaca", "status.log"))
-file.exists(file.path("AlpacaStreams", "Polygon", "status.log"))
+list.dirs("AlpacaStreams", recursive = TRUE)
+list.files("AlpacaStreams", recursive = TRUE)
 ```
 
 The location of the write directory can be changed by specifying the preferred directory or the disk writing behavior can be turned off by setting `write_dir = FALSE`.
@@ -92,6 +90,8 @@ To quickly subscribe to both the Alpaca account `channel = 'a'` & trade `channel
 ```{r 'subscribe to alpaca channels'} 
 AS$channel()
 ```
+
+To subscribe to [Alpaca data websocket channels](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/)
 
 Polygon channels are formatted as follows:
 
