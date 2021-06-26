@@ -60,7 +60,7 @@
 #' @importFrom lubridate year parse_date_time with_tz years origin as_date as_datetime
 #' @importFrom purrr map some map_if map_chr
 #' @importFrom dplyr between
-#' @importFrom stats na.exclude
+#' @importFrom stats na.exclude na.omit
 #' @importFrom stringr str_extract regex
 #' @importFrom purrr map_lgl map_dbl map_chr map some map_if when
 #' @importFrom rlang `%||%` `%|%` `%@%` `%@%<-` is_empty abort sym cnd_muffle exec dots_list
