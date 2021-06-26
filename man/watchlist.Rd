@@ -51,6 +51,7 @@ watchlist(
 Access all \href{https://alpaca.markets/docs/api-documentation/api-v2/watchlist}{Watchlist} endpoints. See link for details. \lifecycle{stable}
 }
 \examples{
+\dontrun{
 # get the existing watchlists
 watchlist()
 # create a watchlist named test with Microsoft
@@ -72,5 +73,6 @@ attr(wl, "info")
 (wl <- watchlist("FAANG", new_name = "FANG", symbols = c("FB", "AAPL", "NFLX", "GOOG"), action = "u"))
 # Delete it using a partial argument (may cause a warning)
 watchlist("FANG", a = "d")
+}
 }
 \concept{Watchlist}

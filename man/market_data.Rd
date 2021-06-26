@@ -98,6 +98,7 @@ All values to \code{from/after/to/until} will parse correctly if a numeric year,
 For a full overview of how the Polygon.io Aggregates endpoint behaves, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
 }
 \examples{
+\dontrun{
 # Getting data for the last week from the v1 API: 
 market_data(symbol = c("INTC","MSFT"), v = 1, from = Sys.Date() - lubridate::weeks(1))
 # Getting price data with specific date ranges and timeframes with limit on the number of bars returned
@@ -106,5 +107,6 @@ market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", m
 market_data("TWTR", timeframe = "lt")
 # or the last quote for multiple symbols:
 market_data(c("TWTR","AAPL","BYND"), timeframe = "lq")
+}
 }
 \concept{Market-Data}

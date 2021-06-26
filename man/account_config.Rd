@@ -48,6 +48,7 @@ AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-docume
 The account configuration API serves an important role in setting the way you want. See \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/}{Account Configurations} for details.
 }
 \examples{
+\dontrun{
 account_config(live = FALSE)
 # Which is similar to:
 account_config()
@@ -55,6 +56,7 @@ account_config()
 account_config(live = TRUE)
 account_config(dtbp_check = "both", no_shorting = TRUE)
 account_config("default")
+}
 }
 \seealso{
 Other Account: 

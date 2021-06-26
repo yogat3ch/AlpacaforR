@@ -28,10 +28,12 @@ Calendar \code{tibble} A \href{https://alpaca.markets/docs/api-documentation/api
 The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures. See \href{https://alpaca.markets/docs/api-documentation/api-v2/calendar/}{Calendar} Endpoint for details.
 }
 \examples{
+\dontrun{
 # Get all dates:
 calendar()
 # Get specific date range:
 calendar(from = "2019-01-01", to = "2019-04-01")
+}
 }
 \seealso{
 \link[lubridate]{Interval-class}

@@ -7,3 +7,4 @@
 ^\.deprecated
 ^README.Rmd$
 ^check.R$
+^\.httr-oauth$

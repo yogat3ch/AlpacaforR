@@ -32,11 +32,13 @@ The assets API serves as the master list of assets available for trade and data 
 This function is vectorized over all arguments.
 }
 \examples{
+\dontrun{
 # Get a tibble of all active assets: 
 assets()
 # Get a specific asset by symbol:
 (AAPL <- assets("AAPL"))
 # or by id:
 (AAPL <- assets(AAPL$id))
+}
 }
 \concept{Assets}

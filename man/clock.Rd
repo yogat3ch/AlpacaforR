@@ -22,6 +22,8 @@ Clock \code{(list)} A \href{https://alpaca.markets/docs/api-documentation/api-v2
 The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close. See \href{https://alpaca.markets/docs/api-documentation/api-v2/clock/}{Clock} Endpoint for details. \emph{Additionally, if your current timezone is different than that of the market} or if a \code{tz} is specified, a \code{local} POSIXct will be appended with corresponding local time (or \code{tz} time) and it's \code{offset} from the market for each of the following outputs: \code{timestamp}, \code{next_open}, and \code{next_close}.
 }
 \examples{
+\dontrun{
 clock()
+}
 }
 \concept{Clock}
