@@ -16,17 +16,18 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.19.10
-      date: Sun, 30 May 2021 12:15:52 GMT
+      server: nginx
+      date: Thu, 03 Jun 2021 14:29:35 GMT
       content-type: application/json; charset=UTF-8
       content-length: '454'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
     body:
       encoding: UTF-8
       file: no
-      string: '{"id":"c044247a-273f-4a00-88b5-ed63472c4e4b","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-05-30T12:15:49.256273Z","updated_at":"2021-05-30T12:15:49.256273Z","name":"test","assets":[{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+      string: '{"id":"2d8f4d28-f607-43dd-a3e8-91f2b1581458","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-06-03T14:29:34.245883Z","updated_at":"2021-06-03T14:29:34.245883Z","name":"test","assets":[{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
         Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true}]}'
-  recorded_at: 2021-05-30 12:15:52 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+  recorded_at: 2021-06-03 14:29:35 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -36,8 +36,8 @@ test_that("get_headers returns headers and errors as intended", {
                        expect_identical(
                          headers$paper$headers,
                          c(
-                           "APCA-KEY-ID" = "PAPERKEY",
-                           "APCA-SECRET-KEY" = "PAPERSECRET"
+                           "APCA-API-KEY-ID" = "PAPERKEY",
+                           "APCA-API-SECRET-KEY" = "PAPERSECRET"
                          )
                        )
                        Sys.unsetenv("APCA-PAPER-KEY")

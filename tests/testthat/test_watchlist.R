@@ -2,11 +2,12 @@
 #' @include internal.R
 vcr::vcr_configure(dir = file.path(dirname(.log_path), "watchlist"))
 # Remove watchlists with names used herein
-purrr::walk(c("test", "test2", "FANG", "_FANG", "FAANG", "FABANGG"), ~try(watchlist(.x, action = "d")))
-
+vcr::use_cassette("delete_wl", {
+  purrr::walk(c("test", "test2", "FANG", "_FANG", "FAANG", "FABANGG"), ~try(watchlist(.x, action = "d")))
+})
 vcr::use_cassette("watchlist_can_be_created_with_a_single_entry", {
 test_that("A watchlist can be created with a single entry", {
-  (wl <- watchlist("test", symbols = "AAPL", action = "c")) 
+  (wl <<- watchlist("test", symbols = "AAPL", action = "c")) 
   expect_length(wl, 11)
   expect_identical(wl$symbol, "AAPL")
   expect_identical(attr(wl, "info")$name, "test")

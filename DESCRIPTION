@@ -34,7 +34,7 @@ LazyData: true
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
 Suggests: pkgload, testthat, withr, knitr, rmarkdown,
-     qpdf, vcr, webmockr
+     qpdf, vcr, webmockr, RPushbullet
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Imports: 

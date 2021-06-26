@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/positions/AMZN
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 404
+      category: Client error
+      reason: Not Found
+      message: 'Client error: (404) Not Found'
+    headers:
+      server: nginx
+      date: Sat, 12 Jun 2021 11:39:16 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '53'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"code":40410000,"message":"position does not exist"}'
+  recorded_at: 2021-06-12 11:39:16 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -1,0 +1,33 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/snapshots?symbols=SPOT%2CBYND
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Sat, 12 Jun 2021 14:55:03 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '1036'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"BYND":{"latestTrade":{"t":"2021-06-11T19:59:50.52936912Z","x":"V","p":149.38,"s":100,"c":["@"],"i":2026,"z":"C"},"latestQuote":{"t":"2021-06-11T19:59:59.952076729Z","ax":"V","ap":149.42,"as":1,"bx":"V","bp":0,"bs":0,"c":["R"]},"minuteBar":{"t":"2021-06-11T19:59:00Z","o":149.39,"h":149.4,"l":149.38,"c":149.38,"v":1224},"dailyBar":{"t":"2021-06-11T04:00:00Z","o":146.82,"h":149.41,"l":144.7,"c":149.38,"v":106677},"prevDailyBar":{"t":"2021-06-10T04:00:00Z","o":148.47,"h":150.87,"l":146.63,"c":147.28,"v":84043}},"SPOT":{"latestTrade":{"t":"2021-06-11T19:59:55.546773904Z","x":"V","p":243.63,"s":100,"c":["
+        "],"i":55295429195860,"z":"A"},"latestQuote":{"t":"2021-06-11T20:00:00.00055843Z","ax":"V","ap":0,"as":0,"bx":"V","bp":0,"bs":0,"c":["R"]},"minuteBar":{"t":"2021-06-11T19:59:00Z","o":243.58,"h":243.68,"l":243.54,"c":243.63,"v":1199},"dailyBar":{"t":"2021-06-11T04:00:00Z","o":247.99,"h":251.65,"l":240.89,"c":243.63,"v":85106},"prevDailyBar":{"t":"2021-06-10T04:00:00Z","o":237.59,"h":247.44,"l":237.59,"c":247.25,"v":101559}}}'
+  recorded_at: 2021-06-12 14:55:03 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

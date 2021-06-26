@@ -707,8 +707,7 @@ AlpacaStreams <- R6::R6Class(
     #' @param write_dir \code{(character/logical)} The directory in which to store logs on disk. Use `FALSE` to disable logging to disk. Folders will be created. **Default** `"AlpacaStreams"`.
     #' @param overwrite \code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. **Default** `TRUE`.
     #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}. 
-    
-    #' @inheritParams market_data
+    #' @inheritParams account
     #' @param pro \code{(logical)} Whether to use a Pro account. See \link{get_pro}
     #' @param ... Passed on to \link[websocket]{WebSocket}
      

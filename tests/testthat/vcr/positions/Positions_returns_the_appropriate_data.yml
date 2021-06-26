@@ -1,0 +1,64 @@
+http_interactions:
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"AMZN","qty":"1","side":"buy","type":"market","time_in_force":"day"}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Thu, 03 Jun 2021 18:34:17 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '750'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"3c1eba77-9b6f-4f55-a840-8ae2c37ee1cc","client_order_id":"1871e8ce-39d8-4edc-a3aa-a64840bcd845","created_at":"2021-06-03T18:34:17.376047Z","updated_at":"2021-06-03T18:34:17.376047Z","submitted_at":"2021-06-03T18:34:17.365263Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"market","type":"market","side":"buy","time_in_force":"day","limit_price":null,"stop_price":null,"status":"accepted","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":null,"hwm":null}'
+  recorded_at: 2021-06-03 18:34:22 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/positions
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Thu, 03 Jun 2021 18:34:22 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '444'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"1","avg_entry_price":"3197.71","side":"long","market_value":"3197","cost_basis":"3197.71","unrealized_pl":"-0.71","unrealized_plpc":"-0.0002220338930047","unrealized_intraday_pl":"-0.71","unrealized_intraday_plpc":"-0.0002220338930047","current_price":"3197","lastday_price":"3233.99","change_today":"-0.0114378832340236"}]'
+  recorded_at: 2021-06-03 18:34:22 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

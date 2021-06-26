@@ -15,17 +15,17 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx/1.19.2
-      date: Fri, 28 May 2021 22:01:36 GMT
+      date: Sat, 12 Jun 2021 13:26:04 GMT
       content-type: application/json
       transfer-encoding: chunked
       connection: keep-alive
       vary: Accept-Encoding
-      x-request-id: db7c38bd7353ad97bb99a72c9ed0db3a
+      x-request-id: c6424df30d286219ecc6c5e865561a7b
       strict-transport-security: max-age=15724800; includeSubDomains
       content-encoding: gzip
     body:
       encoding: UTF-8
       file: no
-      string: '{"ticker":"AMZN","queryCount":189,"resultsCount":3,"adjusted":true,"results":[{"v":1.92622652e+08,"vw":1770.5179,"o":1746,"c":1847.84,"h":1901.4,"l":1685.06,"t":1569902400000,"n":5182368},{"v":3.40914403e+08,"vw":1919.9341,"o":1875,"c":1949.72,"h":2185.95,"l":1626.0318,"t":1577854800000,"n":9892805},{"v":2.95038502e+08,"vw":2401.2445,"o":1932.97,"c":2758.82,"h":2796,"l":1889.15,"t":1585713600000,"n":10397952}],"status":"OK","request_id":"db7c38bd7353ad97bb99a72c9ed0db3a","count":3}'
-  recorded_at: 2021-05-28 22:01:36 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+      string: '{"ticker":"AMZN","queryCount":189,"resultsCount":3,"adjusted":true,"results":[{"v":1.92622652e+08,"vw":1770.5179,"o":1746,"c":1847.84,"h":1901.4,"l":1685.06,"t":1569902400000,"n":5182368},{"v":3.40914403e+08,"vw":1919.9341,"o":1875,"c":1949.72,"h":2185.95,"l":1626.0318,"t":1577854800000,"n":9892805},{"v":2.95038502e+08,"vw":2401.2445,"o":1932.97,"c":2758.82,"h":2796,"l":1889.15,"t":1585713600000,"n":10397952}],"status":"OK","request_id":"c6424df30d286219ecc6c5e865561a7b","count":3}'
+  recorded_at: 2021-06-12 13:26:04 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -1,12 +1,14 @@
 http_interactions:
 - request:
     method: get
-    uri: https://api.polygon.io/v1/last_quote/stocks/AMZN?apiKey=APCA-LIVE-API-KEY-ID
+    uri: https://data.alpaca.markets/v2/stocks/AMZN/trades/latest?start=2021-06-02T00%3A00%3A00-00%3A00&end=2021-06-03T00%3A00%3A00-00%3A00&limit=10000
     body:
       encoding: ''
       string: ''
     headers:
       Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
   response:
     status:
       status_code: 200
@@ -14,16 +16,17 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.19.2
-      date: Tue, 26 Jan 2021 19:22:09 GMT
+      date: Thu, 03 Jun 2021 18:34:24 GMT
       content-type: application/json; charset=utf-8
-      content-length: '214'
+      content-length: '120'
       connection: keep-alive
-      x-request-id: f9a52a3ec8e9dd0d7dce1a2fea1e19eb
+      access-control-allow-credentials: 'true'
+      vary: Origin
       strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
     body:
       encoding: UTF-8
       file: no
-      string: '{"last":{"askexchange":12,"askprice":3336.2,"asksize":1,"bidexchange":12,"bidprice":3334.45,"bidsize":1,"timestamp":1611688928855},"request_id":"f9a52a3ec8e9dd0d7dce1a2fea1e19eb","status":"success","symbol":"AMZN"}'
-  recorded_at: 2021-01-26 19:22:08 GMT
-  recorded_with: vcr/0.6.0.93, webmockr/0.7.4
+      string: '{"symbol":"AMZN","trade":{"t":"2021-06-03T18:30:02.925729397Z","x":"V","p":3196.905,"s":100,"c":["@"],"i":3379,"z":"C"}}'
+  recorded_at: 2021-06-03 18:34:24 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

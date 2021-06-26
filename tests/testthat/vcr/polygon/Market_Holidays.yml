@@ -1,0 +1,33 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v1/marketstatus/upcoming?apiKey=POLYGON-KEY
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 26 Jun 2021 14:58:41 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      content-encoding: gzip
+      x-request-id: c6e315ac37d38a3d7df90ea0d66b0bd3
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"exchange":"NASDAQ","name":"Independence Day","date":"2021-07-05","status":"closed"},{"exchange":"NYSE","name":"Independence
+        Day","date":"2021-07-05","status":"closed"},{"exchange":"NYSE","name":"Labor
+        Day","date":"2021-09-06","status":"closed"},{"exchange":"NASDAQ","name":"Labor
+        Day","date":"2021-09-06","status":"closed"},{"exchange":"NASDAQ","name":"Thanksgiving","date":"2021-11-25","status":"closed"},{"exchange":"NYSE","name":"Thanksgiving","date":"2021-11-25","status":"closed"},{"exchange":"NYSE","name":"Thanksgiving","date":"2021-11-26","status":"early-close","open":"2021-11-26T14:30:00.000Z","close":"2021-11-26T18:00:00.000Z"},{"exchange":"NASDAQ","name":"Thanksgiving","date":"2021-11-26","status":"early-close","open":"2021-11-26T14:30:00.000Z","close":"2021-11-26T18:00:00.000Z"},{"exchange":"NYSE","name":"Christmas","date":"2021-12-24","status":"closed"},{"exchange":"NASDAQ","name":"Christmas","date":"2021-12-24","status":"closed"}]'
+  recorded_at: 2021-06-26 14:58:41 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

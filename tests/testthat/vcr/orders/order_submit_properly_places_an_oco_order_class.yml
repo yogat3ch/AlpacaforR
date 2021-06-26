@@ -1,0 +1,99 @@
+http_interactions:
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"AMZN","qty":"3","side":"buy","type":"market","time_in_force":"day"}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Thu, 17 Jun 2021 18:17:09 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '750'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"7f9cd60c-785c-44f4-8ef7-cf62bde5c345","client_order_id":"147a1aae-8fdc-4789-8352-d48c1e45a306","created_at":"2021-06-17T18:17:09.907296Z","updated_at":"2021-06-17T18:17:09.907296Z","submitted_at":"2021-06-17T18:17:09.894289Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"3","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"market","type":"market","side":"buy","time_in_force":"day","limit_price":null,"stop_price":null,"status":"accepted","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":null,"hwm":null}'
+  recorded_at: 2021-06-17 18:17:10 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/positions/AMZN
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Thu, 17 Jun 2021 18:17:10 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '463'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"14","avg_entry_price":"3485.3871428571428571","side":"long","market_value":"48793.5","cost_basis":"48795.42","unrealized_pl":"-1.92","unrealized_plpc":"-0.0000393479551974","unrealized_intraday_pl":"-1.92","unrealized_intraday_plpc":"-0.0000393479551974","current_price":"3485.25","lastday_price":"3415.25","change_today":"0.0204963033452895"}'
+  recorded_at: 2021-06-17 18:17:10 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: post
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: '{"symbol":"AMZN","qty":"1","side":"sell","type":"limit","time_in_force":"day","order_class":"oco","take_profit":{"limit_price":"3590.6727"},"stop_loss":{"stop_price":"3346.6464"}}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-origin: '*'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Thu, 17 Jun 2021 18:17:10 GMT
+      server: nginx
+      strict-transport-security: max-age=31536000; includeSubDomains
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"d26cc8e3-0371-45f8-8693-70a30a21acfe","client_order_id":"5cde818e-29ab-4339-80a6-aa4badb7ef43","created_at":"2021-06-17T18:17:10.723076Z","updated_at":"2021-06-17T18:17:10.729584Z","submitted_at":"2021-06-17T18:17:10.720603Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"oco","order_type":"limit","type":"limit","side":"sell","time_in_force":"day","limit_price":"3590.67","stop_price":null,"status":"accepted","extended_hours":false,"legs":[{"id":"e7034ca2-4d3f-4daa-a332-2f1fb52a37ac","client_order_id":"4aebaafc-2cb8-483d-81dd-b29123596092","created_at":"2021-06-17T18:17:10.723076Z","updated_at":"2021-06-17T18:17:10.723076Z","submitted_at":"2021-06-17T18:17:10.720603Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"oco","order_type":"stop","type":"stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"3346.6464","status":"held","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":null,"hwm":null}],"trail_percent":null,"trail_price":null,"hwm":null}'
+  recorded_at: 2021-06-17 18:17:10 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

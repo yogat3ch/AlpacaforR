@@ -17,17 +17,17 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx/1.19.10
-      date: Sun, 30 May 2021 01:09:10 GMT
+      date: Tue, 01 Jun 2021 21:10:53 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '699'
+      content-length: '700'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
     body:
       encoding: UTF-8
       file: no
-      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"356154.156","regt_buying_power":"176049.69","daytrading_buying_power":"356154.156","cash":"85523.79","portfolio_value":"90525.9","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"90525.9","last_equity":"90544.86","long_market_value":"5002.11","short_market_value":"0","initial_margin":"2501.055","maintenance_margin":"1500.633","last_maintenance_margin":"1506.321","sma":"0","daytrade_count":3}'
-  recorded_at: 2021-05-30 01:09:09 GMT
+      string: '{"id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","account_number":"PA2R69JXKXN9","status":"ACTIVE","currency":"USD","buying_power":"356154.156","regt_buying_power":"175990.72","daytrading_buying_power":"356154.156","cash":"85523.79","portfolio_value":"90466.93","pattern_day_trader":false,"trading_blocked":false,"transfers_blocked":false,"account_blocked":false,"created_at":"2019-06-27T00:31:20.626651Z","trade_suspended_by_user":false,"multiplier":"4","shorting_enabled":true,"equity":"90466.93","last_equity":"90544.86","long_market_value":"4943.14","short_market_value":"0","initial_margin":"2471.57","maintenance_margin":"1482.942","last_maintenance_margin":"1506.321","sma":"0","daytrade_count":3}'
+  recorded_at: 2021-06-01 21:10:51 GMT
   recorded_with: vcr/0.5.4, webmockr/0.6.2
 - request:
     method: get
@@ -50,7 +50,7 @@ http_interactions:
       connection: keep-alive
       content-encoding: gzip
       content-type: application/json; charset=UTF-8
-      date: Sun, 30 May 2021 01:09:10 GMT
+      date: Tue, 01 Jun 2021 21:10:53 GMT
       server: nginx/1.19.10
       transfer-encoding: chunked
       vary:
@@ -60,5 +60,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"timestamp":[1588944600,1589203800,1589290200,1589376600,1589463000,1589549400,1589808600,1589895000,1589981400,1590067800,1590154200,1590499800,1590586200,1590672600,1590759000,1591018200,1591104600,1591191000,1591277400,1591363800,1591623000],"equity":[96615.98,96781.54,96573.34,96573.34,96617.22,96752.76,96796.73,96796.73,96983.5,96971.18,96971.18,96963,96959.38,96959.38,96928.45,96928.45,96928.45,96928.45,96928.45,96928.45,96928.45],"profit_loss":[-33,117.56,-208.2,0,0,51.82,43.97,0,99.05,-12.32,0,-8.18,-3.62,0,-30.93,0,0,0,0,0,0],"profit_loss_pct":[0,0.0012167759412056,-0.0009370783242975142,-0.0009370783242975142,-0.0009370783242975142,-0.000401237605621992,0.0000530373688850244,0.0000530373688850244,0.0010763700098883537,0.0009492013587412346,0.0009492013587412346,0.0008647663290023845,0.0008274002155971796,0.0008274002155971796,0.0005081367107287873,0.0005081367107287873,0.0005081367107287873,0.0005081367107287873,0.0005081367107287873,0.0005081367107287873,0.0005081367107287873],"base_value":96615.98,"timeframe":"1D"}'
-  recorded_at: 2021-05-30 01:09:09 GMT
+  recorded_at: 2021-06-01 21:10:52 GMT
   recorded_with: vcr/0.5.4, webmockr/0.6.2

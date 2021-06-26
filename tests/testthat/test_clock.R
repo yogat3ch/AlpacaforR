@@ -1,7 +1,7 @@
 #' @include internal.R
 #' @include Clock.R
 vcr::vcr_configure(dir = file.path(dirname(.log_path), "clock"))
-vcr::use_cassette("clock_returns_the_appropriate_response", {
+vcr::use_cassette("clock", {
 test_that("clock returns the appropriate response", {
   .c <- clock()
   expect_type(.c$is_open, "logical")
@@ -11,7 +11,7 @@ test_that("clock returns the appropriate response", {
 })
 })
 
-vcr::use_cassette("clock_returns_the_appropriate_response_when_timezone_is_different", {
+vcr::use_cassette("clock_timezone", {
 test_that("clock returns the appropriate response when timezone is different", {
   withr::with_envvar(c(TZ = "America/Los_Angeles"), {
     .c <- clock()

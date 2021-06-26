@@ -66,12 +66,6 @@ test_that("account_activities retrieves date ranges correctly", {
 })
 })
 
-vcr::use_cassette("account_activities_throws_an_error_if_invalid_date_is_entered", {
-test_that("account_activities throws an error if invalid date is entered", {
-  expect_error(.aa <- account_activities(after = '20202-2'), regexp = "was parsed to NA")
-})
-})
-
 .sample <- sample(s = 10, c(1:77))
 # IMPORTANT Must run all samples before CRAN
 .p <- c(.test = "rds/account_portfolio_test.rds", .res = "rds/account_portfolio_results.rds")

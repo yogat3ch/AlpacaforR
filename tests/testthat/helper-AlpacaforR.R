@@ -1,42 +1,58 @@
-`%>%` <- magrittr::`%>%`
 set.seed(1)
 library(vcr)
-.log_path <- file.path(pkgload::package_file(), "tests/testthat/vcr/vcr.log")
+.pkg_path <- tryCatch(c(pkgload::package_file(), "tests/testthat"), error = rlang::as_function(~{NULL}))
+.log_path <- c(.pkg_path,
+"vcr/vcr.log")
+.log_path <- rlang::exec(file.path,
+  !!!.log_path)
 vcr::vcr_log_file(.log_path)
-.redact <- Sys.getenv() %>% {.[stringr::str_subset(names(.),"APCA(?!\\-LIVE$)")]} %>% as.list()
+.redact <- Sys.getenv() %>% {.[stringr::str_subset(names(.),"(?:APCA)|(?:POLYGON)(?!\\-LIVE$)")]} %>% as.list()
 vcr::vcr_configure(
   dir = dirname(.log_path),
-  log_opts = list(file = .log_path, write_disk_path = dirname(.log_path)),
-  filter_sensitive_data = .redact
+  log_opts = list(file = .log_path, 
+                  write_disk_path = dirname(.log_path)),
+  filter_sensitive_data = .redact,
+  warn_on_empty_cassette = FALSE
+  
 )
+# name labels for t,q,lt,lq,ss endpoints
+nms <- list(t = c("time", "x", "p", "s", "c", "i", "z"),
+            q = c("time", "ax", "ap", "as", "bx", "bp", "bs", "c"),
+            b = c("time", "open", "high", "low", "close", "volume"))
+# For tests that require the market to be open
+market_open <- TRUE
 # internal.R prep ----
 # Sat Dec 26 08:49:28 2020
 #quick detection of timespan abbreviations:  Thu Mar 26 08:34:00 2020 ----
 evar_reset <- function(...) {
     e <- rlang::env(
-  .vn = list(
-    symbol = "character",
-    v = c("integer", "numeric", "character"),
-    timeframe = c("factor", "character"),
-    tf_num = c("integer", "numeric"),
-    tf_order = "factor",
-    multiplier = c("integer", "numeric"),
-    from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-    to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-    after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-    until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
-    limit = c("integer", "numeric", "NULL"),
-    full = "logical",
-    unadjusted = "logical",
-    bounds = "list",
-    cal = c("data.frame", "tibble")
-  ),
+      .vn = list(
+        symbol = "character",
+        v = c("integer", "numeric", "character"),
+        timeframe = c("factor", "character"),
+        tf_num = c("integer", "numeric"),
+        tf_order = "factor",
+        multiplier = c("integer", "numeric"),
+        from = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+        to = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+        after = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+        until = c("character", "POSIXct", "Datetime", "Date", "NULL"),
+        limit = c("integer", "numeric", "NULL"),
+        full = "logical",
+        unadjusted = "logical",
+        bounds = c("list"),
+        cal = c("data.frame", "tibble"),
+        tqs = "character",
+        is_tqs = "logical"
+      ),
   # Add appropriate variables to local environment
   symbol = "AMZN",
   after = NULL,
   until = NULL,
   full = FALSE,
-  unadjusted = F
+  unadjusted = F,
+  is_tqs = F,
+  tqs =  c("lt", "tr", "lq", "qu", "ss")
   )
   rlang::env_bind(e, ...)
   return(e)
@@ -152,14 +168,26 @@ if (FALSE) {
     tibble::as_tibble()
   test_market_data <- list(bars = dplyr::bind_cols(.test3, .complete))
   test_market_data$v1 <-  market_data(c("BYND"), v = 1, from = "2020-03-06", until = "2020-12-25", multiplier = 5, timeframe = "m", full = T)
-  test_market_data$v2 <-  market_data(c("BYND"), v = 2, from = "2020-03-06", until = "2020-12-25", multiplier = 1, timeframe = "m", full = T)
-  
+  test_market_data$v2 <-  market_data(c("BYND"), v = 2, from = "2020-11-02", until = "2020-12-25", multiplier = 1, timeframe = "m", full = T)
+  # Remove the Polygon API Key for security purposes
+  test_market_data$bars[stringr::str_detect(names(test_market_data$bars), "data$|complete$")] <- dplyr::select(test_market_data$bars, contains("data"), contains("complete")) %>% 
+    purrr::map(~{
+      .x[4:7] <- purrr::map(.x[4:7], ~{
+        .q <- get_query(.x)
+        .q$url <- stringr::str_replace(.q$url, get_cred("POLYGON-KEY"), "POLYGON-KEY")
+        attr(.x, "query") <- .q
+        .x
+      })
+      .x
+    })
   saveRDS(test_market_data, file.path(pkgload::package_file(), "tests/testthat/rds/test_market_data.rds"))
 }
 
 # market_data ----
 # Sat Dec 26 15:05:40 2020
-test_market_data <- readRDS(file.path(pkgload::package_file(), "tests/testthat/rds/test_market_data.rds"))
+test_market_data <- readRDS(rlang::exec(file.path,
+ !!!c(.pkg_path,
+  "rds/test_market_data.rds")))
 
 
 # get all files that start with "test" in the testthat directory

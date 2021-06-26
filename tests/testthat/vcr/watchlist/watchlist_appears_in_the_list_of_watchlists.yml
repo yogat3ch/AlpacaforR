@@ -16,17 +16,18 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      server: nginx/1.19.10
-      date: Sun, 30 May 2021 12:15:51 GMT
+      server: nginx
+      date: Thu, 03 Jun 2021 14:29:35 GMT
       content-type: application/json; charset=UTF-8
       content-length: '611'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
     body:
       encoding: UTF-8
       file: no
       string: '[{"id":"1ac6a8d5-fd79-489a-85a7-c08305236e2d","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-04-16T15:20:20.153867Z","updated_at":"2021-04-16T15:20:20.153867Z","name":"Primary"},{"id":"a9bf310b-fa7d-4095-b141-7ec7873001a6","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2020-09-03T18:25:25.386938Z","updated_at":"2020-09-03T18:25:25.386938Z","name":"Primary
-        Watchlist"},{"id":"c044247a-273f-4a00-88b5-ed63472c4e4b","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-05-30T12:15:49.256273Z","updated_at":"2021-05-30T12:15:49.256273Z","name":"test"}]'
-  recorded_at: 2021-05-30 12:15:50 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+        Watchlist"},{"id":"2d8f4d28-f607-43dd-a3e8-91f2b1581458","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-06-03T14:29:34.245883Z","updated_at":"2021-06-03T14:29:34.245883Z","name":"test"}]'
+  recorded_at: 2021-06-03 14:29:35 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

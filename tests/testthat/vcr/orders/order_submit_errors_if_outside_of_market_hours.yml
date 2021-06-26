@@ -1,0 +1,33 @@
+http_interactions:
+- request:
+    method: patch
+    uri: https://paper-api.alpaca.markets/v2/orders/92d74581-0565-40da-9760-a4f0894af84c
+    body:
+      encoding: ''
+      string: '{"qty":"1","time_in_force":"day","stop_price":"140.8113"}'
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Thu, 17 Jun 2021 20:54:13 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '785'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"cf3dde8c-7583-4f30-a61a-f7a0bce93fc3","client_order_id":"d1d00b19-f501-499e-a9b0-9f6803ad89a9","created_at":"2021-06-17T20:54:11.170282Z","updated_at":"2021-06-17T20:54:13.746416015Z","submitted_at":"2021-06-17T20:54:13.746323635Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":"92d74581-0565-40da-9760-a4f0894af84c","asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","symbol":"BYND","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"stop","type":"stop","side":"buy","time_in_force":"day","limit_price":null,"stop_price":"140.81","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":null,"hwm":null}'
+  recorded_at: 2021-06-17 20:54:13 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

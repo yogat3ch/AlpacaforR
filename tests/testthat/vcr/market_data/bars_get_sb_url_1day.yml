@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://data.alpaca.markets/v2/stocks/AMZN/bars?start=2020-04-02T00:00:00-00:00&end=2020-04-03T00:00:00-00:00&limit=10000&timeframe=1Day
+    uri: https://data.alpaca.markets/v2/stocks/AMZN/bars?start=2020-04-02T00%3A00%3A00-00%3A00&end=2020-04-03T00%3A00%3A00-00%3A00&limit=10000&timeframe=1Day
     body:
       encoding: ''
       string: ''
@@ -16,7 +16,7 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Fri, 28 May 2021 22:01:38 GMT
+      date: Sat, 12 Jun 2021 13:26:08 GMT
       content-type: application/json; charset=utf-8
       content-length: '137'
       connection: keep-alive
@@ -28,5 +28,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"bars":[{"t":"2020-04-02T04:00:00Z","o":1901.64,"h":1927.5258,"l":1890,"c":1918.83,"v":4336003}],"symbol":"AMZN","next_page_token":null}'
-  recorded_at: 2021-05-28 22:01:38 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+  recorded_at: 2021-06-12 13:26:08 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -16,9 +16,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Sat, 29 May 2021 00:26:15 GMT
+      date: Sat, 12 Jun 2021 18:41:08 GMT
       content-type: application/json; charset=utf-8
-      content-length: '161'
+      content-length: '162'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -27,9 +27,9 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"status":"success","symbol":"TWTR","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1622232000000042150}}'
-  recorded_at: 2021-05-29 00:26:15 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+      string: '{"status":"success","symbol":"TWTR","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":52,"bidsize":3,"bidexchange":15,"timestamp":1623441599029644087}}'
+  recorded_at: 2021-06-12 18:41:09 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: get
     uri: https://data.alpaca.markets/v1/last_quote/stocks/BYND
@@ -47,9 +47,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Sat, 29 May 2021 00:26:15 GMT
+      date: Sat, 12 Jun 2021 18:41:08 GMT
       content-type: application/json; charset=utf-8
-      content-length: '161'
+      content-length: '166'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -58,9 +58,9 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"status":"success","symbol":"BYND","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1622232000000042150}}'
-  recorded_at: 2021-05-29 00:26:15 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+      string: '{"status":"success","symbol":"BYND","last":{"askprice":149.42,"asksize":1,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1623441599952076729}}'
+  recorded_at: 2021-06-12 18:41:09 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: get
     uri: https://data.alpaca.markets/v1/last_quote/stocks/AAPL
@@ -78,9 +78,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Sat, 29 May 2021 00:26:16 GMT
+      date: Sat, 12 Jun 2021 18:41:09 GMT
       content-type: application/json; charset=utf-8
-      content-length: '171'
+      content-length: '161'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -89,6 +89,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"status":"success","symbol":"AAPL","last":{"askprice":124.93,"asksize":1,"askexchange":15,"bidprice":116.87,"bidsize":1,"bidexchange":15,"timestamp":1622232080497332386}}'
-  recorded_at: 2021-05-29 00:26:15 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.6.2
+      string: '{"status":"success","symbol":"AAPL","last":{"askprice":0,"asksize":0,"askexchange":15,"bidprice":0,"bidsize":0,"bidexchange":15,"timestamp":1623441600000558430}}'
+  recorded_at: 2021-06-12 18:41:09 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
