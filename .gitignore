@@ -27,6 +27,8 @@ AlpacaforR.Rproj
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+build_vignettes.R
+AlpacaStreams
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
@@ -51,3 +53,5 @@ rsconnect/
 # Unit Test scratch file
 R/Polygon-testing.R
 inst/doc
+/doc/
+/Meta/
