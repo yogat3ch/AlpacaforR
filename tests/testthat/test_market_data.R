@@ -214,6 +214,7 @@ vcr::use_cassette("market_data_works_with_last_trade", match_requests_on = "uri"
 
 
 test_that("v2_trades_latest_trades_quotes_latest_quotes", {
+  testthat::skip_on_cran()
     test <- expand.grid(symbol = list("SPOT", c("SPOT", "BYND")), timeframe = c("t", "lt", "q", "lq"), v = 2, from = "2021-05-26", to = "2021-05-27", stringsAsFactors = FALSE) %>% tibble::rownames_to_column()
     results <- purrr::pmap(test, ~{
       .vars <- rlang::dots_list(...)
@@ -238,6 +239,7 @@ test_that("v2_trades_latest_trades_quotes_latest_quotes", {
 
 
 testthat::test_that("v2_ss", {
+  testthat::skip_on_cran()
   test <- expand.grid(symbol = list("SPOT", c("SPOT", "BYND")), timeframe = c("ss"), v = 2, from = "2021-05-26", to = "2021-05-27", stringsAsFactors = FALSE) %>% tibble::rownames_to_column()
   results <- purrr::pmap(test, ~{
     .vars <- rlang::dots_list(...)

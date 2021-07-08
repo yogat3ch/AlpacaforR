@@ -16,9 +16,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Sat, 12 Jun 2021 14:54:58 GMT
+      date: Thu, 08 Jul 2021 15:07:54 GMT
       content-type: application/json; charset=utf-8
-      content-length: '119'
+      content-length: '122'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -27,8 +27,8 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"symbol":"SPOT","quote":{"t":"2021-06-11T20:00:00.00055843Z","ax":"V","ap":0,"as":0,"bx":"V","bp":0,"bs":0,"c":["R"]}}'
-  recorded_at: 2021-06-12 14:54:59 GMT
+      string: '{"symbol":"SPOT","quote":{"t":"2021-07-08T15:07:51.647336688Z","ax":"V","ap":295,"as":2,"bx":"V","bp":0,"bs":0,"c":["R"]}}'
+  recorded_at: 2021-07-08 15:07:54 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: get
@@ -47,9 +47,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Sat, 12 Jun 2021 14:54:59 GMT
+      date: Thu, 08 Jul 2021 15:07:54 GMT
       content-type: application/json; charset=utf-8
-      content-length: '125'
+      content-length: '126'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -58,6 +58,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"symbol":"BYND","quote":{"t":"2021-06-11T19:59:59.952076729Z","ax":"V","ap":149.42,"as":1,"bx":"V","bp":0,"bs":0,"c":["R"]}}'
-  recorded_at: 2021-06-12 14:54:59 GMT
+      string: '{"symbol":"BYND","quote":{"t":"2021-07-08T15:07:49.217183435Z","ax":"V","ap":155.6,"as":1,"bx":"V","bp":139,"bs":1,"c":["R"]}}'
+  recorded_at: 2021-07-08 15:07:54 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0

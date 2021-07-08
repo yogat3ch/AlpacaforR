@@ -380,7 +380,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
       .args <- list(path = .path,
                     data = TRUE,
                     v = v)
-      if (!timeframe %in% c("lq","lt", "ss"))
+      if (!timeframe %in% c("lq","lt") || (timeframe %in% "ss" && length(evar$symbol) > 1))
         .args$query = .query
       .url <- do.call(get_url, .args) %>% 
         stats::setNames(nm = .symbol)
