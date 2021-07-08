@@ -66,12 +66,14 @@ write_prep <- function(write_dir, url, channel, overwrite, private) {
     # check the private options to see if it's already been overwritten
     if (is.null(private$.opts[[channel]])) private$.opts[[channel]] <- list()
     overwrite <- private$.opts[[channel]]$overwrite %||% overwrite
-    logfile <- file.path(write_dir, url_to_path(url), paste0(channel,".log"))
+    logfile <- file.path(write_dir, url_to_path(url), paste0(channel,".txt"))
     # Create if need be
     if (overwrite || !file.exists(logfile)) {
       # if directory paths are provided, create them if need be
       if (grepl("\\/", logfile)) {
-        .paths <- stringr::str_split(logfile, "/")[[1]] %>% .[-length(.)]
+        .paths <- stringr::str_split(logfile, "/")[[1]] %>%
+          .[-length(.)] %>% 
+          subset(subset = !. %in% stringr::str_split(getwd(), "/")[[1]])
         purrr::walk(purrr::accumulate(.paths, ~{
           .p <- paste0(.x,"/",.y)
         }), ~{
@@ -245,7 +247,7 @@ console_msg = function(msg, opts) {
 #' @export
 
 is_ws_bars <- function(msg) {
-  suppressWarnings(isTRUE(any(purrr::map_lgl(purrr::keep(msg, is.character), ~stringr::str_detect(.x, "^Q|T|AM\\.")))))
+  suppressWarnings(isTRUE(any(purrr::map_lgl(purrr::keep(msg, is.character), ~stringr::str_detect(.x, "^(?:Q|T|AM|b|q|t)\\.")))))
 }
 
 
@@ -307,7 +309,7 @@ write_msg <- function(msg, private) {
   .logfile <- private$.opts[[.channel]]$logfile
   if (is.character(.logfile)) {
     # remove superfluous columns if recording bars
-    if (isTRUE(suppressWarnings(isTRUE(msg$ev %in% c("T", "Q", "A", "AM")))))
+    if (is_ws_bars(msg))
       msg <- msg[!names(msg) %in% c("channel", "socket", "ev")]
     
     if (private$.opts[[.channel]]$do_label %||% TRUE) {
@@ -429,8 +431,8 @@ AlpacaSocket <- R6::R6Class(
         .msg <- msg(event)
         private$message_handle(.msg)
         .user_quo <- self$opts[[.msg$channel]]$msg_action %||% self$opts$msg_action %||% FALSE
-        if (!is.null(rlang::quo_expr(.user_quo))) {
-          .the_expr <- eval(rlang::get_expr(.user_quo))
+        if (!isFALSE(.user_quo)) {
+          .the_expr <- rlang::get_expr(.user_quo)
           # create a temp eval env with the necessary objects
           .the_env <- rlang::env(attr(.user_quo, ".Environment"), msg = .msg, self = self)
           # eval the expression in that environment
@@ -707,7 +709,7 @@ AlpacaStreams <- R6::R6Class(
     #' @param write_dir \code{(character/logical)} The directory in which to store logs on disk. Use `FALSE` to disable logging to disk. Folders will be created. **Default** `"AlpacaStreams"`.
     #' @param overwrite \code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. **Default** `TRUE`.
     #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}. 
-    #' @inheritParams account
+    #' @param live Whether to connect to the live or paper API. See ?account for details.
     #' @param pro \code{(logical)} Whether to use a Pro account. See \link{get_pro}
     #' @param ... Passed on to \link[websocket]{WebSocket}
      
@@ -716,7 +718,7 @@ AlpacaStreams <- R6::R6Class(
                           log = TRUE,
                           log_limit = 5000,
                           bars_limit = 5000,
-                          write_dir = "AlpacaStreams",
+                          write_dir = file.path(getwd(), "AlpacaStreams"),
                           overwrite = TRUE,
                           msg_action = NULL,
                           live = get_live(),
@@ -724,11 +726,14 @@ AlpacaStreams <- R6::R6Class(
                           ...) {
       
       socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", multiple = TRUE)
-      
+      force(write_dir)
       # Set default opts
       .opts <- ls() 
       .opts <- rlang::env_get_list(nms = .opts[!.opts %in% c("self", "socket", "msg_action")], default = NULL)
-      .opts$msg_action <- rlang::enquo(msg_action)
+      
+      if (!is.null(msg_action) && !rlang::is_quosure(msg_action))
+        msg_action <- rlang::enquo(msg_action)
+      .opts$msg_action <- msg_action
       
       if (any("Polygon" %in% socket)) {
         self$Polygon <- PolygonSocket$new(
@@ -778,15 +783,13 @@ AlpacaStreams <- R6::R6Class(
     channel = function(channel = NULL,
                        subscribe = TRUE,
                        overwrite = FALSE,
-                       msg_action,
+                       msg_action = NULL,
                        ...
     ) {
       # set the channel
       socket <- socket_detect(channel)
       if (!missing(msg_action)) 
         msg_action <- rlang::enquo(msg_action)
-      else
-        msg_action <- NULL
       
       .list <- rlang::dots_list(...)
       # Detect socket based on channel
@@ -796,7 +799,7 @@ AlpacaStreams <- R6::R6Class(
                   ~ self$Alpaca$data)
       if (is.null(channel))
         channel <- "trade_updates"
-      rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action, !!!.list)
+      rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action = msg_action, !!!.list)
       
         
     },
