@@ -84,7 +84,7 @@ orders <-
       symbol_id <- toupper(symbol_id)
     }
     if (isTRUE(client_order_id)) {
-      .url <- get_url("orders:by_client_order_id", client_order_id = .o_id, live = live)
+      .url <- get_url("orders:by_client_order_id", query = list(client_order_id = .o_id), live = live)
     } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
       .url <- get_url(c("orders", .o_id),
                       list(status = status,
