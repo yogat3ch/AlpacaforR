@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: delete
-    uri: https://paper-api.alpaca.markets/v2/orders/9af6d94a-ca3b-41cc-8228-a6e9e493c129
+    uri: https://paper-api.alpaca.markets/v2/orders/d3e82ed9-d93b-40b4-88c3-5040bd1af1df
     body:
       encoding: ''
       string: ''
@@ -18,7 +18,7 @@ http_interactions:
       message: 'Success: (204) No Content'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:09 GMT
+      date: Thu, 08 Jul 2021 14:50:50 GMT
       content-type: application/json; charset=UTF-8
       connection: keep-alive
       access-control-allow-origin: '*'
@@ -28,5 +28,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: ''
-  recorded_at: 2021-06-17 18:17:08 GMT
+  recorded_at: 2021-07-08 14:50:50 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -377,11 +377,12 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
       .query$timeframe = NULL
     # Build the url
     if (isTRUE(length(.symbol) == 1)) {
-      .url <- get_url(
-        path = .path,
-        query = .query,
-        data = TRUE,
-        v = v) %>% 
+      .args <- list(path = .path,
+                    data = TRUE,
+                    v = v)
+      if (!timeframe %in% c("lq","lt", "ss"))
+        .args$query = .query
+      .url <- do.call(get_url, .args) %>% 
         stats::setNames(nm = .symbol)
     } else if (isTRUE(length(.symbol) > 1)) {
       .url <- purrr::map_chr(stats::setNames(.path$symbol, .path$symbol), ~{

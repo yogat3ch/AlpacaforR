@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: delete
-    uri: https://paper-api.alpaca.markets/v2/orders/c8908f39-149a-4776-9c15-f4c33fba53be
+    uri: https://paper-api.alpaca.markets/v2/orders/7dc4eed4-629b-4662-a182-a9d98dc1c9c4
     body:
       encoding: ''
       string: ''
@@ -18,7 +18,7 @@ http_interactions:
       message: 'Success: (204) No Content'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:12 GMT
+      date: Thu, 08 Jul 2021 14:50:52 GMT
       content-type: application/json; charset=UTF-8
       connection: keep-alive
       access-control-allow-origin: '*'
@@ -28,7 +28,7 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: ''
-  recorded_at: 2021-06-17 18:17:13 GMT
+  recorded_at: 2021-07-08 14:50:52 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: delete
@@ -49,7 +49,7 @@ http_interactions:
       message: 'Client error: (404) Not Found'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:13 GMT
+      date: Thu, 08 Jul 2021 14:50:52 GMT
       content-type: application/json; charset=UTF-8
       content-length: '53'
       connection: keep-alive
@@ -59,7 +59,7 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"code":40410000,"message":"position does not exist"}'
-  recorded_at: 2021-06-17 18:17:13 GMT
+  recorded_at: 2021-07-08 14:50:52 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: get
@@ -79,7 +79,7 @@ http_interactions:
       message: 'Client error: (404) Not Found'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:13 GMT
+      date: Thu, 08 Jul 2021 14:50:53 GMT
       content-type: application/json; charset=UTF-8
       content-length: '53'
       connection: keep-alive
@@ -89,7 +89,7 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"code":40410000,"message":"position does not exist"}'
-  recorded_at: 2021-06-17 18:17:13 GMT
+  recorded_at: 2021-07-08 14:50:52 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: post
@@ -110,7 +110,7 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:13 GMT
+      date: Thu, 08 Jul 2021 14:50:53 GMT
       content-type: application/json; charset=UTF-8
       content-length: '764'
       connection: keep-alive
@@ -120,6 +120,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"id":"13800910-2614-43be-a8a0-8be6625d0b41","client_order_id":"5fb6bc0a-508b-42bb-99fe-fc97876666a4","created_at":"2021-06-17T18:17:13.792049Z","updated_at":"2021-06-17T18:17:13.796242Z","submitted_at":"2021-06-17T18:17:13.783118Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"90d56464-95e4-4d1e-849f-7520864df60f","symbol":"LSF","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"trailing_stop","type":"trailing_stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"22.99","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":"5","hwm":"27.99"}'
-  recorded_at: 2021-06-17 18:17:13 GMT
+      string: '{"id":"d6e2d078-6a51-4394-831d-b7b0f39bb5fd","client_order_id":"aab5395b-0cb4-4530-b723-3dc81c6e76a9","created_at":"2021-07-08T14:50:53.156118Z","updated_at":"2021-07-08T14:50:53.160872Z","submitted_at":"2021-07-08T14:50:53.144167Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"90d56464-95e4-4d1e-849f-7520864df60f","symbol":"LSF","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"trailing_stop","type":"trailing_stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"24.27","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":"5","hwm":"29.27"}'
+  recorded_at: 2021-07-08 14:50:52 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0

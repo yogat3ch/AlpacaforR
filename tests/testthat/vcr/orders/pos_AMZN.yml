@@ -17,9 +17,9 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:02 GMT
+      date: Thu, 08 Jul 2021 14:50:44 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '459'
+      content-length: '446'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
@@ -27,6 +27,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"9","avg_entry_price":"3485.0466666666666667","side":"long","market_value":"31367.25","cost_basis":"31365.42","unrealized_pl":"1.83","unrealized_plpc":"0.0000583445080602","unrealized_intraday_pl":"1.83","unrealized_intraday_plpc":"0.0000583445080602","current_price":"3485.25","lastday_price":"3415.25","change_today":"0.0204963033452895"}'
-  recorded_at: 2021-06-17 18:17:02 GMT
+      string: '{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"2","avg_entry_price":"3648.11","side":"long","market_value":"7295.72","cost_basis":"7296.22","unrealized_pl":"-0.5","unrealized_plpc":"-0.0000685286353756","unrealized_intraday_pl":"-0.5","unrealized_intraday_plpc":"-0.0000685286353756","current_price":"3647.86","lastday_price":"3696.58","change_today":"-0.0131797499310173"}'
+  recorded_at: 2021-07-08 14:50:44 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0

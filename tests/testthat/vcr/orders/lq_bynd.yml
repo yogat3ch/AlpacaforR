@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://data.alpaca.markets/v2/stocks/BYND/trades/latest?start=2021-06-16T00%3A00%3A00-00%3A00&end=2021-06-17T04%3A00%3A00-00%3A00&limit=10000
+    uri: https://data.alpaca.markets/v2/stocks/BYND/trades/latest
     body:
       encoding: ''
       string: ''
@@ -16,9 +16,9 @@ http_interactions:
       reason: OK
       message: 'Success: (200) OK'
     headers:
-      date: Thu, 17 Jun 2021 18:17:16 GMT
+      date: Thu, 08 Jul 2021 14:50:54 GMT
       content-type: application/json; charset=utf-8
-      content-length: '118'
+      content-length: '117'
       connection: keep-alive
       access-control-allow-credentials: 'true'
       vary: Origin
@@ -27,6 +27,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"symbol":"BYND","trade":{"t":"2021-06-17T18:16:55.640249439Z","x":"V","p":151.41,"s":200,"c":["@"],"i":1068,"z":"C"}}'
-  recorded_at: 2021-06-17 18:17:16 GMT
+      string: '{"symbol":"BYND","trade":{"t":"2021-07-08T14:50:32.808527321Z","x":"V","p":140.87,"s":100,"c":["@"],"i":583,"z":"C"}}'
+  recorded_at: 2021-07-08 14:50:54 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0

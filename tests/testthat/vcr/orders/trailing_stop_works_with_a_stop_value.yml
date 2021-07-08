@@ -17,9 +17,9 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:11 GMT
+      date: Thu, 08 Jul 2021 14:50:51 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '463'
+      content-length: '460'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
@@ -27,8 +27,8 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"14","avg_entry_price":"3485.3871428571428571","side":"long","market_value":"48793.5","cost_basis":"48795.42","unrealized_pl":"-1.92","unrealized_plpc":"-0.0000393479551974","unrealized_intraday_pl":"-1.92","unrealized_intraday_plpc":"-0.0000393479551974","current_price":"3485.25","lastday_price":"3415.25","change_today":"0.0204963033452895"}'
-  recorded_at: 2021-06-17 18:17:11 GMT
+      string: '{"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","exchange":"NASDAQ","asset_class":"us_equity","qty":"7","avg_entry_price":"3648.1242857142857143","side":"long","market_value":"25536.91","cost_basis":"25536.87","unrealized_pl":"0.04","unrealized_plpc":"0.0000015663626748","unrealized_intraday_pl":"0.04","unrealized_intraday_plpc":"0.0000015663626748","current_price":"3648.13","lastday_price":"3696.58","change_today":"-0.0131067094449464"}'
+  recorded_at: 2021-07-08 14:50:51 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
 - request:
     method: post
@@ -49,9 +49,9 @@ http_interactions:
       message: 'Success: (200) OK'
     headers:
       server: nginx
-      date: Thu, 17 Jun 2021 18:17:11 GMT
+      date: Thu, 08 Jul 2021 14:50:51 GMT
       content-type: application/json; charset=UTF-8
-      content-length: '772'
+      content-length: '774'
       connection: keep-alive
       access-control-allow-origin: '*'
       vary: Origin
@@ -59,6 +59,6 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: '{"id":"e348640d-bed5-4dbb-a3e8-9328e73829e9","client_order_id":"3d529df2-3f5c-4649-8e7f-52afad9eda6f","created_at":"2021-06-17T18:17:11.620465Z","updated_at":"2021-06-17T18:17:11.625185Z","submitted_at":"2021-06-17T18:17:11.618345Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"trailing_stop","type":"trailing_stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"3475.245","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":"10","hwm":"3485.245"}'
-  recorded_at: 2021-06-17 18:17:11 GMT
+      string: '{"id":"9319c43d-8f88-4c81-8cd2-4c9dc47f3c98","client_order_id":"7225abba-fe3c-4dff-9bf9-183fb42ea6c1","created_at":"2021-07-08T14:50:51.870884Z","updated_at":"2021-07-08T14:50:51.875457Z","submitted_at":"2021-07-08T14:50:51.868018Z","filled_at":null,"expired_at":null,"canceled_at":null,"failed_at":null,"replaced_at":null,"replaced_by":null,"replaces":null,"asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","symbol":"AMZN","asset_class":"us_equity","notional":null,"qty":"1","filled_qty":"0","filled_avg_price":null,"order_class":"","order_type":"trailing_stop","type":"trailing_stop","side":"sell","time_in_force":"day","limit_price":null,"stop_price":"3638.1299","status":"new","extended_hours":false,"legs":null,"trail_percent":null,"trail_price":"10","hwm":"3648.1299"}'
+  recorded_at: 2021-07-08 14:50:51 GMT
   recorded_with: vcr/1.0.2, webmockr/0.8.0
