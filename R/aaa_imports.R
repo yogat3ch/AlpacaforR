@@ -26,7 +26,7 @@
 
 # R/Calendar.R
 #' @importFrom purrr map_lgl map iwalk when
-#' @importFrom lubridate today wday as_date interval ymd_hm floor_date int_start int_end ceiling_date
+#' @importFrom lubridate today wday as_date ymd_hm floor_date int_start int_end ceiling_date
 #' @importFrom httr GET
 #' @importFrom dplyr mutate across starts_with select
 #' @importFrom stringr str_sub
@@ -78,7 +78,7 @@
 # R/Market_Data.R
 #' @importFrom rlang caller_env exec list2 is_empty expr eval_bare dots_list env abort warn env_bind
 #' @importFrom purrr when keep map walk imap compact map_chr list_modify vec_depth imap_dfr map_depth map_dbl map_lgl
-#' @importFrom lubridate duration as_datetime as_date floor_date ceiling_date interval hour force_tz origin round_date year as.duration int_end int_start `%within%`
+#' @importFrom lubridate duration as_datetime as_date floor_date ceiling_date hour force_tz origin round_date year as.duration int_end int_start `%within%`
 #' @importFrom glue glue
 #' @importFrom cli make_spinner col_blue cat_line col_grey cli_alert_warning
 #' @importFrom stats setNames

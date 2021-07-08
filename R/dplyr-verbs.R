@@ -153,10 +153,7 @@ dplyr_reconstruct.tsymble_ts <- function(data, template) {
 #' @export
 dplyr_reconstruct.grouped_tsymble <- dplyr_reconstruct.tsymble_ts
 
-#' @title summarise.tsymble_ts
-#' @description An S3 method for summarising a `tsymble_ts` object
-#' @inheritParams dplyr::summarise
-#' @inherit dplyr::summarise return
+#' @noRd
 #' @export
 summarise.tsymble_ts <- function(.data, ..., .groups = NULL) { 
   
@@ -174,9 +171,6 @@ summarise.tsymble_ts <- function(.data, ..., .groups = NULL) {
   return(out)
 }
 
-#' @title summarise.grouped_tsymble
-#' @description An S3 method for summarising a `tsymble_ts` object
-#' @inheritParams dplyr::summarise
-#' @inherit dplyr::summarise return
+#' @noRd
 #' @export
 summarise.grouped_tsymble <- summarise.tsymble_ts

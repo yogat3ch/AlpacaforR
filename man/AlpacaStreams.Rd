@@ -133,7 +133,7 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
   log = TRUE,
   log_limit = 5000,
   bars_limit = 5000,
-  write_dir = "AlpacaStreams",
+  write_dir = file.path(getwd(), "AlpacaStreams"),
   overwrite = TRUE,
   msg_action = NULL,
   live = get_live(),
@@ -166,6 +166,8 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 
 \item{\code{msg_action}}{\code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the \code{msg} object seen printed to the console when a message is received (if \code{toConsole = TRUE}). The \code{msg} object also contains a \verb{$ts} column with the timestamp as a \code{POSIXct} and a \verb{$socket} column with the socket name of origin (\code{"Alpaca"/"Polygon"}) that are not visible in what is printed to the console but accessible to \code{msg_action}. The expression can also reference the \code{self} internal environment of this \code{\link[R6]{R6Class}}.}
 
+\item{\code{live}}{Whether to connect to the live or paper API. See ?account for details.}
+
 \item{\code{pro}}{\code{(logical)} Whether to use a Pro account. See \link{get_pro}}
 
 \item{\code{...}}{Passed on to \link[websocket]{WebSocket}}
@@ -183,7 +185,7 @@ Sends request to websocket to join the specified channel. Channel options are in
   channel = NULL,
   subscribe = TRUE,
   overwrite = FALSE,
-  msg_action,
+  msg_action = NULL,
   ...
 )}\if{html}{\out{</div>}}
 }
