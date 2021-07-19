@@ -1,0 +1,29 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v1/open-close/BYND/2019-12-04?apiKey=POLYGON-KEY
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 26 Jun 2021 14:58:42 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '156'
+      connection: keep-alive
+      x-request-id: e98082edc13e6d5fd4ac235d4f38030f
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"OK","from":"2019-12-04","symbol":"BYND","open":76.75,"high":77.05,"low":73.51,"close":73.89,"volume":5168416,"afterHours":73.9,"preMarket":76.92}'
+  recorded_at: 2021-06-26 14:58:42 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

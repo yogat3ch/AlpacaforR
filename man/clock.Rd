@@ -2,17 +2,12 @@
 % Please edit documentation in R/Clock.R
 \name{clock}
 \alias{clock}
-\alias{get_clock}
 \title{Get Clock function}
 \usage{
-clock(tz = NULL, v = 2)
-
-get_clock(tz = NULL, v = 2)
+clock(tz = NULL)
 }
 \arguments{
 \item{tz}{\code{(character)} A timezone (See \code{\link[base]{timezones}} or use \code{OlsonNames()})  to determine how the market hours compare to the \code{tz} hours. If no \code{tz} argument is provided, and the local timezone differs from "America/New_York", \code{clock} will automatically provide the local conversion and offset.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 Clock \code{(list)} A \href{https://alpaca.markets/docs/api-documentation/api-v2/clock/#clock-entity}{Clock} Object:
@@ -25,11 +20,10 @@ Clock \code{(list)} A \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 \description{
 The clock API serves the current market timestamp, whether or not the market is currently open, as well as the times of the next market open and close. See \href{https://alpaca.markets/docs/api-documentation/api-v2/clock/}{Clock} Endpoint for details. \emph{Additionally, if your current timezone is different than that of the market} or if a \code{tz} is specified, a \code{local} POSIXct will be appended with corresponding local time (or \code{tz} time) and it's \code{offset} from the market for each of the following outputs: \code{timestamp}, \code{next_open}, and \code{next_close}.
-
-\code{get_clock} is deprecated, use \code{\link[AlpacaforR]{clock}} instead.
 }
 \examples{
+\dontrun{
 clock()
-get_clock()
+}
 }
 \concept{Clock}

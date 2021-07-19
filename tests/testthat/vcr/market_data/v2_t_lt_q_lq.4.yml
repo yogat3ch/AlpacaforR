@@ -1,0 +1,64 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/SPOT/trades/latest?start=2021-05-26T00%3A00%3A00-04%3A00&end=2021-05-27T00%3A00%3A00-04%3A00&limit=10000
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Thu, 08 Jul 2021 15:06:03 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '128'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"symbol":"SPOT","trade":{"t":"2021-07-08T15:05:05.099966139Z","x":"V","p":255.32,"s":200,"c":["
+        "],"i":54255510971509,"z":"A"}}'
+  recorded_at: 2021-07-08 15:06:03 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/BYND/trades/latest?start=2021-05-26T00%3A00%3A00-04%3A00&end=2021-05-27T00%3A00%3A00-04%3A00&limit=10000
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Thu, 08 Jul 2021 15:06:03 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '117'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"symbol":"BYND","trade":{"t":"2021-07-08T15:05:02.00459606Z","x":"V","p":140.765,"s":100,"c":["@"],"i":635,"z":"C"}}'
+  recorded_at: 2021-07-08 15:06:03 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

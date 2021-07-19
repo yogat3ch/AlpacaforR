@@ -1,0 +1,1178 @@
+---
+title: "AlpacaforR"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+devtools::load_all()
+```
+# `AlpacaforR` 🦙𝘙
+This tutorial covers connecting `AlpacaforR` to the [Alpaca API](https://alpaca.markets) and navigating the package. The [Alpaca API Docs](https://alpaca.markets/docs/api-documentation/api-v2/) provide a more general overview of the authentication, API limits, an explanation of paper & live trading, and release notes. It's worth checking out. If you have never heard of Alpaca, you can learn more [here!](https://alpaca.markets/docs/about-us/) If you want to reference this material later from within R, you can do so with `vignette("AlpacaforR", "Getting Started")`
+
+### Release notes
+#### 1.0.0 TBD CRAN Release!
+
+#### 0.9.0 2021-05-28 Updates for Alpaca API v2
+  - `market_data` now uses the Alpaca version 2 data API with automatic pagination support. Retrieving full data sets for 1 minute, 1 hour, and 1 day periods should be very quick. 
+  - The new Alpaca data websockets are supported by `AlpacaStreams`. Polygon websocket support is retained, but will no longer be developed.
+  - Trailing stop loss orders of all types are supported.
+  
+#### 0.5.0 2020-05-24 Package Overhaul
+ - This release includes an overhaul of the entire package that is **not backwards compatible** that emphasizes the following:
+      - Creates an experience of the package functionality that mirrors that of the Alpaca API documentation and provides for more intuitive navigation of the package for new users.
+      - Extensive package documentation that links directly to the appropriate online documentation wherever necessary with attention paid to consistency between the two. Documentation inheritance, families, aliases and see also have been implemented. 
+      - Robust error pre-empting and catching such that meaningful info is provided when the function encounters a user error. 
+      - Better intention detection based on the combinations of arguments entered rather than having to remember multiple functions or specify each parameter explicitly. Smoother fuzzy detection and autocomplete from RStudio with new consistent function names.
+      
+#### 0.3.0 2020-03-28 Websockets
+- Add support for Alpaca Websockets
+
+## Installing `Alpacafor` 🦙𝘙
+
+`AlpacaforR` is available on CRAN and can be installed with `install.packages("AlpacaforR")`. The development version of the package can be installed from [Github](https:://github.com/yogat3ch/AlpacaforR).
+
+To install the development version, [devtools](https://cran.r-project.org/web/packages/devtools/readme/README.html) is required:
+
+```r
+if (!require("devtools")) install.packages("devtools")
+```
+
+The `AlpacaforR` 🦙𝘙 dev version can be installed using  `devtools::install_github` with:
+
+```r
+if (!require("AlpacaforR")) {
+  devtools::install_github("yogat3ch/AlpacaforR")
+}
+library(AlpacaforR)
+```
+
+
+## User Keys & URL 
+
+### KEY-ID and SECRET-KEY
+
+Connecting to the Alpaca API requires a KEY-ID 🔑 and SECRET-KEY 🗝  as specifically named environment variables for both live and paper accounts.
+These values can be found on the respective Alpaca dashboards. Hit "Regenerate Key" if the secret key is no longer visible. <span style="color:blue">*Note*</span> that this will reset your key.
+
+#### The `live` Option
+
+Alpaca provides all users with a paper account. Users in the United States have the option of creating a live account after verifying their financial info. 
+In order to simplify working on a particular account for an extended period of time, `AlpacaforR` (as of 2020-11-09) supports the usage of an option in the R session. 
+
+To set the current session to only use the live account, simply run:
+
+`Sys.setenv("APCA-LIVE" = TRUE)`
+
+The default value will be `FALSE` if no option is set. All functions will use the paper account when `live = FALSE`. **Read on to learn how to set this option permanently.**
+
+The simplest way to set these values for this and future R sessions is to use `AlpacaforR::firstrun` to add these to the `.Renviron` file. If the `.Renviron` file does not exist it will be created in the R root folder (found by running `path.expand("~")`). 
+
+`firstrun` has arguments: `paper_api`, `live_api`, `polygon_api`, `pro` and `live`. `paper_api` and `live_api` are named vectors with key & secret for paper and live accounts respectively, while `polygon_api` is the secret key for a Polygon account. The `pro` argument specifies whether an Alpaca Pro subscription is available and `live` argument is a logical which sets the default value for `live` in future sessions. See [Live or Paper](#live-or-paper) and \link[AlpacaforR]{\code{firstrun}} for details. 
+
+
+```r
+firstrun(
+  paper_api = c(key = "paper-key", secret = "paper-secret"),
+  live_api = c(key = "live-key", secret = "live-secret"),
+  polygon_api = "polygon-key",
+  pro = FALSE,
+  live = FALSE
+)
+```
+If using RStudio, these parameters can be added to the `.Renviron` file another way by typing `usethis::edit_r_environ()` at the console. The keys are added as `name = key` pairs like so:
+
+```
+APCA-PAPER-KEY = 'PAPER-KEY'
+APCA-PAPER-SECRET = 'PAPER-SECRET'
+APCA-LIVE-KEY = 'LIVE-KEY'
+APCA-LIVE-SECRET = 'LIVE-SECRET'
+POLYGON-KEY = 'POLYGON-KEY'
+APCA-LIVE = 'FALSE'
+APCA-PRO = 'FALSE'
+```
+The following guide details how to [set environment variables permanently](https://stackoverflow.com/questions/49738564/r-set-environment-variable-permanently) if you prefer to do this manually via your file system with a text editor.
+
+Test that these have been properly set by calling:
+```r
+Sys.getenv('APCA-PAPER-KEY')
+Sys.getenv('APCA-PAPER-SECRET')
+Sys.getenv('APCA-LIVE-KEY')
+Sys.getenv('APCA-LIVE-SECRET')
+Sys.getenv('POLYGON-KEY')
+Sys.getenv('APCA-LIVE')
+Sys.getenv('APCA-PRO')
+```
+
+The output should be the key/secret values entered.
+The keys can also be set manually for the session using `Sys.setenv`:
+```r
+Sys.setenv('APCA-PAPER-KEY' = "PAPER-KEY")
+...
+```
+
+Once these environmental variables are set, all `AlpacaforR` 🦙 functions will work correctly.
+
+> 🛑 User keys & secrets *MUST* be set as the appropriately named environment variables above for all demos hereforward to work!
+
+### Live or Paper URL? {#live-or-paper}
+[Account Plans](https://alpaca.markets/docs/trading-on-alpaca/account-plans/) documents the key differences between the account types. When using `AlpacaforR`, interaction with the live or paper account is indicated by setting the `live = TRUE/FALSE` argument. The default is the value of the `APCA-LIVE` environment variable. E.g:
+
+
+
+```r
+#For a paper account; live = FALSE is the default.
+# subset is unnecessary, it is added so as not to expose the developers  account details
+account()[-c(1:2)]
+#> $status
+#> [1] "ACTIVE"
+#> 
+#> $currency
+#> [1] "USD"
+#> 
+#> $buying_power
+#> [1] 387837.5
+#> 
+#> $regt_buying_power
+#> [1] 193871
+#> 
+#> $daytrading_buying_power
+#> [1] 387837.5
+#> 
+#> $cash
+#> [1] 96935.5
+#> 
+#> $portfolio_value
+#> [1] 96935.5
+#> 
+#> $pattern_day_trader
+#> [1] FALSE
+#> 
+#> $trading_blocked
+#> [1] FALSE
+#> 
+#> $transfers_blocked
+#> [1] FALSE
+#> 
+#> $account_blocked
+#> [1] FALSE
+#> 
+#> $created_at
+#> [1] "2019-06-26 20:31:20 EDT"
+#> 
+#> $trade_suspended_by_user
+#> [1] FALSE
+#> 
+#> $multiplier
+#> [1] 4
+#> 
+#> $shorting_enabled
+#> [1] TRUE
+#> 
+#> $equity
+#> [1] 96935.5
+#> 
+#> $last_equity
+#> [1] 96959.38
+#> 
+#> $long_market_value
+#> [1] 0
+#> 
+#> $short_market_value
+#> [1] 0
+#> 
+#> $initial_margin
+#> [1] 0
+#> 
+#> $maintenance_margin
+#> [1] 0
+#> 
+#> $last_maintenance_margin
+#> [1] 0
+#> 
+#> $sma
+#> [1] 0
+#> 
+#> $daytrade_count
+#> [1] 22
+```
+
+
+For live account details set `live = TRUE`
+```r
+account(live = TRUE) [-c(1:2)]
+```
+
+Not all functions require this since some functions use the same URL regardless of the account type. These functions are `assets` 💰, `calendar` 🗓, `clock` ⏰, and `market_data` 📊 where the same URLs are used for both account types.
+
+# Package Functionality
+The functionality in the `AlpacaforR` package maps neatly onto the endpoints listed in the [API version 2 Documentation](https://alpaca.markets/docs/api-documentation/api-v2/) for ease of reference. For any function hereforward, you can use `?function_name` at the console to view the function's documentation which will provide a great deal more depth of detail regarding it's arguments and what the function returns.
+
+## Account: Retrieve info & change settings for your account
+
+### `account`
+Accessing account information is made easy through the `account` function which will return account details such as account id 🆔, portfolio value 💲 , buying power 🔌, cash 💵, cash withdrawable 💸, etc. See `?account` for more details or visit the [Account Endpoint Docs](https://alpaca.markets/docs/api-documentation/api-v2/account/) to learn everything there is to know about the requests and responses for this endpoint. 
+
+```r
+account(live = TRUE)
+```
+
+### `account_config`
+The [Account Configuration Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) supports viewing and setting account configuration details. 
+
+Retrieve the account configuration
+```{r account_config}
+account_config()
+```
+
+Change configuration settings as needed.
+```{r account_config_modify}
+# change a configuration: block all orders on the live account
+account_config(suspend_trade = T)
+```
+
+Return all settings back to defaults with ease.
+```{r account_config_default}
+account_config("default")
+```
+
+### `account_activities`
+The [Account Activities Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/account-activities/) returns all account activities, optionally filtered by type and date range. This endpoint supports paging - advance pages by providing the last ID supplied for a given page to `page_token`.
+
+```r
+# retrieve page 1 of account activities
+(aa <- account_activities())
+#> # A tibble: 50 x 11
+#>    id    activity_type transaction_time    type  price   qty side  symbol
+#>    <chr> <chr>         <dttm>              <chr> <dbl> <dbl> <chr> <chr> 
+#>  1 2020~ FILL          2020-05-29 11:33:38 fill  2411.     1 sell  AMZN  
+#>  2 2020~ FILL          2020-05-29 11:33:37 fill   124.     1 buy   BYND  
+#>  3 2020~ FILL          2020-05-29 11:33:37 fill  2412.     1 buy   AMZN  
+#>  4 2020~ FILL          2020-05-29 11:33:36 fill  2411.     6 sell  AMZN  
+#>  5 2020~ FILL          2020-05-29 11:33:36 fill   124.     2 sell  BYND  
+#>  6 2020~ FILL          2020-05-29 11:33:03 fill   124.     2 buy   BYND  
+#>  7 2020~ FILL          2020-05-29 11:33:02 fill  2411.     2 buy   AMZN  
+#>  8 2020~ FILL          2020-05-29 11:33:01 fill  2411.     2 buy   AMZN  
+#>  9 2020~ FILL          2020-05-29 11:32:58 fill  2411.     2 buy   AMZN  
+#> 10 2020~ FILL          2020-05-29 11:29:54 fill  2411.     2 sell  AMZN  
+#> # ... with 40 more rows, and 3 more variables: leaves_qty <dbl>,
+#> #   order_id <chr>, cum_qty <dbl>
+# retrieve page 2
+account_activities(page_token = aa$id[50])
+#> # A tibble: 50 x 11
+#>    id    activity_type transaction_time    type  price   qty side  symbol
+#>    <chr> <chr>         <dttm>              <chr> <dbl> <dbl> <chr> <chr> 
+#>  1 2020~ FILL          2020-05-26 15:33:53 fill   133.     2 sell  BYND  
+#>  2 2020~ FILL          2020-05-26 15:33:49 fill   133.     2 buy   BYND  
+#>  3 2020~ FILL          2020-05-26 15:32:32 fill   133.     2 sell  BYND  
+#>  4 2020~ FILL          2020-05-26 15:32:26 fill   133.     2 buy   BYND  
+#>  5 2020~ FILL          2020-05-26 15:28:09 fill   133.     2 sell  BYND  
+#>  6 2020~ FILL          2020-05-26 15:28:04 fill   133.     2 buy   BYND  
+#>  7 2020~ FILL          2020-05-26 15:23:10 fill   133.    10 sell  BYND  
+#>  8 2020~ FILL          2020-05-26 15:23:05 fill   133.     1 buy   BYND  
+#>  9 2020~ FILL          2020-05-26 15:23:05 part~  133.     1 buy   BYND  
+#> 10 2020~ FILL          2020-05-26 15:22:09 fill   133.     2 buy   BYND  
+#> # ... with 40 more rows, and 3 more variables: leaves_qty <dbl>,
+#> #   order_id <chr>, cum_qty <dbl>
+```
+
+Optionally provide a filter. See \code{\link[AlpacaforR]{account_activities}} for a list of account activity types.
+
+```r
+account_activities("fill")
+#> # A tibble: 50 x 11
+#>    id    activity_type transaction_time    type  price   qty side  symbol
+#>    <chr> <chr>         <dttm>              <chr> <dbl> <dbl> <chr> <chr> 
+#>  1 2020~ FILL          2020-05-29 11:33:38 fill  2411.     1 sell  AMZN  
+#>  2 2020~ FILL          2020-05-29 11:33:37 fill   124.     1 buy   BYND  
+#>  3 2020~ FILL          2020-05-29 11:33:37 fill  2412.     1 buy   AMZN  
+#>  4 2020~ FILL          2020-05-29 11:33:36 fill  2411.     6 sell  AMZN  
+#>  5 2020~ FILL          2020-05-29 11:33:36 fill   124.     2 sell  BYND  
+#>  6 2020~ FILL          2020-05-29 11:33:03 fill   124.     2 buy   BYND  
+#>  7 2020~ FILL          2020-05-29 11:33:02 fill  2411.     2 buy   AMZN  
+#>  8 2020~ FILL          2020-05-29 11:33:01 fill  2411.     2 buy   AMZN  
+#>  9 2020~ FILL          2020-05-29 11:32:58 fill  2411.     2 buy   AMZN  
+#> 10 2020~ FILL          2020-05-29 11:29:54 fill  2411.     2 sell  AMZN  
+#> # ... with 40 more rows, and 3 more variables: leaves_qty <dbl>,
+#> #   order_id <chr>, cum_qty <dbl>
+```
+
+### `account_portfolio`
+The [Portfolio History Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns a timeseries with equity and profit/loss summary for a period of time aggregated by the specified `timeframe` (*optional*) or up to a specific end date `date_end` (*optional*). 
+
+To take a look at equity & gain/loss for the paper account over the past two weeks: 
+
+
+```r
+account_portfolio("2w")
+#> multiplier can be 5 or 15 when `timeframe` is minutes and period or `date_end` to the present is > 7 days & < 30 days. Multiplier set to 5.
+#> Timeframe set to 5 Minutes
+#> # A tibble: 711 x 4
+#>    timestamp           equity profit_loss profit_loss_pct
+#>    <dttm>               <dbl>       <dbl>           <dbl>
+#>  1 2020-05-18 09:30:00 96751.        -2.1      -0.0000217
+#>  2 2020-05-18 09:35:00 96712.       -40.9      -0.000423 
+#>  3 2020-05-18 09:40:00 96719.       -33.7      -0.000348 
+#>  4 2020-05-18 09:45:00 96718.       -34.4      -0.000355 
+#>  5 2020-05-18 09:50:00 96706.       -46.7      -0.000482 
+#>  6 2020-05-18 09:55:00 96685.       -67.8      -0.000700 
+#>  7 2020-05-18 10:00:00 96706.       -47.1      -0.000487 
+#>  8 2020-05-18 10:05:00 96716.       -36.9      -0.000381 
+#>  9 2020-05-18 10:10:00 96723.       -29.5      -0.000305 
+#> 10 2020-05-18 10:15:00 96720.       -32.8      -0.000339 
+#> # ... with 701 more rows
+```
+
+When `AlpacaforR` function arguments are omitted, they will be assumed with informative messages indicating what values were used for omitted arguments. In the case above, the most granular `timeframe` allowed for the period is assumed. 
+
+To view the same data with a `timeframe` of hours instead, use the following:
+
+
+```r
+account_portfolio("2w", "1h")
+#> # A tibble: 64 x 4
+#>    timestamp           equity profit_loss profit_loss_pct
+#>    <dttm>               <dbl>       <dbl>           <dbl>
+#>  1 2020-05-18 09:30:00 96751.        -2.1      -0.0000217
+#>  2 2020-05-18 10:30:00 96737.       -15.9      -0.000165 
+#>  3 2020-05-18 11:30:00 96767.        14.2       0.000147 
+#>  4 2020-05-18 12:30:00 96766.        13.4       0.000138 
+#>  5 2020-05-18 13:30:00 96769.        16.0       0.000166 
+#>  6 2020-05-18 14:30:00 96767.        14.4       0.000149 
+#>  7 2020-05-18 15:30:00 96744.        -8.4      -0.0000868
+#>  8 2020-05-19 09:30:00 96772.        18.8       0.000194 
+#>  9 2020-05-19 10:30:00 96806.        53.6       0.000554 
+#> 10 2020-05-19 11:30:00 96899.       146.        0.00151  
+#> # ... with 54 more rows
+```
+
+
+## Assets: Retrieve all assets or info about a single asset
+The [Assets Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/assets/) serves as a queryable master list of assets 💰 available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol.
+Calling the function without arguments retrieves all assets. Be forewarned; this takes a while.
+```r
+## NOT RUN
+assets()
+```
+Assets can be retrieved by providing:
+
+1. the asset symbol
+
+```{r assets}
+(amzn <- assets("AMZN"))
+
+```
+2. a vector of asset symbols (not case-sensitive)
+
+```{r assets_multiple}
+assets(c("AMZN", "fb"))
+```
+3. the asset id
+
+```{r assets_by_id}
+assets(amzn$id)
+```
+
+
+## Calendar: Retrieve a calendar of trading days & times
+The [Calendar Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/calendar/) serves the full list of market days from 1970 to 2029, bounded by optional `from` and/or `to` dates. In addition to the market dates, the response also contains the specific open and close times for the market days, taking into account early closures. The `calendar` function as of `AlpacaforR 0.3.0` will return [intervals](https://lubridate.tidyverse.org/reference/Interval-class.html) spanning the market `day` and `session` for easily subsetting Date type vectors, as well as the three letter abbreviation for the day of the week the date represents.
+Visit the [Calendar Endpoint](https://docs.alpaca.markets/api-documentation/web-api/calendar/) to learn everything there is to know about the requests and responses for this endpoint.
+
+
+```r
+#Get today's hours
+calendar()
+#> `from`, `to` arg(s) is/are NULL, setting from/to to 2020-05-29
+#>         date  open close session_open session_close
+#> 1 2020-05-29 09:30 16:00        07:00         19:00
+#>                                                day
+#> 1 2020-05-29 09:30:00 EDT--2020-05-29 16:00:00 EDT
+#>                                            session dow
+#> 1 2020-05-29 07:00:00 EDT--2020-05-29 19:00:00 EDT Fri
+
+#Get the schedule for the next week
+calendar(to = lubridate::today() + lubridate::weeks(1))
+#> `from` arg(s) is/are NULL, setting from/to to 2020-05-29
+#>         date  open close session_open session_close
+#> 1 2020-05-29 09:30 16:00        07:00         19:00
+#> 2 2020-06-01 09:30 16:00        07:00         19:00
+#> 3 2020-06-02 09:30 16:00        07:00         19:00
+#> 4 2020-06-03 09:30 16:00        07:00         19:00
+#> 5 2020-06-04 09:30 16:00        07:00         19:00
+#> 6 2020-06-05 09:30 16:00        07:00         19:00
+#>                                                day
+#> 1 2020-05-29 09:30:00 EDT--2020-05-29 16:00:00 EDT
+#> 2 2020-06-01 09:30:00 EDT--2020-06-01 16:00:00 EDT
+#> 3 2020-06-02 09:30:00 EDT--2020-06-02 16:00:00 EDT
+#> 4 2020-06-03 09:30:00 EDT--2020-06-03 16:00:00 EDT
+#> 5 2020-06-04 09:30:00 EDT--2020-06-04 16:00:00 EDT
+#> 6 2020-06-05 09:30:00 EDT--2020-06-05 16:00:00 EDT
+#>                                            session dow
+#> 1 2020-05-29 07:00:00 EDT--2020-05-29 19:00:00 EDT Fri
+#> 2 2020-06-01 07:00:00 EDT--2020-06-01 19:00:00 EDT Mon
+#> 3 2020-06-02 07:00:00 EDT--2020-06-02 19:00:00 EDT Tue
+#> 4 2020-06-03 07:00:00 EDT--2020-06-03 19:00:00 EDT Wed
+#> 5 2020-06-04 07:00:00 EDT--2020-06-04 19:00:00 EDT Thu
+#> 6 2020-06-05 07:00:00 EDT--2020-06-05 19:00:00 EDT Fri
+```
+
+Subsetting market data using the intervals returned from this function will be covered in the <a href="#market-data">Market Data</a> section.
+
+#### A Note on Timezones
+All Dates/Datetimes input as arguments are forced (See [`lubridate::force_tz`](https://lubridate.tidyverse.org/reference/force_tz.html)) to America/New York timezone in which the NYSE operates for `market_data` and `calendar` functions. This means that if [`lubridate::now`](https://lubridate.tidyverse.org/reference/now.html) is used to specify 3PM in the local timezone, it will be forced to 3PM in the "`America/New_York"` timezone. This eliminates the need to consistently account for timezone conversions when providing inputs to retrieve historical data using `market_data`.
+
+## Clock:  Retrieve current market status and info
+The `clock` function accesses the [Clock endpoint](https://docs.alpaca.markets/api-documentation/web-api/clock/), used to gain an understanding of how the local time compares to "America/New_York." A timezone can be specified to the `tz` argument to determine how the market hours compare to the specified timezone hours. If no `tz` argument is provided, and the local timezone differs from "America/New_York", `clock` will automatically provide the local conversion and offset. 
+
+
+```r
+clock()
+#> $timestamp
+#> [1] "2020-05-29 14:48:46 EDT"
+#> 
+#> $is_open
+#> [1] TRUE
+#> 
+#> $next_open
+#> [1] "2020-06-01 09:30:00 EDT"
+#> 
+#> $next_close
+#> [1] "2020-05-29 16:00:00 EDT"
+clock(tz = "America/Los_Angeles")
+#> $timestamp
+#> $timestamp$market
+#> [1] "2020-05-29 14:48:46 EDT"
+#> 
+#> $timestamp$local
+#> [1] "2020-05-29 11:48:46 PDT"
+#> 
+#> $timestamp$offset
+#> [1] "3H 0M 0S"
+#> 
+#> 
+#> $is_open
+#> [1] TRUE
+#> 
+#> $next_open
+#> $next_open$market
+#> [1] "2020-06-01 09:30:00 EDT"
+#> 
+#> $next_open$local
+#> [1] "2020-06-01 06:30:00 PDT"
+#> 
+#> $next_open$offset
+#> [1] "3H 0M 0S"
+#> 
+#> 
+#> $next_close
+#> $next_close$market
+#> [1] "2020-05-29 16:00:00 EDT"
+#> 
+#> $next_close$local
+#> [1] "2020-05-29 13:00:00 PDT"
+#> 
+#> $next_close$offset
+#> [1] "3H 0M 0S"
+```
+
+## Watchlist: Store a list of assets of interest
+The `watchlist` function accesses all [Watchlist Endpoints](https://alpaca.markets/docs/api-documentation/api-v2/watchlist/). An account can have multiple watchlists and each is uniquely identified by id but can also be addressed by a user-defined name. Each watchlist is an ordered list of assets.
+
+The current watchlists can be retrieved by calling `watchlist` without arguments:
+
+```{r 'watchlist_clear', echo = F, results='hide'}
+ purrr::walk(c("test", "test2", "FANG", "_FANG", "FAANG", "FABANGG"), ~try(watchlist(.x, action = "d")))
+```
+
+
+```r
+watchlist()
+```
+
+To start, create a watchlist named `test` with Apple by specifying `"c"` for create as the `action`
+
+```{r watchlist_test}
+(wl <- watchlist("test", symbols = "AAPL", action = "c"))
+```
+
+Watchlists can be retrieved by the user provided name
+
+```{r watchlist_get_by_name}
+(test <- watchlist("test"))
+all.equal(test, wl, check.attributes = FALSE)
+```
+
+Each watchlist `tibble` has an `info` attribute that stores details like when it was created, lasted updated and more.
+
+```{r watchlist_attr}
+# Get it's info
+attr(test, "info")
+```
+
+Add FB, AMZN, NFLX, GOOG and update the watchlist name to FAANG. The default for `action` when a `new_name` is specified is to `a`dd new symbols when changing the name. Similarly, if just a `new_name` is provided, the existing `symbols` will be preserved.
+```{r 'watchlist_add'}
+(wl <- watchlist("test", new_name = "FAANG", symbols = c("FB", "AMZN", "NFLX", "GOOG")))
+```
+
+Individual assets can be added to or deleted from watchlists using `action = "add"` or `"delete"` respectively (`"a"`/`"d"` for short).
+
+```{r watchlist_delete}
+(wl <- watchlist("FAANG", symbol = "GOOGL"))
+(wl <- watchlist("FAANG", action = "d", symbols = "GOOGL"))
+```
+
+To replace all the symbols in a watchlist while renaming, specify `action = "update"` or `"u"` for short.
+
+```{r 'wl update and replace'}
+(wl <- watchlist("FAANG", new_name = "FANG", symbols = c("FB", "AAPL", "NFLX", "GOOG"), action = "u"))
+```
+
+
+Delete the watchlist to start fresh.
+
+```{r watchlist_delete_final}
+watchlist("FANG", a = "d")
+```
+
+## Market Data
+The `market_data` function is designed to access market & pricing data 📈 provided by Alpaca or Polygon. Alpaca now provides data via the  [API version 1 Market Data Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v1/) & the [API version 2 Market Data Endpoint](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/). Data is also provided from [Polygon's Aggregates Endpoint](https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor) with a valid `POLYGON-KEY`. Choose the API via the `v` parameter:
+
+  1. `v = 1` for Alpaca's v1 API. 
+  2. `v = 2` for Alpaca's v2 API (default).
+  3. `v = "p"` for the Polygon API.
+
+The Alpaca v1 Data API consolidates data sources from five different exchanges.
+
+ - IEX (Investors Exchange LLC)
+ - NYSE National, Inc.
+ - Nasdaq BX, Inc.
+ - Nasdaq PSX
+ - NYSE Chicago, Inc.
+
+The v2 API uses solely IEX, but provides more complete data for requests that exceed the `limit` via pagination.
+
+Data is returned as a list of `tsymble`s (one for each symbol provided to `ticker`) in OHLCV format 📊. *Note:* the Polygon API returns `vw`, the weighted volume, in addition to the raw volume. It also returns `n` which indicates the number of datapoints aggregated to calculate the value for the particular timeframe. (See the [endpoint docs for details][Polygon's Aggregates Endpoint](https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor)). 
+
+A `tsymble` is an S3 object with the symbol name as an attribute and query info that can be retrieved like so
+```{r 'market_data_Helpers'}
+md <- market_data("AMZN", from = "2021-05-25", to = "2021-05-27")
+class(md)
+get_sym(md)
+get_query(md)
+```
+
+The only required input is the symbol(s) as a character vector, and it will return pricing data for the last day (if it's a trading day) by day. 
+```{r 'market_data_amzn'}
+market_data("AMZN")
+```
+
+The function accepts different sets of optional arguments depending on whether the Alpaca v1 API (`v=1`) v2 API (`v=2`) or Polygon Aggregates API (`v="p"`) is used, see `?market_data` for full details on which arguments are used with each respective API.
+
+
+To specify a date range to the v1 API, the `from`, `to` / `after`, `until` arguments can be used. These are inclusive/exclusive date bounds respectively. Here, hourly data for the first seven days of January 2020 is retrieved inclusive:
+
+```r
+market_data("amzn", v = 1, from = "2020-01-01", to = "2020-01-07")
+#> 'limit' coerced to 1000
+#> $AMZN
+#>         time    open     high      low   close  volume
+#> 1 2020-01-02 1874.79 1898.000 1864.150 1897.71 3583611
+#> 2 2020-01-03 1864.50 1886.197 1864.500 1874.93 3293469
+#> 3 2020-01-06 1860.00 1903.690 1860.000 1903.33 3598872
+#> 4 2020-01-07 1904.50 1913.890 1892.043 1906.86 3569706
+```
+
+`after` and `until` can be used when `v = 1` to make exclusive date bounds.
+
+```r
+market_data("amzn", after = "2020-01-02", until = "2020-01-07")
+#> $AMZN
+#>         time   open     high    low   close  volume
+#> 1 2020-01-03 1864.5 1886.197 1864.5 1874.93 3293469
+#> 2 2020-01-06 1860.0 1903.690 1860.0 1903.33 3598872
+```
+
+The v2 & Polygon APIs do not have exclusive date bound options, if `after/until` are used for these APIs they are considered `from`/`to` inclusive when sent to the API. 
+
+### Arguments to `market_data` with the V1 API
+The options for the `timeframe` argument using the `v = 1` API include:
+
+- `"m"`, `"min"`, `"minute"`
+- `"d"`, `"day"` (the default)
+
+When using a minute `timeframe`, the `multiplier` can by `1`, `5`, or `15` whereas when using `timeframe = "day"` the only multiplier available is `1`. The bar `limit` argument can range from `1` to `1000` and has various default values according to the timeframe chosen. If left blank, the `limit` will default to `1000`. If the date range includes more than 1000 bars and `full = FALSE`, then the API will return the 1000 most recent bars. 
+
+The v1 data API has two endpoints for retrieving the most recent quote and trade data which are accessed by setting `timeframe` to `"q", "qu", "quote", "lq", "last_quote"` or `"t","tr","trade", "lt","last_trade"` respectively. 
+
+### Arguments to `market_data` for the V2 API
+The v2 API offers three timeframes, each with the default multiplier of one:
+
+- `"m"`, `"min"`, `"minute"`
+- `"h"`, `"hour"`
+- `"d"`, `"day"` (the default)
+
+#### Additional endpoints
+The V2 API also offers quote, trade and snapshot endpoints that retrieve quote and trade data for a given time period or a snapshot for a given time period. <span style="color:red">**WARNING**</span> These endpoints return an enormous amount of data for each day. For example: a request spanning a single day (ie 5/26-5/27) can take ~ 3m to retrieve.
+Use `timeframe`:
+
+ - `'tr'/'trade'` For historical trade data for a given ticker symbol on a specified date. See [Trades](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades).
+ 
+```{r 'v2 trades'}
+market_data("BYND", timeframe = "t", from = "2021-06-09")
+```
+ 
+ - `'qu'/'quote'` For NBBO quotes for a given ticker symbol at a specified date. See [Quotes](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes)
+ 
+```{r 'v2 quotes'}
+market_data("BYND", timeframe = "q", from = "2021-06-09")
+```
+
+ - `'ss'/'snapshot'` 
+The V2 API also offers a `snapshot` endpoint that provides the latest trade, latest quote, minute bar daily bar and previous daily bar data for a given ticker symbol or symbols.
+
+```{r 'v2 snapshot'}
+market_data(c("BYND", "VEGN"), timeframe = "ss")
+```
+
+
+### Arguments to `market_data` for the Polygon API
+The [Polygon API Aggregates Endpoint](https://polygon.io/docs/#get_v2_aggs_ticker__ticker__range__multiplier___timespan___from___to__anchor) is called when parameter `v = "p"`, Additional arguments are well-documented in the help file (see `?market_data`).
+Note that the Polygon API does not have a `limit` argument but has an implicit limit of 50000 data points computed on the API end for which it is not easy to predict the data that will be returned. If the range of times requested from the API exceed what can be returned in a single call, the API will generally return the data from the initial segment of the timeframe, with a large gap, followed by the last few bars of data or it will return the most recent data until the limit is reached leaving off the oldest data. This behavior can be witnessed when `full = F` (the default). This behavior is what inspired the development of the `full = T` feature. 
+
+When `full =  T` (for both Alpaca v1 & Polygon APIs) the function will attempt to anticipate what data is expected based on the range of dates requested, and will re-query the API as many times as necessary to fill the request. Any remaining gaps will be filled with `NA` values, allowing for omission or imputation of missing data as needed. If the API is queried with the default `full = F` and upon inspection, large gaps are found in the data, try setting `full = T`. If any issues arise, please submit an [issue](https://github.com/yogat3ch/AlpacaforR/issues).
+<span style="color:blue">*Note*</span>
+Free accounts for the Polygon API are limited to five requests per minute. If the rate limit is reached, a cooldown timer of 60s will be triggered before the next query is sent - be forewarned that this can result in long retrieval times for large queries. 
+
+
+#### Additional details on the Polygon Aggregates Endpoint
+For a great primer on how the Polygon Aggregates Endpoint works, check out [this article](https://polygon.io/blog/aggs-api-updates/) from the Polygon blog.
+The Polygon API allows for the following timeframes:
+
+ - `'m'`/`'min'`/`'minute'`
+ - `'h'`/`'hour'`
+ - `'d'`/`'day'`
+ - `'w'`/`'week'`
+ - `'M'`/`'mo'`/`'month'` (<span style="color:blue">*Note*</span> capitalized M for month if using single letter abbreviation)
+ - `'q'`/`'quarter'`
+ - `'y'`/`'year'`
+
+Any integer can be supplied as the `multiplier` argument, however, atypical numbers can return unexpected results. The following combinations of `multiplier` and `timeframe` values have been systematically tested and prove to return expected data reliably:
+
+ - `'m'`: `1`, `5`, `15`
+ - `'h'`: `1`
+ - `'d'`: `1`
+ - `'w'`: `1`, `2`, `4`
+ - `'M'`: `1`, `2`, `3`
+ - `'q'`: `1`
+ - `'y'`: `1`
+
+*Note:* With `multiplier` greater than one, based on numerous trials for the various timeframes it appears that the Polygon API takes the nearest floor (previous) date based on the timeframe prior to the `from` date and begins providing data on the date that is `multiplier * timeframe` later.  For example, with the week timeframe the API will determine the floor (previous) Sunday relative to the `from` date and start on the Sunday `multiplier *` weeks from that floor Sunday.
+
+### Minutes
+When `timeframe = "minute"` the API will return data for the entire session of each trading day beginning in pre-market hours at 4AM (Polygon) or 7AM (Alpaca) and concluding in after-market hours between 7PM (Alpaca) & 9PM (Polygon), however, the data outside of standard trading hours has unexpected gaps at a higher frequency than that of data for market hours 9:30A - 4:30P. 
+
+```{r, 'market_data_minutes'}
+(bynd <- market_data("BYND", v = 2, time = "m", from = "2021-06-09"))
+```
+
+The returned data demonstrates how pre-market and after-market hours will tend to have gaps.
+
+This can be illustrated by first retrieving the session hours for the day:
+
+```{r market_data_cal}
+d <- "2021-06-09"
+(cal <- calendar(from = d, to  = d))
+```
+
+
+and subsetting the typical trading day hours and those outside:
+
+```{r 'market_data_extended_hours'}
+trading_hours <- bynd %>% 
+  filter(lubridate::`%within%`(time, cal$day))
+nontrading_hours <- bynd %>% 
+  filter(!lubridate::`%within%`(time, cal$day))
+```
+
+We can the examine the gaps between time points by making a frequency table of the time differences between time points in market and non market hours. The name of each frequency in the table is the number of minutes of the gap while the value is the frequency of the gaps' occurrence as a decimal. 
+
+Trading hours:
+
+```{r market_data_trading_hours}
+prop.table(table(diff(trading_hours$time)))
+```
+
+Non-trading hours:
+
+```{r 'market_data_non_hours'}
+prop.table(table(diff(nontrading_hours$time)))
+```
+
+
+### Hours
+Hours will span 4A (Polygon) 7A (Alpaca) to 9P (Polygon) or 7P (Alpaca) for each trading day. Since this is an aggregate of minute timeframes, most data will be returned with few, if any gaps, unless the range requested exceeds the API limit. The `v=2` API is the best source for this data.  
+
+
+```{r market_data_hours}
+market_data("BYND", v = 2, time = "h", m = 1, from = "2020-05-01", to = "2020-05-02")
+```
+
+### Days
+Days will span all trading days (generally M-F). `calendar` or the `polygon` "Market Holidays" endpoint can be consulted to find exceptions) for each week. Remember that the `from`/`to` arguments accept Date objects as well as character objects. Any API version can be used to retrieve day data.
+
+```{r 'market_data_days'}
+market_data("BYND", v = 2, time = "d", m = 1, from = lubridate::as_date(d) - lubridate::weeks(1), to = lubridate::as_date(d))
+```
+
+
+
+### Weeks
+> For all timeframes weeks and above, the polygon API must be used.
+
+Weeks will be aggregated from days for the week following each Sunday. The date of the Sunday will correspond to all data for the following trading week. 
+The following returns weekly data for each week that has passed since the turn of the last quarter.
+
+```{r market_data_weeks}
+market_data("BYND", v = "p", time = "w", m = 1, from = lubridate::floor_date(lubridate::as_date(d), "quarter"))
+```
+
+
+
+### Months
+Months are aggregated by day for the entire month. The day represented in the time series varies based on the dates requested. Based on various inputs, the day might be the 30th, the 1st, or the 23rd of the month. However, if the request spans February, it could give the 30th of the months preceding February and the 1st for February and the months following. It's unclear whether the data aggregated on a day for that month corresponds to all the days in that month, or all the days between that day in one month and that day in the previous month.
+
+
+```{r market_data_months}
+market_data("BYND", v = "p", time = "M", m = 1, from = lubridate::floor_date(lubridate::as_date(d), "year"), to = lubridate::as_date(d))
+```
+
+
+### Quarters
+Quarters will be represented by the following dates for each year:
+
+- Q1: 03-30
+- Q2: 06-30
+- Q3: 09-30
+- Q4: 12-30
+
+
+```{r 'market_data_quarters'}
+market_data("BYND", v = "p", time = "q", m = 1, from = lubridate::floor_date(lubridate::as_date(d), "year"))
+```
+
+### Year
+Years are aggregated on 12-31 of each year. 
+
+```{r 'market_data_years'}
+market_data("BYND", v = "p", time = "y", m = 1, from = lubridate::floor_date(lubridate::as_date(d), "year") - lubridate::years(4), to = d)
+```
+
+### Using `full = TRUE`
+Due to the API limits, the returned dataset may be missing substantial amounts of data. This feature was developed to fetch complete datasets before the V2 API was released. The V2 API now supports pagination and `AlpacaforR` will automatically fetch all pages associated with a request. Using the V2 API is recommended for fetching large datasets.
+
+The `full` argument can be used to fetch full datasets with the V1 API that has a `limit` of 1000 bars, .
+```{r, 'market_data_v1_5minutes'}
+fr <- "2021-01-01"
+to <- "2021-06-01"
+(bars <- market_data("BYND", v = 1, time = "m", m = 5, from = fr, to = to))
+```
+
+The returned data has 1000 bars, which is unlikely to contain the full dataset.
+
+We can see what's missing using a helper function called `expand_calendar` that provides a full timeseries of expected time points for a given timeframe returned by `calendar`. `expand_calendar` has `market_hours = TRUE` which will only return the expected time points contained within market hours. Set to `FALSE` to return the full time panel.
+
+```{r 'full_expand_calendar'}
+cal <- calendar(from = fr, to  = to)
+expected <- tsibble::interval(bars) %>%
+  {expand_calendar(cal, timeframe = period_units(.), multiplier = period_multiplier(.))}
+```
+
+With the expected hours, we can see what's missing:
+
+```{r 'full_missing'}
+missing <- setdiff(expected$time, bars$time)
+length(missing)
+lubridate::as_datetime(range(missing))
+```
+By setting `full = TRUE` we can expect to get a dataset with virtually all the market hours (rather than session hours) accounted for. Due to the multiple queries it will take more time. 
+```{r 'full'}
+bars <- market_data("BYND", v = 1, time = "m", m = 5, from = fr, to = to, full = TRUE)
+missing <- setdiff(expected$time, bars$time) %>% 
+subset(subset =  . < lubridate::as_datetime(to)) %>% 
+  lubridate::as_datetime(tz = "America/New_York")
+length(missing)
+head(missing, 20)
+tail(missing, 20)
+```
+Note that there is still missing data which are likely time points where the price did not change or for which the API simply doesn't have a record.
+
+
+See `?market_data` for more details or visit the [Market Data Endpoint docs](https://docs.alpaca.markets/api-documentation/web-api/market-data/) to learn more.
+
+## Polygon
+> <span style="color:blue">*Note*</span> Alpaca's agreement with Polygon ended in January 2021. A [Polygon subscription](https://polygon.io/pricing) is required to use the Polygon API, and the subscription level determines what Polygon endpoints are available. The `polygon` function and docs are up to date as of 2021-06-11 but will no longer be maintained. If you have a Polygon subscription and wish to help maintain this functionality please [email the maintainer](mailto:sholsen@alumni.emory.edu).
+
+`AlpacaforR` provides a single go-to function to access all of the available Polygon endpoints: `polygon`. This function takes as it's first argument `ep`, short for endpoint, which can be the full name of the endpoint as it appears in the [Docs](https://polygon.io/docs/) or a one to two letter abbreviation of the endpoint which is typically the first letter of each of the first two words (that aren't wrapped in parentheses) of the name of the endpoint. The one exception being Snapshot - Single Ticker (`st`), which would otherwise conflict with Stock Splits (`ss`). 
+For ease of referencing all of the Polygon endpoints without leaving R, the documentation for `?polygon` elaborates the names of the endpoints, their descriptions, details and parameters. Additionally, the `polygon` function itself provides reference tibbles of the abbreviations and full names of the endpoints by using `'all'` as the value for `ep` to show all endpoints, `'ref'/'reference'` for all the reference endpoints, `'sto'/'stocks'` for all the stock/equity endpoints.
+
+
+```r
+polygon("all")
+#>                         name
+#> t                    Tickers
+#> tt              Ticker Types
+#> td            Ticker Details
+#> tn               Ticker News
+#> m                    Markets
+#> l                    Locales
+#> ss              Stock Splits
+#> sd           Stock Dividends
+#> sf          Stock Financials
+#> ms             Market Status
+#> mh           Market Holidays
+#> e                  Exchanges
+#> ht           Historic Trades
+#> hq    Historic Quotes (NBBO)
+#> lt   Last Trade for a Symbol
+#> lq   Last Quote for a Symbol
+#> do          Daily Open/Close
+#> cm        Condition Mappings
+#> sa    Snapshot - All tickers
+#> st  Snapshot - Single Ticker
+#> sg Snapshot - Gainers/Losers
+#> pc            Previous Close
+#> a          Aggregates (Bars)
+#> gd      Grouped Daily (Bars)
+```
+
+A plus (`+`) can be appended to the end of any of these reference keywords, or the abbreviation/name of an endpoint to view a helpful reference list with the following for each endpoint:
+ 
+ - The full name of the endpoint
+ - the description
+ - the URL for the documentation
+ - the URL of the endpoint itself
+ - the parameters, with the default always in first position when options are available. When endpoints that take parameters are called without explicitly providing parameters, these defaults are used to call the endpoint.
+ 
+
+```r
+polygon("hq+")
+#> $hq
+#> $hq$nm
+#> [1] "Historic Quotes (NBBO)"
+#> 
+#> $hq$desc
+#> [1] "Get historic NBBO quotes for a ticker."
+#> 
+#> $hq$href
+#> [1] "https://polygon.io/docs/#get_v2_ticks_stocks_nbbo__ticker___date__anchor"
+#> 
+#> $hq$url
+#> [1] "/v2/ticks/stocks/nbbo/{ticker}/{date}"
+#> 
+#> $hq$params
+#> $hq$params$ticker
+#> [1] "AAPL"
+#> 
+#> $hq$params$date
+#> [1] "2018-02-02"
+#> 
+#> $hq$params$timestamp
+#> $hq$params$timestamp[[1]]
+#> NULL
+#> 
+#> $hq$params$timestamp[[2]]
+#> [1] 1
+#> 
+#> 
+#> $hq$params$timestampLimit
+#> $hq$params$timestampLimit[[1]]
+#> NULL
+#> 
+#> $hq$params$timestampLimit[[2]]
+#> [1] 1
+#> 
+#> 
+#> $hq$params$reverse
+#> $hq$params$reverse[[1]]
+#> NULL
+#> 
+#> $hq$params$reverse[[2]]
+#> [1] TRUE
+#> 
+#> $hq$params$reverse[[3]]
+#> [1] FALSE
+#> 
+#> 
+#> $hq$params$limit
+#> [1]    10 50000
+```
+
+Many endpoints require parameters to be specified. The parameters can be specified as either named arguments passed to the function directly
+
+
+```r
+polygon("hq", ticker = "BYND", date = "2020-04-02")
+#> # A tibble: 10 x 11
+#>    time                      y     q c         z     p     s     x     P     S
+#>    <dttm>                <dbl> <int> <lis> <int> <dbl> <int> <int> <int> <int>
+#>  1 2020-04-02 04:00:00 1.59e18  2117 <int~     3  55      10    11     0     0
+#>  2 2020-04-02 04:01:03 1.59e18  3597 <int~     3  64.5     1    12    66     2
+#>  3 2020-04-02 04:20:39 1.59e18 13319 <int~     3  64.2     1    11    66     2
+#>  4 2020-04-02 04:20:39 1.59e18 13320 <int~     3  64.4     1    12    66     2
+#>  5 2020-04-02 04:27:54 1.59e18 16526 <int~     3  64.4     5    12    66     2
+#>  6 2020-04-02 04:28:06 1.59e18 16648 <int~     3  64.4     1    12    66     2
+#>  7 2020-04-02 04:28:06 1.59e18 16649 <int~     3  64.4     6    12    66     2
+#>  8 2020-04-02 04:36:16 1.59e18 19827 <int~     3  64.5     1    12    66     2
+#>  9 2020-04-02 04:42:13 1.59e18 21705 <int~     3  64.5     2    12    66     2
+#> 10 2020-04-02 04:48:30 1.59e18 23979 <int~     3  64.5     3    12    66     2
+#> # ... with 1 more variable: X <int>
+```
+
+
+or as a list with values named according to the parameter name.
+
+
+```r
+polygon("Last Quote+")
+#> $lq
+#> $lq$nm
+#> [1] "Last Quote for a Symbol"
+#> 
+#> $lq$desc
+#> [1] "Get the last quote tick for a given stock."
+#> 
+#> $lq$href
+#> [1] "https://polygon.io/docs/#get_v1_last_quote_stocks__symbol__anchor"
+#> 
+#> $lq$url
+#> [1] "/v1/last_quote/stocks/{symbol}"
+#> 
+#> $lq$params
+#> $lq$params$symbol
+#> [1] "AAPL"
+# the following are equivalent
+polygon("lq", params = list(symbol = "BYND"))
+#> # A tibble: 1 x 7
+#>   askexchange askprice asksize bidexchange bidprice bidsize timestamp          
+#>         <int>    <dbl>   <int>       <int>    <dbl>   <int> <dttm>             
+#> 1          11     124.       1          12     124.       1 2020-05-29 14:49:03
+polygon("lq", symbol = "BYND")
+#> # A tibble: 1 x 7
+#>   askexchange askprice asksize bidexchange bidprice bidsize timestamp          
+#>         <int>    <dbl>   <int>       <int>    <dbl>   <int> <dttm>             
+#> 1          11     124.       1          12     124.       1 2020-05-29 14:49:03
+```
+
+Some endpoints provide query status info or map details (the data classes of the values in the returned object) and other information that can be accessed using `get_query(obj)` or `attr(obj, "map")` respectively (where `obj` is the object returned by `polygon`).
+
+## Orders
+
+Getting, submitting, and canceling 🚫 orders are also made easy through `orders` and `order_submit`. Visit the [Orders Endpoint docs](https://alpaca.markets/docs/api-documentation/api-v2/orders/) to learn everything there is to know about the requests and responses for this API.
+
+### `orders`
+To view open orders for the paper account, use `orders()` as the default `status` is set to `"open"`.
+
+
+```{r orders}
+orders()
+```
+
+
+Alternatively, set the `status` to `"open"`, `"closed"`, or `"all"` to see specific subsets of orders based on their status.  <span style="color:blue">*Note*</span> that the default `limit` is `50`. To return more or less than 50, `limit` must be set explicitly.
+
+
+```{r 'orders_all'}
+orders(status = "all", limit = 10)
+```
+
+In R, all arguments can be partial, ie abbreviated, up to the number of characters necessary to differentiate the argument from other arguments provided to the function. 
+Here is the shorthand to view all orders placed since the beginning of the week:
+
+
+```{r 'orders_this_week'}
+(orders_this_week <- orders(st = "a", a = lubridate::floor_date(lubridate::today(), "week"), lim = 10))
+```
+
+<span style="color:blue">*Note*</span> complex orders will automatically appear nested in the returned tibble. To change this behavior, set `nested = F`. 
+
+Individual orders can be called by providing their id to `symbol_id` (the first argument):
+
+
+```{r 'orders_call_by_id'}
+if (isTRUE(nrow(orders_this_week) > 0)) {
+  # Works only if there are existing orders 
+  (fo <- orders(orders_this_week[1,]$id))
+  all.equal(unlist(orders_this_week[1,]), unlist(fo), check.attributes = FALSE)
+}
+```
+
+Individual orders can also be called by providing the client order ID to `symbol_id` and setting `client_order_id = T`.
+
+
+```{r 'orders_call_by_client_id'}
+if (isTRUE(nrow(orders_this_week) > 0)) {
+  # Works only if there are existing orders
+  orders(orders_this_week[1,]$client_order_id, client_order_id = T)
+}
+```
+
+
+### `order_submit`
+`order_submit` handles *any kind of order*. The value supplied to the `action` argument determines what type of action will be taken and what parameters are required. The types or orders and their corresponding `action` are:
+ 
+ - a new order `action = "s"/"submit"` *Default*
+ - a complex or trailing stop order `action = "s"/"submit"`
+ - an order replacement `action = "r"/"replace"`
+ - an order cancellation `action = "c"/"cancel"`
+ - or canceling all orders `action = "cancel_all"`
+
+
+
+A simple use case where a buy order for two shares of Beyond Meat is placed is below:
+
+```{r 'orders_buy_order'}
+# is the market open?
+(.open <- clock()$is_open)
+#> [1] TRUE
+if (.open) {
+  # if the market is open then place a market buy order for "BYND"
+(bo <- order_submit("bynd", side = "b", q = 2, type = "m"))
+}
+```
+
+
+`order_submit` has extensive built-in auto-assumption of omitted arguments where they can be assumed based on other provided arguments. The documentation (`?order_submit`) and the examples therein go into detail as to the required parameters necessary to invoke accurate auto-assumption for each action. Since traders will often place a stop, limit, or stop limit order following a buy order to mitigate downside risk, an 'expedited sell'  is one such auto-assumption feature. To execute an 'expedited sell', the function needs only the Order tibble (assuming it contains the `id` row) of the buy order, and the specifics of the sell order. 
+
+To set appropriate stops and limits it's necessary to know the current price of the stock. 
+
+
+```{r 'orders_lq'}
+(lq <- market_data(timeframe = "lq", symbol = "bynd"))
+```
+With this information, a stop order can be placed at the price 5% lower than what it was bought at. To connect this sell order to the buy order for cost basis reporting purposes, set `client_order_id = T` and the `client_order_id` for this sell order will be set to the Order ID of the buy order.
+
+```{r 'orders_expedited_sell'}
+if (.open) {
+  (so <- order_submit(bo$id, stop = lq$ap * .95, client_order_id = T))
+}
+
+```
+
+Informative messages indicate where the function made assumptions about the values for other arguments. 
+
+To extend the example, suppose the price of BYND went up since the order was first placed, yet the stop is still set at 5% lower from where the order was bought. It would be wise to move the stop order up a bit to follow the price action. This can be done for simple orders (of which this is one), with `action = 'replace'`.
+The replacement order will have a field `replaces` that will indicate the order it replaced, in this case the previous sell order. The sell order placed above was linked to the buy order via the `client_order_id` such that cost basis can accurately be reported. However, `client_order_id` must be unique for each order. So how does one keep this replacement order connected to the original buy order? 
+
+The simplest way to do so is to provide a custom `client_order_id` with an incremented suffix appended for each successive replacement order. The full length of the `client_order_id` must be under `48` characters and the Alpaca generated IDs are `36` characters, which leaves $48 - 36 = 12$ characters for the suffix. This tracking method can be especially useful if implementing a trailing stop for a given buy order that will refresh often.
+
+Here the `client_order_id` is created:
+
+```{r 'orders_client_order_id'}
+(client_order_id <- paste0(bo$id,".2"))
+nchar(client_order_id)
+```
+
+The replacement order can now be placed with a higher stop and remain effectively linked to it's original buy order via the first 36 characters of it's `client_order_id`
+
+```{r sleep, echo = FALSE}
+Sys.sleep(30)
+```
+
+
+```{r 'orders_replace'}
+if (.open && isTRUE(nrow(so) > 0)) {
+  (ro <- order_submit(so$id, a = "r", stop = lq$ap * .96, client_order_id = client_order_id))
+}
+```
+
+However, it's also possible that the trader would like to take a profit if the price moves up another 5% while simultaneously having a stop in place to prevent losses. An [Advanced Order](https://alpaca.markets/docs/trading-on-alpaca/orders/#oco-orders) called "`O`ne `C`ancels `O`ther" is perfect for this situation. First, the replacement order needs to be canceled.
+
+
+```{r 'orders_cancel_replacement'}
+if (.open && isTRUE(nrow(ro) > 0)) {
+  order_submit(ro$id, a = "c")
+}
+```
+
+
+
+The `oco` order requires two additional parameters, an upper limit order provided to the argument `take_profit` as a named list, with a single item named `'limit_price'/'l'`:
+
+```{r 'orders_tp'}
+take_profit <- list(l = lq$ap * 1.05)
+```
+
+and a lower limit, stop or both specified to `stop_loss` as a named list with the names `'stop_price'/'s'` & `'limit_price'/'l'`:
+
+```{r orders_sl}
+stop_loss <- list(s = lq$ap * .95)
+```
+
+
+Now the `oco` order class can be placed  by providing the id of the original buy order to passively set argument defaults. Another increment to the `client_order_id` can links this order to the original buy order.
+
+```{r 'orders_oco'}
+if (.open) {
+  (oco <- order_submit(bo$id, order_class = "oco", time_in_force = "gtc", client_order_id = paste0(bo$id,".3"), take_profit = take_profit, stop_loss = stop_loss))
+}
+```
+
+The additional linked orders for any Advanced Order can be viewed as it's `legs`. When submitting an order, the default response is to return the `legs` nested under the top level order. When calling `orders`, order legs can be unnested such that each row is a separate order by setting `nested = F` :
+
+```{r 'orders_oco_legs'}
+if (.open) {
+  oco$legs
+}
+```
+
+All open orders can be canceled by using the `"cancel_all"` keyword as the `action`
+
+```{r 'orders_cancel_all'}
+order_submit(action = "cancel_all")
+```
+
+
+`order_submit` is a versatile function, see it's documentation \link[AlpacaforR]{order_submit} and examples to learn about all it has to offer.
+
+## Positions
+All current positions or only the positions specified by `symbols` are retrieved by calling `positions()`. `positions` has multiple actions:
+
+ - `"get"/"g"` positions (the default)
+ - `"close"/"c"` a position or positions provided by `ticker`
+ - `"close_all"` which will cancel all open orders on currently held positions and then close those positions by selling all shares. Think of `action = "close_all"` as an emergency kill switch that will liquidate all positions.
+ 
+Visit the [Positions endpoint docs](https://alpaca.markets/docs/api-documentation/api-v2/positions/) to learn more.
+
+Retrieve all positions:
+
+```{r 'positions'}
+#If paper account:
+positions()
+```
+
+If a position exists, it can be closed using `action = "cancel"`
+
+```{r positions_cancel}
+positions("BYND", action = "c")
+```
+
+All positions are closed using `action = "close_all"`
+
+```r
+positions(a = "close_all")
+#> No positions are open at this time.
+#> list()
+#> attr(,"query")
+#> attr(,"query")$ts
+#> [1] "2021-06-10 13:35:53 EDT"
+#> 
+#> attr(,"query")$status_code
+#> [1] 207
+#> 
+#> attr(,"query")$url
+#> [1] "https://paper-api.alpaca.markets/v2/positions?cancel_orders=TRUE"
+```
+
+## Websockets
+The package also supports Alpaca's & Polygon's Websockets/Streaming APIs. See the Websockets vignette for more on how to use Alpaca's streaming service. `vignette("AlpacaforR", "Websockets")`

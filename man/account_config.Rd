@@ -2,42 +2,25 @@
 % Please edit documentation in R/Account.R
 \name{account_config}
 \alias{account_config}
-\alias{get_config}
-\alias{set_config}
 \title{Get Account Configurations}
 \usage{
 account_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-get_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-set_config(
-  dtbp_check = NULL,
-  no_shorting = NULL,
-  pdt_check = NULL,
-  suspend_trade = NULL,
-  trade_confirm_email = NULL,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  dtbp_check,
+  fractional_trading,
+  max_margin_multiplier,
+  no_shorting,
+  pdt_check,
+  suspend_trade,
+  trade_confirm_email,
+  live = get_live()
 )
 }
 \arguments{
 \item{dtbp_check}{\code{(character)} both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks. Default NULL (no change). Set to "default" to set all configuration options back to defaults. See Value section for defaults.}
+
+\item{fractional_trading}{\code{(logical)}}
+
+\item{max_margin_multiplier}{\code{(numeric)}}
 
 \item{no_shorting}{\code{(logical)} If true, account becomes long-only mode. Default NULL (no change).}
 
@@ -48,13 +31,13 @@ set_config(
 \item{trade_confirm_email}{\code{(character)} all or none. If none, emails for order fills are not sent. Default NULL (no change).}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity}{AccountConfigurations}  object with the following parameters (defaults shown):
 \itemize{
 \item{\code{dtbp_check = "entry"}}
+\item{\code{fractional_trading = TRUE}}
+\item{\code{max_margin_multiplier = 4}}
 \item{\code{no_shorting = FALSE}}
 \item{\code{pdt_check = "entry"}}
 \item{\code{suspend_trade = FALSE}}
@@ -63,13 +46,9 @@ AccountConfigurations \code{(list)} \href{https://alpaca.markets/docs/api-docume
 }
 \description{
 The account configuration API serves an important role in setting the way you want. See \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/}{Account Configurations} for details.
-
-\code{get_config} is deprecated, please use \code{\link[AlpacaforR]{account_config}} instead.
-
-\code{set_config} is deprecated. Please use \code{\link[AlpacaforR]{account_config}} instead.
-See \href{https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/}{Account Configurations} for details.
 }
 \examples{
+\dontrun{
 account_config(live = FALSE)
 # Which is similar to:
 account_config()
@@ -77,7 +56,7 @@ account_config()
 account_config(live = TRUE)
 account_config(dtbp_check = "both", no_shorting = TRUE)
 account_config("default")
-get_config()
+}
 }
 \seealso{
 Other Account: 

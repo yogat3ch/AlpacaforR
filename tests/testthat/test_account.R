@@ -1,7 +1,7 @@
 #' @include Account.R
 #' @include internal.R
-set.seed(1)
-context("Account family of functions works properly.")
+
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "account"))
 vcr::use_cassette("account_retrieves_account_details_properly", {
 test_that("account retrieves account details properly", {
   .a <- account()
@@ -13,7 +13,7 @@ test_that("account retrieves account details properly", {
 vcr::use_cassette("account_config_properly_retrieves_account_parameters", {
 test_that("account_config properly retrieves account parameters", {
   .ac <- account_config()
-  expect_length(.ac, 5)
+  expect_length(.ac, 7)
 })
 })
 
@@ -27,7 +27,15 @@ test_that("account_config properly sets account parameters", {
 vcr::use_cassette("account_config_can_reset_to_default", {
 test_that("account_config can reset to default", {
   .ac <- account_config("default")
-  expect_identical(.ac, list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)[names(.ac)])
+  expect_equal(.ac,  list(
+    dtbp_check = "entry",
+    fractional_trading = TRUE,
+    max_margin_multiplier = "4",
+    no_shorting = FALSE,
+    pdt_check = "entry",
+    suspend_trade = FALSE,
+    trade_confirm_email = "all"
+  ), ignore_attr = TRUE)
 })
 })
 
@@ -37,13 +45,13 @@ test_that("account_activities properly retrieves activities", {
   expect_s3_class(.aa, "tbl")
   .nr <- tryCatch(nrow(.aa), error = function(e) 0)
   if (.nr > 0) {
-    expect_identical(names(.aa),c("id", "activity_type", "transaction_time", "type", "price", "qty", "side", "symbol", "leaves_qty", "order_id", "cum_qty"))
+    expect_identical(names(.aa),c("id", "activity_type", "transaction_time", "type", "price", "qty", "side", "symbol", "leaves_qty", "order_id", "cum_qty", "order_status"))
   } else {
     expect_message(account_activities(), regexp = "No account activities matching criteria.")
   }
 })
 })
-`-` <- lubridate::`.__T__-:base`
+
 vcr::use_cassette("account_activities_retrieves_date_ranges_correctly", {
 test_that("account_activities retrieves date ranges correctly", {
   .aa <- account_activities(after = lubridate::ymd("2020-06-01") - lubridate::weeks(2), until = lubridate::ymd("2020-06-01"))
@@ -58,25 +66,20 @@ test_that("account_activities retrieves date ranges correctly", {
 })
 })
 
-vcr::use_cassette("account_activities_throws_an_error_if_invalid_date_is_entered", {
-test_that("account_activities throws an error if invalid date is entered", {
-  expect_warning(expect_error(.aa <- account_activities(after = '20202-2'), regexp = "Check after argument"))
-})
-})
-
 .sample <- sample(s = 10, c(1:77))
+# IMPORTANT Must run all samples before CRAN
 .p <- c(.test = "rds/account_portfolio_test.rds", .res = "rds/account_portfolio_results.rds")
 e <- environment()
 .p <- purrr::iwalk(.p, ~{
   assign(.y, readRDS(ifelse(basename(getwd()) != "testthat", paste0("tests/testthat/",.x), .x)), envir = e)
 })
-`%>%` <- magrittr::`%>%`
+
 purrr::imap(c(char = "pchars", periods = "periods"), ~{
   .period <- .x
   .type <- .y
   purrr::pmap(e$.test[.sample,], ~{
     .vars <- list(...)
-    .tt <- glue::glue("account_portfolio works properly with {.period} for test rowid: {.vars$rowid}")
+    .tt <- glue::glue("account_portfolio: {.period} for test rowid: {.vars$rowid}")
     .ct <- paste0(stringr::str_extract_all(.tt, "[:alnum:]+")[[1]], collapse = "_")
 vcr::use_cassette(.ct, {
     test_that(.tt, {
@@ -96,14 +99,13 @@ vcr::use_cassette(.ct, {
       } else {
         out$out <- account_portfolio(.vars[[.period]], timeframe = .vars$timeframe, date_end = .vars$date_end, extended_hours = .vars$extended_hours)
       }
-      browser(expr =  is.null(.res) || is.null(out$out))
-      expect_equivalent(nrow(.res), nrow(out$out))
+      expect_equal(nrow(out$out), nrow(.res), ignore_attr = TRUE)
 })
     })
   })
 })
-
-
+# .row = 4
+# out <- account_portfolio(e$.test[.row,]$pchars,e$.test[.row,]$timeframe, date_end = e$.test[.row,]$date_end, extended_hours = e$.test[.row,]$extended_hours) 
 
 # .test <- data.frame(
 #   pmultiplier = c(

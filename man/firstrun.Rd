@@ -4,14 +4,27 @@
 \alias{firstrun}
 \title{First Run Credential Setup}
 \usage{
-firstrun(paper_api, live_api, live)
+firstrun(
+  paper_api,
+  live_api,
+  polygon_api,
+  pro = FALSE,
+  live = FALSE,
+  scope = c("user", "project")
+)
 }
 \arguments{
 \item{paper_api}{\code{(named character)} of length two: \code{key} and \code{secret} for the Alpaca paper API.}
 
 \item{live_api}{\code{(named character)} of length two: \code{key} and \code{secret} for the Alpaca live API.}
 
-\item{live}{\code{(logical)} of length one: the default option for the \code{live} argument in functions that use it.}
+\item{polygon_api}{\code{(named character)} of length one: \code{key}}
+
+\item{pro}{\code{(logical)} of length one: Set as \code{TRUE} to use the \href{Alpaca Market Data Pro Subscription}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/#subscription-plans} otherwise the Basic plan will be used. \strong{Default} \code{FALSE}}
+
+\item{live}{\code{(logical)}: the default option for whether to use the live account \code{TRUE} or paper account \code{FALSE}. This option can be overridden for functions that accept the \code{live} argument, or can be changed at a later time. \strong{Default} \code{FALSE}}
+
+\item{scope}{\code{(character)} specify at which level of scope the changes to .Renviron should apply.}
 }
 \value{
 Sets environment variables for this session and edits the .Renviron file in R's home directory \code{path.expand("~")} and adds the specified key/secret combinations for future sessions. If an .Renviron file does not exist, it will be created.
@@ -21,6 +34,12 @@ This function helps edit the .Renviron file to work with \code{AlpacaforR}. It's
 }
 \examples{
 \dontrun{
-firstrun(paper_api = c(key = "mypaperkey", secret = "mypapersecret"), live_api = c(key = "mylivekey", secret = "mylivesecret"), live = FALSE)
+firstrun(
+paper_api = c(key = "mypaperkey", secret = "mypapersecret"),
+live_api = c(key = "mylivekey", secret = "mylivesecret"),
+polygon_api = c(key = "polygonkey"),
+live = FALSE,
+pro = FALSE
+)
 }
 }

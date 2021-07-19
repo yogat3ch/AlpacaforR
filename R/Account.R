@@ -5,7 +5,6 @@
 #'
 #' @description The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account's ability to trade. See the [Account](https://alpaca.markets/docs/api-documentation/api-v2/account/) Endpoint in the API v2 Docs for full details.
 #' @param live \code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.
-#' @param v \code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.
 #' @return Account \code{(list)} An [Account](https://alpaca.markets/docs/api-documentation/api-v2/account/#account-entity) object list of length 26:
 #' \itemize{
 #'  \item{\code{id}}{ \code{(character)} Account ID}
@@ -24,25 +23,21 @@
 #' @examples 
 #' account()
 #' # With default arguments equivalent to :
-#' account(live = FALSE, v = 2)
+#' account(live = FALSE)
 #' # For access to live accounts, you must submit as live = TRUE
 #' account(live = TRUE)
-#' @importFrom httr GET parse_url build_url
+#' @importFrom httr GET
 #' @importFrom purrr map_if
 #' @importFrom lubridate as_datetime
 #' @export
 account <-
-  function(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+  function(live = get_live()) {
     
   #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
+  
   headers = get_headers(live)
-  .url$path <- list(version = paste0("v", v),
-                    "account")
-  .url <- httr::build_url(.url)
   #Send Request
-  out = httr::GET(url = .url, headers)
+  out = httr::GET(url = get_url("account", live = live), headers)
   out = response_text_clean(out)
   suppressWarnings(
     out <- purrr::map_if(out, .p = ~!is.na(as.numeric(.x)) && !is.logical(.x), .f = as.numeric)
@@ -50,21 +45,6 @@ account <-
   suppressMessages(out$created_at <- lubridate::as_datetime(out$created_at, tz = Sys.timezone()))
   return(out)
 }
-#----------------------------------------------------------------------------------------------
-
-#' @family Accounts
-#' @title get_account
-#' @rdname account
-#' @description \code{get_account} is deprecated please use \code{\link[AlpacaforR]{account}} instead.
-#' @examples get_account()
-#' @export
-
-get_account <- account
-
-
-
-
-
 
 # account_config ----
 # Wed Apr 22 20:25:56 2020
@@ -73,6 +53,8 @@ get_account <- account
 #'
 #' @description The account configuration API serves an important role in setting the way you want. See [Account Configurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) for details.
 #' @param dtbp_check \code{(character)} both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks. Default NULL (no change). Set to "default" to set all configuration options back to defaults. See Value section for defaults.
+#' @param fractional_trading \code{(logical)}
+#' @param max_margin_multiplier \code{(numeric)}
 #' @param no_shorting \code{(logical)} If true, account becomes long-only mode. Default NULL (no change).
 #' @param pdt_check \code{(character)} Not documented.
 #' @param suspend_trade \code{(logical)} If true, new orders are blocked. Default NULL (no change).
@@ -81,12 +63,15 @@ get_account <- account
 #' @return AccountConfigurations \code{(list)} [AccountConfigurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/#accountconfigurations-entity)  object with the following parameters (defaults shown):
 #' \itemize{
 #'  \item{`dtbp_check = "entry"`}
+#'  \item{`fractional_trading = TRUE`}
+#'  \item{`max_margin_multiplier = 4`}
 #'  \item{`no_shorting = FALSE`}
 #'  \item{`pdt_check = "entry"`}
 #'  \item{`suspend_trade = FALSE`}
 #'  \item{`trade_confirm_email = "all"`}
 #' }
 #' @examples 
+#' \dontrun{
 #' account_config(live = FALSE)
 #' # Which is similar to:
 #' account_config()
@@ -94,67 +79,55 @@ get_account <- account
 #' account_config(live = TRUE)
 #' account_config(dtbp_check = "both", no_shorting = TRUE)
 #' account_config("default")
-#' @importFrom httr GET PATCH
-#' @importFrom purrr compact
+#' }
 #' @export
 account_config <-
-  function(dtbp_check = NULL,
-           no_shorting = NULL,
-           pdt_check = NULL,
-           suspend_trade = NULL,
-           trade_confirm_email = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+  function(dtbp_check,
+           fractional_trading,
+           max_margin_multiplier,
+           no_shorting,
+           pdt_check,
+           suspend_trade,
+           trade_confirm_email,
+           live = get_live()) {
     
-  #Create body with order details, most common is a named list 
-  .def <- ifelse(length(dtbp_check == "default") == 0, F, tolower(substr(dtbp_check,0,1)) == "d")
-  if (.def) {
-    bodyl <- list(dtbp_check = "entry", trade_confirm_email = "all", pdt_check = "entry", suspend_trade = FALSE, no_shorting = FALSE)
-  } else {
-    bodyl <- purrr::compact(list(dtbp_check = dtbp_check, no_shorting = no_shorting, suspend_trade = suspend_trade, trade_confirm_email = trade_confirm_email))
-  }
+  bodyl <-
+    rlang::env_get_list(
+      nms = c(
+        "dtbp_check",
+        "fractional_trading",
+        "max_margin_multiplier",
+        "no_shorting",
+        "pdt_check",
+        "suspend_trade",
+        "trade_confirm_email"
+      )
+    ) %>% 
+    `[`(., !purrr::map_lgl(., rlang::is_missing))
+  # set defaults if requested
+  if (isTRUE(suppressMessages(match_letters(bodyl$dtbp_check, "default")) == "default"))
+    bodyl <- list(
+      dtbp_check = "entry",
+      fractional_trading = TRUE,
+      max_margin_multiplier = 4,
+      no_shorting = FALSE,
+      pdt_check = "entry",
+      suspend_trade = FALSE,
+      trade_confirm_email = "all"
+    )
   
   #Set URL & Headers
-  url = get_url(live)
   headers = get_headers(live)
-  
-  
-  if (length(bodyl) > 0) {
+  if (!rlang::is_empty(bodyl)) {
     # if configuration options are set
-    account_config = httr::PATCH(url = paste0(url,"/",paste0("v",v),"/account/configurations"), body = bodyl, encode = "json", headers)
+    account_config = httr::PATCH(url = get_url(c("account", "configurations"), live = live), body = bodyl, encode = "json", headers)
   } else {
     # if no options are set, just return the account config
-    account_config = httr::GET(url = paste0(url,"/",paste0("v",v),"/account/configurations"), headers)
+    account_config = httr::GET(url = get_url(c("account", "configurations"), live = live), headers)
   }
   account_config = response_text_clean(account_config)
   return(account_config)
 }
-#----------------------------------------------------------------------------------------------
-#NEW for V2
-#account_config(live = TRUE)
-#' @title get_config
-#' @rdname account_config
-#' @description \code{get_config} is deprecated, please use \code{\link[AlpacaforR]{account_config}} instead.
-#' @examples get_config()
-#' @export
-get_config <- account_config
-
-
-
-
-
-
-
-#' @rdname account_config
-#' @md
-#' @title Send Account Configurations function (Deprecated)
-#' 
-#' @description \code{set_config} is deprecated. Please use \code{\link[AlpacaforR]{account_config}} instead.
-#' See [Account Configurations](https://alpaca.markets/docs/api-documentation/api-v2/account-configuration/) for details.
-#' @export
-set_config <- account_config
-
-
 
 
 
@@ -237,12 +210,8 @@ set_config <- account_config
 #' }
 #' @examples 
 #' account_activities(activity_type = "FILL")
-#' @importFrom httr GET parse_url build_url
+#' @importFrom httr GET
 #' @importFrom purrr compact map map_lgl
-#' @importFrom tibble as_tibble
-#' @importFrom dplyr mutate_at vars
-#' @importFrom lubridate as_datetime as_date
-#' @importFrom dplyr `%>%`
 #' @importFrom rlang abort warn
 #' @export
 account_activities <-
@@ -253,8 +222,7 @@ account_activities <-
            direction = "desc",
            page_size = 50,
            page_token = NULL,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = get_live()) {
     
   .dt <- purrr::compact(list(date = date, after = after, until = until))
   if (length(.dt) > 0) {
@@ -267,19 +235,22 @@ account_activities <-
   }
   if (!is.null(activity_type)) activity_type <- toupper(activity_type)
   #Set URL & Headers
-  .url = httr::parse_url(get_url(live))
   headers = get_headers(live)
-  .url$path <- purrr::compact(list(paste0("v",v),
-                                   "account",
-                                   "activities",
-                                   activity_type))
-  .url$query <- list(date = date,
-                     until = until,
-                     after = after,
-                     direction = direction,
-                     page_size = page_size,
-                     page_token = page_token)
-  .url <- httr::build_url(.url)
+  .url <- get_url(
+    c("account",
+      "activities",
+      activity_type),
+    list(
+      date = date,
+      until = until,
+      after = after,
+      direction = direction,
+      page_size = page_size,
+      page_token = page_token
+    ),
+    live = live
+  )
+  
   #Send Request
   aa = httr::GET(url = .url, headers)
   out <- aa_transform(aa)
@@ -289,9 +260,16 @@ account_activities <-
 
 #' @title Account Portfolio History
 #' @family Account
-#' @description The [portfolio history endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns the timeseries data for equity and profit loss information of the account in a requested timespan (optional) for a given timeframe.
+#' @description The [portfolio history endpoint](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/) returns a timeseries of equity and profit/loss summaries for the account over a `period` previous aggregated by a given `timeframe`.
 #' @details All \code{(Date/POSIXlt)} will parse correctly if in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly.
-#' @param period `(character/Duration/Period)` *Optional* The period of time with which the data will extend backwards from `date_end` in `number + unit` format. Such as `"1D"`, where `unit` can be `"D"` for day, `"W"` for week, `"M"` for month and `"A"/"Y"` for year. Defaults to `"1M"`. Accepts any number for multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} objects.
+#' @param period `(character/Duration/Period)` *Optional* The period of time previous starting at `date_end` in `number + unit` format over which data will be provided. Such as one day `"1D"`.
+#' \itemize{
+#'   \item{\code{`"D"`}}{ day }
+#'   \item{\code{`"W"`}}{ week }
+#'   \item{\code{`"M"`}}{ month }
+#'   \item{\code{`"A/Y"`}}{ year }
+#' }
+#' Defaults to `"1M"`. Accepts any number for the multiplier. Non case-sensitive. Also accepts \code{\link[lubridate]{period}} & \code{\link[lubridate]{duration}} objects.
 #' @param timeframe `(character)` *Optional* The timeframe of the returned data in `"MT"` format where `M` is a multiplier and `T` is the timeframe from one of the following (non case-sensitive):
 #' #' \itemize{
 #'  \item{`'m'`/`'min'`/`'minute'`}{ (`multiplier` can be `1`/`5`/`15`)}
@@ -316,10 +294,6 @@ account_activities <-
 #' # Get portfolio history when the COVID-19 pandemic overtook the US
 #' account_portfolio("3m", date_end = "2020-05-20")
 #' @inheritParams account
-#' @importFrom stringr str_extract str_detect regex
-#' @importFrom lubridate `.__T__-:base` `.__T__+:base` as_date duration weeks days
-#' @importFrom httr parse_url build_url GET
-#' @importFrom purrr iwalk compact
 #' @export
 
 account_portfolio <-
@@ -327,138 +301,318 @@ account_portfolio <-
            timeframe = NULL,
            date_end = NULL,
            extended_hours = FALSE,
-           live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-           v = 2) {
+           live = get_live()) {
     
   # Fix and detect args
   # check classes ----
   # Mon May 18 11:01:09 2020
-  .vn <- list(period = c("character", "Period", "NULL"), timeframe = c("character", "NULL"), date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"), extended_hours = "logical", live = "logical", v = c("integer", "numeric"))
+    .vn <-
+      list(
+        period = c("character", "Period", "Duration", "NULL"),
+        timeframe = c("character", "NULL"),
+        date_end = c("character", "Date", "Datetime", "POSIXct", "POSIXlt", "NULL"),
+        extended_hours = "logical",
+        live = "logical"
+      )
   .e <- environment()
   purrr::iwalk(.vn, ~{
-    if (!inherits(get0(.y, inherits = F, envir = .e), .x)) rlang::abort(paste0(.y," must be one of ", paste0(.x, collapse = ", ")))
+    if (!inherits(get0(.y, inherits = FALSE, envir = .e), .x)) rlang::abort(paste0(.y," must be ", paste0(.x, collapse = ", ")))
   })
-  headers <- get_headers(live)
-  .url <- httr::parse_url(get_url(live))
+  
   #  period ----
   # Mon May 18 10:53:29 2020
   if (is.null(period)) {
-    .period <- "M"
-    .lp <- "months"
-    .pmultiplier <- 1
-    message(paste0("`period` set to 1 Month"))
-  } else if (isFALSE(inherits(period, c("Period", "Duration")))) {
-    .period <- stringr::str_extract(period, "[A-Za-z]+$")
-    .period <- substr(tolower(.period), 0, 1)
-    if (.period == "d") {
-      .period = "D"
-      .lp <- "days"
-    } else if (grepl("a|y", .period)) {
-      .period = "A"
-      .lp <- "years"
-    } else if (.period == "w") {
-      .period <- "W"
-      .lp <- "weeks"
-    } else if (.period == "m") {
-      .period <- "M"
-      .lp <- "months"
-    } else {
-      rlang::abort("`period` must have a unit of (D)ays, (W)eeks, (M)onths, or (Y)e(A)rs")
-    }
-    .pmultiplier <- as.numeric(stringr::str_extract(period, "^\\d+"))
-  } else if (isTRUE(inherits(period, c("Period", "Duration")))) {
-    if (isTRUE(inherits(period, c("Period")))) {
-       .period <- toupper(stringr::str_extract(period, "[A-Za-z]"))
-       .pmultiplier <- as.numeric(stringr::str_extract(period, "[0-9]"))
-       .period <- ifelse(.period == "Y", "A", .period)
-       .lp <- c(D = "days", A = "years", Y = "years", W = "weeks", M = "months")[.period]
-    }
-     
+    .period <- list(
+      multiplier = 1,
+      units = "months",
+      api_units = "M",
+      period = lubridate::period(1, "months")
+    )
+  } else {
+    .period <- list(
+      multiplier = period_multiplier(period),
+      units = period_units(period),
+      api_units = period_api_units(period),
+      period = account_period(period)
+    )
   }
-  .lp <- lubridate::duration(.pmultiplier, units = .lp)
-  .p_num <- as.numeric(factor(.period, levels = c("D", "W", "M", "A")))
+  
   #  timeframe ----
   # Mon May 18 10:53:35 2020
   # if timeframe is blank
   
-  if (!is.null(timeframe)) {
-    if (stringr::str_detect(timeframe, "^\\d+")) {
-      # Account for old argument style to timeframe
-      .multiplier <- as.numeric(stringr::str_extract(timeframe, "^\\d+"))
-      
-    } 
-    .timeframe <- substr(tolower(stringr::str_extract(timeframe, "[A-Za-z]+$")), 0, 1)
+  if (is.null(timeframe)) {
+    .timeframe <- list(
+      multiplier = 1,
+      units = "days",
+      api_units = "D"
+    )
   } else {
-    .timeframe <- ""
-    .multiplier <- 1
+    .timeframe <- list(
+      multiplier = as.numeric(stringr::str_extract(timeframe, "\\d+")),
+      units = match_letters(stringr::str_extract(timeframe, "[A-Za-z]+"), "minutes", "hours", "days", ignore.case = TRUE)
+    )
+    .timeframe$api_units <- match_letters(.timeframe$units, "Min", "H", "D", capitalize = TRUE, ignore.case = TRUE)
   }
   
-  
-  # set minimum timeframes if null
-  if (.lp <= lubridate::weeks(1) && !.timeframe %in% c("h","d") && .p_num < 2) {
-    .timeframe <- "m"
-    if (isTRUE(!.multiplier %in% c(1, 5, 15))) {
-      message(paste0("multiplier can be 1,5, or 15 when `timeframe` is minutes. Multiplier set to 5."))
-      .multiplier <- 5
-    }
-  } else if ((.lp > lubridate::weeks(1) && .lp <= lubridate::days(30)) && !.timeframe %in% c("h","d") && .p_num < 3) {
-    .timeframe <- "m"
-    if (isTRUE(!.multiplier %in% c(5, 15))) {
-      message(paste0("multiplier can be 5 or 15 when `timeframe` is minutes and period or `date_end` to the present is > 7 days & < 30 days. Multiplier set to 5."))
-      .multiplier <- 5
-    }
-  } else if (.lp > lubridate::days(30)) {
-    .timeframe <- "d"
-    if (isFALSE(stringr::str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T)))) {
-      message(paste0("`timeframe` must be day when `period` is greater than 30 days."))
-    }
-    
-  }
-  if (isTRUE(.multiplier != 1) && .timeframe == "d") {
-    message(paste0("multiplier must be 1 when `timeframe` is day. Setting to 1."))
-    .multiplier <- 1
-  } 
-  # Get the timeframe in human readable
-  .timeframe <- list(m = c("Minutes", "Min"), h = c("Hours", "H"), d = c("Days", "D"))[[.timeframe]]
+  .timeframe <- check_timeframe(.timeframe, .period)
   
   #  date_end ----
   # Mon May 18 11:00:40 2020
-  if (!is.null(date_end)) {
-    `-` <- lubridate::`.__T__-:base`
-    `+` <- lubridate::`.__T__+:base`
+  if (is.null(date_end)) {
+    .date <- NULL
+  } else {
     .ac <- lubridate::as_date(account(live)$created_at)
     .date <- lubridate::as_date(try_date(date_end))
     if (.date <= .ac) {
-      .date <- lubridate::as_date(.ac + .lp)
-     rlang::warn(paste0("`date_end`: ",.date,", is before account creation date. `date_end` set to ", .ac, " + `period`:", .lp,"=", .date))
-      
+      rlang::warn(paste0("`date_end`: ",.date,", is before account creation date. `date_end` set to ",lubridate::as_date(.ac + .period$period)))
+      .date <- lubridate::as_date(.ac + .period$period)
     }
-  } else {
-    .date <- NULL
   }
   
-
-  # if either arg was null, message
-  if (is.null(timeframe) || isFALSE(str_detect(timeframe, stringr::regex(.timeframe, ignore_case = T))) || isFALSE(str_detect(timeframe, stringr::regex(as.character(.multiplier))))) {
-    message(paste0("Timeframe set to ", .multiplier," ", .timeframe[1]))
-  }
   # Send request ----
   # Mon May 18 11:49:14 2020
-  .url$path <- list(
-    paste0("v",v),
+  headers <- get_headers(live)
+  .url <- get_url(c(
     "account",
     "portfolio",
     "history"
-  )
-  .url$query <- purrr::compact(list(
-    period = paste0(.pmultiplier, .period),
-    timeframe = paste0(.multiplier, .timeframe[2]),
+  ),
+  list(
+    period = paste0(.period$multiplier, .period$api_units),
+    timeframe = paste0(.timeframe$multiplier, .timeframe$api_units),
     date_end = .date,
     extended_hours = extended_hours
-  ))
-  .url <- httr::build_url(.url)
-  if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(.url)
+  ),
+  live = live)
+  
   .resp <- httr::GET(.url, headers)
   out <- port_transform(.resp)
   return(out)
 }
+
+
+check_timeframe <- function(timeframe, period) {
+  .p_num <- as.numeric(factor(period$api_units, levels = c("D", "W", "M", "A")))
+  # set minimum timeframes if null
+  if (period$period <= lubridate::weeks(1) && !timeframe$api_units %in% c("H","D") && .p_num < 2) {
+    timeframe$api_units <- "Min"
+    timeframe$units <- "minutes"
+    if (isTRUE(!timeframe$multiplier %in% c(1, 5, 15))) {
+      timeframe$multiplier <- 5
+      message(paste0("timeframe multiplier must be 1,5, or 15 when `timeframe` is minutes. `timeframe` set to 5Min."))
+    }
+  } else if ((period$period > lubridate::weeks(1) && period$period <= lubridate::days(30)) && !timeframe$api_units %in% c("H","D") && .p_num < 3) {
+    timeframe$api_units <- "Min"
+    if (isTRUE(!period$multiplier %in% c(5, 15))) {
+      timeframe$multiplier <- 5
+      message(paste0("multiplier must be 5 or 15 when `timeframe` is minutes and `period` or `date_end` to the present is > 7 days & < 30 days. `timeframe` set to 5Min."))
+    }
+  } else if (period$period >= lubridate::days(30)) {
+    if (timeframe$api_units != "D") message(paste0("`timeframe` must be day when `period` > 30 days."))
+    timeframe <- list(api_units = "D",
+                   multiplier = 1,
+                   units = "days")
+  }
+  if (isTRUE(timeframe$multiplier != 1) && timeframe$api_units == "D") {
+    message(paste0("`timeframe` multiplier must be 1 when `timeframe` is day. `timeframe` set to 1D."))
+    timeframe <- list(api_units = "D",
+                      multiplier = 1,
+                      units = "days")
+  }
+  timeframe
+}
+
+period_list <- function(x) {
+  .p <- list(
+    year = x@year,
+    month = x@month,
+    day = x@day,
+    hour = x@hour,
+    minute = x@minute,
+    seconds = x@.Data
+  ) %>% 
+    `[`(. > 0) 
+  # compute weeks
+  if (.p$day %||% FALSE)
+    if (.p$day %% 7 == 0) {
+      .p$week <- .p$day %/% 7
+      .p$day <- NULL
+    }
+  .p
+}
+
+
+
+period_multiplier <- function(x) {
+  UseMethod("period_multiplier")
+}
+
+#' @export
+period_multiplier.character <- function(x) {
+  as.numeric(stringr::str_extract(x, "^\\d+"))
+}
+
+
+#' @export
+period_multiplier.Period <- function(x) {
+  period_list(x)
+}
+
+#' @export
+period_multiplier.interval <- function(x) {
+  unlist(x) %>% 
+    {.[which(. > 0)]}
+}
+
+
+
+
+period_api_units <- function(x) {
+  UseMethod("period_api_units")
+}
+
+#' @export
+period_api_units.character <- function(x) {
+  stringr::str_extract(x, "[A-Za-z]+$") %>%
+    match_letters(c(day = "D", week = "W", month = "M", year = "A", year = "Y"), capitalize = TRUE, ignore.case = TRUE) %>% 
+    ifelse(. == "Y", "A", .)
+}
+
+#' @export
+period_api_units.Period <- function(x) {
+  .p <- period_list(x)
+  c(day = "D", week = "W", month = "M", year = "A")[names(.p)]
+}
+
+
+period_units <- function(x) {
+  UseMethod("period_units")
+}
+
+#' @export
+period_units.character <- function(x) {
+  .lp <- match_letters(stringr::str_extract(x, "[A-Za-z]+$"), "days", "weeks", "months", "A", "years", ignore.case = TRUE)
+  ifelse(.lp == "A", "years", .lp)
+}
+
+#' @export
+period_units.Period <- function(x) {
+  names(period_list(x))
+}
+
+#' @export
+period_units.interval <- function(x) {
+  names(period_multiplier(x))
+}
+
+
+account_period <- function(x) {
+  UseMethod("account_period")
+}
+
+#' @export
+account_period.character <- function(x) {
+  lubridate::period(period_multiplier(x), period_units(x))
+}
+
+#' @export
+account_period.Duration <- function(x) {
+  lubridate::as.period(x)
+}
+
+#' @export
+account_period.default <- function(x) {
+  x
+}
+
+
+
+
+#' @title account activities transform
+#' @description transform account activities
+#' @param resp Reponse from account_activities endpoint
+#' @keywords internal
+
+aa_transform <- function(resp) {
+  
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("Activities not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No Activities available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .resp <- tibble::as_tibble(.resp)
+    # coerce to numeric in positions objects
+    suppressMessages({
+      out <- .resp %>%
+        dplyr::mutate(transaction_time = lubridate::as_datetime(transaction_time, tz = Sys.timezone())) %>% 
+        dplyr::mutate(dplyr::across(c("price", "qty", "leaves_qty", "cum_qty"), as.numeric))
+    })
+    
+  }
+  return(out)
+}
+
+#' @title transform portfolio history
+#' @description Transforms a [PortfolioHistory](https://alpaca.markets/docs/api-documentation/api-v2/portfolio-history/#portfoliohistory-entity) response object returned from `account_portfolio`.
+#' @param resp `(response)` The response object
+#' @inherit account_portfolio return
+#' @keywords internal
+
+port_transform <- function(resp) {
+  
+  if (class(resp) != "response") {
+    .code <- resp$code
+    .message <- resp$message
+  } else if (class(resp) == "response") {
+    .method <- resp$request$method
+    .sym <- stringr::str_extract(resp$request$url, "\\w+$")
+    .code <- resp$status_code
+    #browser()
+    .resp <- response_text_clean(resp)
+    .message <- .resp$message
+  }
+  
+  if(any(grepl(pattern = "^4", x = .code))) {
+    rlang::warn(paste("History not retrieved.\n Message:", .message))
+    return(.resp)
+  }
+  
+  #Check if any pos exist before attempting to return
+  if(length(.resp) == 0) {
+    message("No History available with specified criteria.")
+    out <- .resp
+  } else if(length(.resp) > 1) {
+    .out <- tibble::as_tibble(.resp[1:4])
+    # coerce to numeric in positions objects
+    if (nrow(.out) > 0) {
+      suppressMessages({
+        out <- .out %>%
+          dplyr::mutate(timestamp = lubridate::as_datetime(timestamp, origin = lubridate::origin, tz = Sys.timezone())) %>% 
+          dplyr::mutate(dplyr::across(c("equity", "profit_loss", "profit_loss_pct"), as.numeric))
+      })
+    } else {
+      out <- .out
+    }
+    
+    attr(out, "info") <- .resp[5:6]
+  }
+  return(out)
+}
+

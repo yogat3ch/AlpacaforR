@@ -1,0 +1,33 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/SPOT/snapshot?start=2021-05-26T00%3A00%3A00-04%3A00&end=2021-05-27T00%3A00%3A00-04%3A00&limit=10000
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Thu, 08 Jul 2021 15:19:50 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '536'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"symbol":"SPOT","latestTrade":{"t":"2021-07-08T15:19:05.496258998Z","x":"V","p":256.06,"s":200,"c":["
+        "],"i":54306731352151,"z":"A"},"latestQuote":{"t":"2021-07-08T15:19:38.013988163Z","ax":"V","ap":256.12,"as":1,"bx":"V","bp":0,"bs":0,"c":["R"]},"minuteBar":{"t":"2021-07-08T15:18:00Z","o":256.69,"h":256.69,"l":256.295,"c":256.295,"v":640},"dailyBar":{"t":"2021-07-08T04:00:00Z","o":252.86,"h":257.31,"l":250.32,"c":256.295,"v":32594},"prevDailyBar":{"t":"2021-07-07T04:00:00Z","o":266.27,"h":266.27,"l":257.88,"c":259.06,"v":50201}}'
+  recorded_at: 2021-07-08 15:19:50 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

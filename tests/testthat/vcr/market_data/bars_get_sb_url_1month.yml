@@ -1,0 +1,61 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/month/2020-03-01/2020-04-01?unadjusted=APCA-PRO&apiKey=LqXUCWibUJs_F_qEKOPV3DV5opEISq4N
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 429
+      category: Client error
+      reason: Too Many Requests (RFC 6585)
+      message: 'Client error: (429) Too Many Requests (RFC 6585)'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 12 Jun 2021 13:26:09 GMT
+      content-type: application/json
+      content-length: '206'
+      connection: keep-alive
+      x-request-id: 78b21700a006a7c4e5ba9de3bcd265d3
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"ERROR","request_id":"78b21700a006a7c4e5ba9de3bcd265d3","error":"You''ve
+        exceeded the maximum requests per minute, please wait or upgrade your subscription
+        to continue. https://polygon.io/pricing"}'
+  recorded_at: 2021-06-12 13:27:10 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/aggs/ticker/AMZN/range/1/month/2020-03-01/2020-04-01?unadjusted=APCA-PRO&apiKey=LqXUCWibUJs_F_qEKOPV3DV5opEISq4N
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 12 Jun 2021 13:27:10 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: 88c2edd4fe25a37f222a8bf820e7ff93
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"ticker":"AMZN","queryCount":43,"resultsCount":2,"adjusted":true,"results":[{"v":1.6365936e+08,"vw":1855.33,"o":1906.49,"c":1949.72,"h":1996.33,"l":1626.0318,"t":1583038800000,"n":4921917},{"v":1.24631178e+08,"vw":2253.0607,"o":1932.97,"c":2474,"h":2475,"l":1889.15,"t":1585713600000,"n":4188830}],"status":"OK","request_id":"88c2edd4fe25a37f222a8bf820e7ff93","count":2}'
+  recorded_at: 2021-06-12 13:27:10 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

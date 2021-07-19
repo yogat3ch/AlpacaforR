@@ -2,17 +2,12 @@
 % Please edit documentation in R/Assets.R
 \name{assets}
 \alias{assets}
-\alias{get_assets}
 \title{Get Assets}
 \usage{
-assets(ticker_id = NULL, v = 2)
-
-get_assets(ticker_id = NULL, v = 2)
+assets(...)
 }
 \arguments{
-\item{ticker_id}{\code{(character)} of asset symbols or IDs. If NULL (the default), a tibble of all assets is returned.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
+\item{...}{\code{(character)} asset symbols or IDs. If NULL (the default), a tibble of all assets is returned.}
 }
 \value{
 Asset \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/assets/#asset-entity}{Asset} Object or array of Asset objects with the following parameters:
@@ -28,22 +23,22 @@ Asset \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 \item{\code{shortable}}{ \code{(logical)} Asset is shortable on Alpaca or not.}
 \item{\code{easy_to_borrow}}{ \code{(logical)} Asset is easy-to-borrow or not (filtering for \code{easy_to_borrow = TRUE} is the best way to check whether the name is currently available to short at Alpaca).}
 }
+@details Errors will be caught and surfaced but the function will always return a \code{(tibble)} to prevent error breaks when retrieving a large vector of assets.
 }
 \description{
 The assets API serves as the master list of assets available for trade and data consumption from Alpaca. Assets are sorted by asset class, exchange and symbol. Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca. These assets will be marked with the flag \code{tradable = FALSE}. See \href{https://alpaca.markets/docs/api-documentation/api-v2/assets#get-an-asset}{Assets: GET} for details.
-
-\code{get_assets} is deprecated. Use \code{\link[AlpacaforR]{assets}} instead.
 }
 \details{
-This function is vectorized and will accept a \code{(character)} vector for \code{ticker_id}.
+This function is vectorized over all arguments.
 }
 \examples{
+\dontrun{
 # Get a tibble of all active assets: 
 assets()
 # Get a specific asset by symbol:
 (AAPL <- assets("AAPL"))
 # or by id:
 (AAPL <- assets(AAPL$id))
-get_assets()
+}
 }
 \concept{Assets}

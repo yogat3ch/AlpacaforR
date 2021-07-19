@@ -3,7 +3,7 @@
 
 library(websocket)
 
-context("Websocket tests")
+vcr::vcr_configure(dir = file.path(dirname(.log_path), "websockets"))
 if (rlang::is_interactive()) {
 
   test_that("ws_create returns the appropriate websocket object", {

@@ -4,3 +4,11 @@
 ^.*\.log$
 ^.*reprex.R$
 ^.*.code-workspace$
+^\.deprecated
+^README.Rmd$
+^check.R$
+^\.httr-oauth$
+^doc$
+^Meta$
+^build_vignettes.R$
+^AlpacaStreams$

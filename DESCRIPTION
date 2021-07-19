@@ -30,13 +30,36 @@ Description: Interact with the Alpaca API and the
 Depends: R (>= 3.5.0)
 License: GPL-3
 Encoding: UTF-8
+URL: https://yogat3ch.github.io/AlpacaforR
+BugReports: https://github.com/yogat3ch/AlpacaforR/issues
 LazyData: true
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
-Suggests: magrittr, testthat, withr, knitr, rmarkdown,
-     qpdf, vcr, webmockr
+Suggests: pkgload, testthat, withr, knitr, rmarkdown,
+     qpdf, vcr, webmockr, RPushbullet
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Imports: dplyr, glue, httr, jsonlite, lubridate,
-     purrr, rlang, stats, stringr, tibble,
-     utils, websocket
+Imports: 
+    cli,
+    crayon,
+    dplyr,
+    generics,
+    glue,
+    httr,
+    jsonlite,
+    lubridate,
+    magrittr,
+    purrr,
+    R6,
+    rlang,
+    stats,
+    stringr,
+    tibble,
+    tidyselect,
+    tsibble,
+    usethis,
+    utils,
+    vctrs,
+    websocket,
+    lifecycle
+RdMacros: lifecycle

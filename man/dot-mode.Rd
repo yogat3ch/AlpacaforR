@@ -4,7 +4,7 @@
 \alias{.mode}
 \title{get the mode}
 \usage{
-.mode(v)
+.mode(.)
 }
 \description{
 get the mode

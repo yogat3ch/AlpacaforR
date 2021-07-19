@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://postman-echo.com/get?foo1=bar1&foo2=bar2
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Tue, 01 Jun 2021 21:20:07 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '395'
+      connection: keep-alive
+      etag: W/"18b-9vjGFW4yeClJvEmcwfmH0TQNMTo"
+      vary: Accept-Encoding
+      set-cookie: sails.sid=s%3AB0T0FhHS4q0JWhtV78_K53gHtFUT-n5a.h0JFZX%2FW6%2FakR3KfNkO8X%2BV9ImbflWHeuvPpoR0scZ8;
+        Path=/; HttpOnly
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"args":{"foo1":"bar1","foo2":"bar2"},"headers":{"x-forwarded-proto":"https","x-forwarded-port":"443","host":"postman-echo.com","x-amzn-trace-id":"Root=1-60b6a487-7102220f0852f7c02b9e7907","user-agent":"libcurl/7.64.1
+        r-curl/4.3.1 httr/1.4.2","accept-encoding":"deflate, gzip","accept":"application/json,
+        text/xml, application/xml, */*"},"url":"https://postman-echo.com/get?foo1=bar1&foo2=bar2"}'
+  recorded_at: 2021-06-01 21:20:05 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.6.2

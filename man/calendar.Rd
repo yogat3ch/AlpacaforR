@@ -2,19 +2,14 @@
 % Please edit documentation in R/Calendar.R
 \name{calendar}
 \alias{calendar}
-\alias{get_calendar}
 \title{Get Market Calendar Times}
 \usage{
-calendar(from = NULL, to = NULL, v = 2)
-
-get_calendar(from = NULL, to = NULL, v = 2)
+calendar(from = NULL, to = NULL)
 }
 \arguments{
 \item{from}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Starting date of request. Defaults to today. Calendar data goes back to 1970. If blank, defaults to today's date.}
 
 \item{to}{\code{(Date/Datetime/POSIXct/character)} in YYYY-MM-DD format. Ending date of request. Default to today. Calendar data goes to 2029. If blank, defaults to today's date.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 Calendar \code{tibble} A \href{https://alpaca.markets/docs/api-documentation/api-v2/calendar/#calendar-entity}{Calendar} Object consisting of the following:
@@ -31,15 +26,14 @@ Calendar \code{tibble} A \href{https://alpaca.markets/docs/api-documentation/api
 }
 \description{
 The calendar API serves the full list of market days from 1970 to 2029. It can also be queried by specifying a start and/or end time to narrow down the results. In addition to the dates, the response also contains the specific open and close times for the market days, taking into account early closures. See \href{https://alpaca.markets/docs/api-documentation/api-v2/calendar/}{Calendar} Endpoint for details.
-
-\code{get_calendar} is Deprecated. Use \code{\link[AlpacaforR]{calendar}} instead.
 }
 \examples{
+\dontrun{
 # Get all dates:
 calendar()
 # Get specific date range:
 calendar(from = "2019-01-01", to = "2019-04-01")
-get_calendar()
+}
 }
 \seealso{
 \link[lubridate]{Interval-class}

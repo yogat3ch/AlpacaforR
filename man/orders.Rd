@@ -2,11 +2,10 @@
 % Please edit documentation in R/Orders.R
 \name{orders}
 \alias{orders}
-\alias{get_orders}
 \title{Get Orders}
 \usage{
 orders(
-  ticker_id = NULL,
+  symbol_id = NULL,
   status = "open",
   limit = NULL,
   after = NULL,
@@ -14,25 +13,11 @@ orders(
   direction = "desc",
   client_order_id = NULL,
   nested = T,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
-)
-
-get_orders(
-  ticker_id = NULL,
-  status = "open",
-  limit = NULL,
-  after = NULL,
-  until = NULL,
-  direction = "desc",
-  client_order_id = NULL,
-  nested = T,
-  live = as.logical(Sys.getenv("APCA-LIVE", FALSE)),
-  v = 2
+  live = get_live()
 )
 }
 \arguments{
-\item{ticker_id}{\code{(character)} Specify symbol, order ID, or client_order_id (must set \code{client_order_id = TRUE}).}
+\item{symbol_id}{\code{(character)} Specify symbol, order ID, or client_order_id (must set \code{client_order_id = TRUE}).}
 
 \item{status}{\code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.}
 
@@ -44,13 +29,11 @@ get_orders(
 
 \item{direction}{\code{(character)} The chronological order of response based on the submission time. \code{'asc'} or \code{'desc'}. Defaults to \code{desc}.}
 
-\item{client_order_id}{\code{(logical)} Whether \code{ticker_id} is a client_order_id, defaults to \code{NULL (FALSE)}}
+\item{client_order_id}{\code{(logical)} Whether \code{symbol_id} is a client_order_id, defaults to \code{NULL (FALSE)}}
 
 \item{nested}{\code{(logical)} If true, the result will roll up multi-leg orders under the legs field of primary order. Default \code{TRUE}.}
 
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2/orders/#order-entity}{Order object} or Array of Order Objects with the following information:
@@ -88,25 +71,15 @@ Order \code{(tibble)} \href{https://alpaca.markets/docs/api-documentation/api-v2
 }
 \description{
 The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See \href{https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders}{Orders GET}for more details.
-
-\code{get_orders} is deprecated. Use \code{\link[AlpacaforR]{orders}} instead.
 }
 \examples{
 orders(live = FALSE)
 orders(status = "all")
-# For a specific ticker:
-orders(ticker = "AAPL", status = "all")
-get_orders()
+# For a specific symbol:
+orders("AAPL", status = "all")
 }
 \seealso{
 Other Orders: 
-\code{\link{order_cancel}()},
-\code{\link{order_replace}()},
-\code{\link{order_submit}()}
-
-Other Orders: 
-\code{\link{order_cancel}()},
-\code{\link{order_replace}()},
 \code{\link{order_submit}()}
 }
 \concept{Orders}

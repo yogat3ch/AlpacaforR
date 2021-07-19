@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/reference/locales?apiKey=POLYGON-KEY
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 26 Jun 2021 14:58:39 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      content-encoding: gzip
+      x-request-id: cc755e3593d5b6278fd3649ed5fecd83
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"OK","results":[{"locale":"G","name":"Global"},{"locale":"US","name":"United
+        States of America"},{"locale":"GB","name":"Great Britain"},{"locale":"CA","name":"Canada"},{"locale":"NL","name":"Netherlands"},{"locale":"GR","name":"Greece"},{"locale":"SP","name":"Spain"},{"locale":"DE","name":"Germany"},{"locale":"BE","name":"Belgium"},{"locale":"DK","name":"Denmark"},{"locale":"FI","name":"Finland"},{"locale":"IE","name":"Ireland"},{"locale":"PT","name":"Portugal"},{"locale":"IN","name":"India"},{"locale":"MX","name":"Mexico"},{"locale":"FR","name":"France"},{"locale":"CN","name":"China"},{"locale":"CH","name":"Switzerland"},{"locale":"SE","name":"Sweden"}]}'
+  recorded_at: 2021-06-26 14:58:39 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

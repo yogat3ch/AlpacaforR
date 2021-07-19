@@ -4,12 +4,36 @@
 \alias{get_url}
 \title{Return the Alpaca URL}
 \usage{
-get_url(live = FALSE)
+get_url(
+  path = NULL,
+  query,
+  ...,
+  live = get_live(),
+  v = 2,
+  data = FALSE,
+  poly = FALSE,
+  api = c("api", "ws")[1]
+)
+}
+\arguments{
+\item{path}{\code{(character)} of values to append to the url path ie  \code{c("p1","p2")} become \code{url/p1/p2}}
+
+\item{query}{\code{(named list)} of values to add as query parameters}
+
+\item{...}{\code{(named arguments)} to be added as query parameters}
+
+\item{live}{\code{(logical)} \code{TRUE} to use the live account, \code{FALSE} for paper.}
+
+\item{v}{\code{(numeric)} The API version used for Alpaca}
+
+\item{data}{\code{(logical)} Whether to use the \href{https://alpaca.markets/docs/api-documentation/api-v2/market-data/}{Alpaca Data API} or the standard API.}
+
+\item{api}{\code{(character)} The API to call: \code{api} or \code{ws} (for websockets).}
 }
 \value{
-The correct URL according to account type (live or paper) that will be sent in the API request.
+The formatted URL.
 }
 \description{
-Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.
+Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.  See \link[httr]{parse_url} & \link[httr]{build_url} for details.
 }
 \keyword{internal}

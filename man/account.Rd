@@ -2,17 +2,12 @@
 % Please edit documentation in R/Account.R
 \name{account}
 \alias{account}
-\alias{get_account}
 \title{Get Account Details}
 \usage{
-account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)), v = 2)
-
-get_account(live = as.logical(Sys.getenv("APCA-LIVE", FALSE)), v = 2)
+account(live = get_live())
 }
 \arguments{
 \item{live}{\code{(logical)} TRUE / FALSE if you are connecting to a live account. Default to FALSE, so it will use the paper url if nothing was provided.}
-
-\item{v}{\code{(integer)} The API version number. Defaults to 2. There is only the V2 API available for all endpoints other than Bars as of 2020-04-18. This argument is present to accommodate future API versions.}
 }
 \value{
 Account \code{(list)} An \href{https://alpaca.markets/docs/api-documentation/api-v2/account/#account-entity}{Account} object list of length 26:
@@ -33,16 +28,13 @@ Account \code{(list)} An \href{https://alpaca.markets/docs/api-documentation/api
 }
 \description{
 The accounts API serves important information related to an account, including account status, funds available for trade, funds available for withdrawal, and various flags relevant to an account's ability to trade. See the \href{https://alpaca.markets/docs/api-documentation/api-v2/account/}{Account} Endpoint in the API v2 Docs for full details.
-
-\code{get_account} is deprecated please use \code{\link[AlpacaforR]{account}} instead.
 }
 \examples{
 account()
 # With default arguments equivalent to :
-account(live = FALSE, v = 2)
+account(live = FALSE)
 # For access to live accounts, you must submit as live = TRUE
 account(live = TRUE)
-get_account()
 }
 \seealso{
 Other Account: 
@@ -51,4 +43,3 @@ Other Account:
 \code{\link{account_portfolio}()}
 }
 \concept{Account}
-\concept{Accounts}

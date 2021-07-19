@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v2/stocks/BYND/trades/latest
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Thu, 08 Jul 2021 14:50:54 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '117'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"symbol":"BYND","trade":{"t":"2021-07-08T14:50:32.808527321Z","x":"V","p":140.87,"s":100,"c":["@"],"i":583,"z":"C"}}'
+  recorded_at: 2021-07-08 14:50:54 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

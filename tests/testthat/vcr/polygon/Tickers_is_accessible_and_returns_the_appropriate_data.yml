@@ -1,0 +1,31 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v3/reference/tickers?search=Tesla&market=stocks&apiKey=POLYGON-KEY
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 26 Jun 2021 14:58:35 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      vary: Accept-Encoding
+      x-request-id: 5a5067a21abea3facbc7abbdf9676e5e
+      strict-transport-security: max-age=15724800; includeSubDomains
+      content-encoding: gzip
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"results":[{"ticker":"TSLA","name":"Tesla, Inc. Common Stock","market":"stocks","locale":"us","primary_exchange":"XNAS","type":"CS","active":true,"currency_name":"usd","cik":"0001318605","composite_figi":"BBG000N9MNX3","share_class_figi":"BBG001SQKGD7","last_updated_utc":"2021-06-25T00:00:00Z"}],"status":"OK","request_id":"5a5067a21abea3facbc7abbdf9676e5e","count":1}'
+  recorded_at: 2021-06-26 14:58:35 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
