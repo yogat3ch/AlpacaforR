@@ -1,0 +1,42 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.polygon.io/v2/reference/types?apiKey=POLYGON-KEY
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx/1.19.2
+      date: Sat, 26 Jun 2021 14:58:36 GMT
+      content-type: application/json
+      transfer-encoding: chunked
+      connection: keep-alive
+      content-encoding: gzip
+      x-request-id: 3149f995347b6fb04371038a636a25c5
+      strict-transport-security: max-age=15724800; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"status":"OK","results":{"types":{"CS":"Common Stock","BOND":"Bond","BASKET":"Basket","ADRC":"American
+        Depository Receipt Common","ADRP":"American Depository Receipt Preferred","ADRW":"American
+        Depository Receipt Warrant","ADRR":"American Depository Receipt Right","NVDR":"Non-Voting
+        Depository Receipt","GDR":"Global Depositary Receipt","SDR":"Special Drawing
+        Right","CEF":"Closed-End Fund","ETP":"Exchange Traded Product/Fund","REIT":"Real
+        Estate Investment Trust","MLP":"Master Limited Partnership","WRT":"Equity
+        WRT","PUB":"Public","NYRS":"New York Registry Shares","UNIT":"Unit","RIGHT":"Right","TRAK":"Tracking
+        stock or targeted stock","LTDP":"Limited Partnership","RYLT":"Royalty Trust","MF":"Mutual
+        Fund","PFD":"Preferred Stock","FDR":"Foreign Ordinary Shares","OST":"Other
+        Security Type","FUND":"Fund","SP":"Structured Product","SI":"Secondary Issue","WARRANT":"Warrant"},"indexTypes":{"INDEX":"Index","ETF":"Exchange
+        Traded Fund (ETF)","ETN":"Exchange Traded Note (ETN)","ETMF":"Exchange Traded
+        Managed Fund (ETMF)","SETTLEMENT":"Settlement","SPOT":"Spot","SUBPROD":"Subordinated
+        product","WC":"World Currency","ALPHAINDEX":"Alpha Index"}}}'
+  recorded_at: 2021-06-26 14:58:36 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

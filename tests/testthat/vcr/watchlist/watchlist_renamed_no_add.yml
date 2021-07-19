@@ -1,0 +1,82 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/watchlists:by_name?name=FANG
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-origin: '*'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Thu, 03 Jun 2021 14:29:38 GMT
+      server: nginx
+      strict-transport-security: max-age=31536000; includeSubDomains
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"2d8f4d28-f607-43dd-a3e8-91f2b1581458","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-06-03T14:29:34.245883Z","updated_at":"2021-06-03T14:29:37.934621Z","name":"FANG","assets":[{"id":"fc6a5dcd-4a70-4b8d-b64f-d83a6dae9ba4","class":"us_equity","exchange":"NASDAQ","symbol":"FB","name":"Facebook,
+        Inc. Class A Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"bb2a26c0-4c77-4801-8afc-82e8142ac7b8","class":"us_equity","exchange":"NASDAQ","symbol":"NFLX","name":"Netflix,
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"f30d734c-2806-4d0d-b145-f9fade61432b","class":"us_equity","exchange":"NASDAQ","symbol":"GOOG","name":"Alphabet
+        Inc. Class C Capital Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true}]}'
+  recorded_at: 2021-06-03 14:29:38 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: put
+    uri: https://paper-api.alpaca.markets/v2/watchlists:by_name?name=FANG
+    body:
+      encoding: ''
+      string: |-
+        {
+          "name": "_FANG",
+          "symbols": ["FB", "AAPL", "NFLX", "GOOG"]
+        }
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      access-control-allow-origin: '*'
+      connection: keep-alive
+      content-encoding: gzip
+      content-type: application/json; charset=UTF-8
+      date: Thu, 03 Jun 2021 14:29:38 GMT
+      server: nginx
+      strict-transport-security: max-age=31536000; includeSubDomains
+      transfer-encoding: chunked
+      vary:
+      - Accept-Encoding
+      - Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"id":"2d8f4d28-f607-43dd-a3e8-91f2b1581458","account_id":"0ef8f355-319d-4de7-8d32-03f1e7e5aa69","created_at":"2021-06-03T14:29:34.245883Z","updated_at":"2021-06-03T14:29:38.627849Z","name":"_FANG","assets":[{"id":"fc6a5dcd-4a70-4b8d-b64f-d83a6dae9ba4","class":"us_equity","exchange":"NASDAQ","symbol":"FB","name":"Facebook,
+        Inc. Class A Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"b0b6dd9d-8b9b-48a9-ba46-b9d54906e415","class":"us_equity","exchange":"NASDAQ","symbol":"AAPL","name":"Apple
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"bb2a26c0-4c77-4801-8afc-82e8142ac7b8","class":"us_equity","exchange":"NASDAQ","symbol":"NFLX","name":"Netflix,
+        Inc. Common Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true},{"id":"f30d734c-2806-4d0d-b145-f9fade61432b","class":"us_equity","exchange":"NASDAQ","symbol":"GOOG","name":"Alphabet
+        Inc. Class C Capital Stock","status":"active","tradable":true,"marginable":true,"shortable":true,"easy_to_borrow":true,"fractionable":true}]}'
+  recorded_at: 2021-06-03 14:29:38 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

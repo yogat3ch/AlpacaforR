@@ -1,0 +1,63 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://paper-api.alpaca.markets/v2/calendar?start=2021-06-11&end=2021-06-13
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      server: nginx
+      date: Sat, 12 Jun 2021 13:25:54 GMT
+      content-type: application/json; charset=UTF-8
+      content-length: '99'
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+      strict-transport-security: max-age=31536000; includeSubDomains
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"date":"2021-06-11","open":"09:30","close":"16:00","session_open":"0700","session_close":"1900"}]'
+  recorded_at: 2021-06-12 13:25:56 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
+- request:
+    method: get
+    uri: https://data.alpaca.markets/v1/bars/1D?symbols=BYND&limit=1000&start=2021-06-11T19%3A00%3A00-04%3A00&end=2021-06-12T04%3A00%3A00-00%3A00
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 200
+      category: Success
+      reason: OK
+      message: 'Success: (200) OK'
+    headers:
+      date: Sat, 12 Jun 2021 13:25:55 GMT
+      content-type: application/json; charset=utf-8
+      content-length: '80'
+      connection: keep-alive
+      access-control-allow-credentials: 'true'
+      vary: Origin
+      strict-transport-security: max-age=15724800; includeSubDomains
+      access-control-allow-origin: '*'
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"BYND":[{"t":1623384000,"o":147,"h":149.44,"l":144.67,"c":149.43,"v":2301919}]}'
+  recorded_at: 2021-06-12 13:25:56 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0

@@ -1,14 +1,65 @@
 Package: AlpacaforR
 Title: Trade with Alpaca using R
-Version: 0.1.0.9000
-Authors@R: person("Jagger", "Villalobos", email = "jagger.vill@gmail.com", role = c("aut", "cre"))
-Description: Interact with Alpacas API using R to send requests for account information, position information, get orders, 
- submit orders, cancel orders, the different assets alpaca has to offer, asset information, asset prices, market calendar 
- information, market open / closing information, and many more. Build your strategies then implement them live on Alpacas 
- Brokerage account or on Alpacas paper trading account using the functions within. 
-Depends: R (>= 3.5.1)
-License: GNU AGPLv3
-Imports: dplyr, httr, jsonlite, lubridate, magrittr, purrr, stringr
+Version: 1.0.0
+Authors@R: c( person("Holsenbeck", "Stephen",
+     email = "sholsen@alumni.emory.edu", role =
+     c("aut", "cre","cph"), comment = "Primary
+     Maintainer" ), person("Jagger",
+     "Villalobos", email =
+     "jagger.vill@gmail.com", role =
+     c("aut","cph") , comment = "Original
+     Creator" ) )
+Description: Interact with the Alpaca API and the
+     subset of endpoints on the Polygon API`
+     available to Alpaca members. All Alpaca
+     endpoints are accessible with AlpacaforR:
+     Account, Assets, Calendar, Clock,
+     Market-Data, Orders, Polygon, Positions,
+     Watchlist and Streaming. Get asset, account
+     and order info, market calendar info and
+     historical market data. Submit, cancel and
+     replace simple and complex orders, see
+     market open / closing information, and much
+     more. Build and test strategies with a
+     paper account, then implement them live
+     with an Alpaca Brokerage account. If you'd
+     like to provide feedback, submit an issue,
+     express thanks, or donate to support the
+     project, please do so on Github:
+     github.com/jagg19/AlpacaforR
+Depends: R (>= 3.5.0)
+License: GPL-3
 Encoding: UTF-8
+URL: https://yogat3ch.github.io/AlpacaforR
+BugReports: https://github.com/yogat3ch/AlpacaforR/issues
 LazyData: true
-RoxygenNote: 7.0.2.9000
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
+Suggests: pkgload, testthat, withr, knitr, rmarkdown,
+     qpdf, vcr, webmockr, RPushbullet
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Imports: 
+    cli,
+    crayon,
+    dplyr,
+    generics,
+    glue,
+    httr,
+    jsonlite,
+    lubridate,
+    magrittr,
+    purrr,
+    R6,
+    rlang,
+    stats,
+    stringr,
+    tibble,
+    tidyselect,
+    tsibble,
+    usethis,
+    utils,
+    vctrs,
+    websocket,
+    lifecycle
+RdMacros: lifecycle

@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: delete
+    uri: https://paper-api.alpaca.markets/v2/orders
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: ''
+      APCA-API-KEY-ID: APCA-PAPER-KEY
+      APCA-API-SECRET-KEY: APCA-PAPER-SECRET
+  response:
+    status:
+      status_code: 207
+      category: Success
+      reason: Multi-Status (WebDAV; RFC 4918)
+      message: 'Success: (207) Multi-Status (WebDAV; RFC 4918)'
+    headers:
+      server: nginx
+      date: Thu, 08 Jul 2021 14:50:55 GMT
+      content-type: application/json; charset=UTF-8
+      transfer-encoding: chunked
+      connection: keep-alive
+      access-control-allow-origin: '*'
+      vary: Origin
+    body:
+      encoding: UTF-8
+      file: no
+      string: '[{"id":"a8f0d430-6ad4-42b8-b482-26649e554955","status":200,"body":{"asset_class":"us_equity","asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","canceled_at":null,"client_order_id":"f71553cf-c1f2-4330-873b-9f49988278e0","created_at":"2021-07-08T14:50:54.933733Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":"2021-07-08T14:50:55.113644Z","filled_avg_price":"140.93","filled_qty":"2","hwm":null,"id":"50719434-384b-4157-b736-2f783f7fe855","legs":[{"asset_class":"us_equity","asset_id":"317faf0e-4956-4d40-b3eb-3fba8af59dca","canceled_at":null,"client_order_id":"ca04a6b0-dfd6-4ac6-84f8-cf7e40ba55fd","created_at":"2021-07-08T14:50:54.933733Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","hwm":null,"id":"a8f0d430-6ad4-42b8-b482-26649e554955","legs":null,"limit_price":null,"notional":null,"order_class":"oto","order_type":"stop","qty":"2","replaced_at":null,"replaced_by":null,"replaces":null,"side":"sell","status":"new","stop_price":"135.2352","submitted_at":"2021-07-08T14:50:55.156712Z","symbol":"BYND","time_in_force":"day","trail_percent":null,"trail_price":null,"type":"stop","updated_at":"2021-07-08T14:50:55.240512Z"}],"limit_price":null,"notional":null,"order_class":"oto","order_type":"market","qty":"2","replaced_at":null,"replaced_by":null,"replaces":null,"side":"buy","status":"filled","stop_price":null,"submitted_at":"2021-07-08T14:50:54.921489Z","symbol":"BYND","time_in_force":"day","trail_percent":null,"trail_price":null,"type":"market","updated_at":"2021-07-08T14:50:55.144737Z"}},{"id":"8ee4e3f0-5e7b-4690-b407-0b99bb63ef2e","status":200,"body":{"asset_class":"us_equity","asset_id":"90d56464-95e4-4d1e-849f-7520864df60f","canceled_at":"2021-07-08T14:50:55.28779028Z","client_order_id":"9583cfb9-c85a-4477-a5f7-f9d4142f8a10","created_at":"2021-07-08T14:50:53.917582Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","hwm":"29.27","id":"8ee4e3f0-5e7b-4690-b407-0b99bb63ef2e","legs":null,"limit_price":null,"notional":null,"order_class":"","order_type":"trailing_stop","qty":"1","replaced_at":null,"replaced_by":null,"replaces":null,"side":"buy","status":"canceled","stop_price":"34.27","submitted_at":"2021-07-08T14:50:53.906226Z","symbol":"LSF","time_in_force":"day","trail_percent":null,"trail_price":"5","type":"trailing_stop","updated_at":"2021-07-08T14:50:55.288936507Z"}},{"id":"9319c43d-8f88-4c81-8cd2-4c9dc47f3c98","status":200,"body":{"asset_class":"us_equity","asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","canceled_at":"2021-07-08T14:50:55.294554241Z","client_order_id":"7225abba-fe3c-4dff-9bf9-183fb42ea6c1","created_at":"2021-07-08T14:50:51.870884Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","hwm":"3648.1299","id":"9319c43d-8f88-4c81-8cd2-4c9dc47f3c98","legs":null,"limit_price":null,"notional":null,"order_class":"","order_type":"trailing_stop","qty":"1","replaced_at":null,"replaced_by":null,"replaces":null,"side":"sell","status":"canceled","stop_price":"3638.1299","submitted_at":"2021-07-08T14:50:51.868018Z","symbol":"AMZN","time_in_force":"day","trail_percent":null,"trail_price":"10","type":"trailing_stop","updated_at":"2021-07-08T14:50:55.295750619Z"}},{"id":"9ed98df1-b1ed-4330-b1b6-b9c1253b63e9","status":200,"body":{"asset_class":"us_equity","asset_id":"f801f835-bfe6-4a9d-a6b1-ccbb84bfd75f","canceled_at":null,"client_order_id":"1343466e-cdd5-475e-8b14-e294b809d109","created_at":"2021-07-08T14:50:51.3729Z","expired_at":null,"extended_hours":false,"failed_at":null,"filled_at":null,"filled_avg_price":null,"filled_qty":"0","hwm":null,"id":"9ed98df1-b1ed-4330-b1b6-b9c1253b63e9","legs":null,"limit_price":"3757.38","notional":null,"order_class":"oco","order_type":"limit","qty":"1","replaced_at":null,"replaced_by":null,"replaces":null,"side":"sell","status":"pending_cancel","stop_price":null,"submitted_at":"2021-07-08T14:50:51.368277Z","symbol":"AMZN","time_in_force":"day","trail_percent":null,"trail_price":null,"type":"limit","updated_at":"2021-07-08T14:50:55.303265917Z"}}]'
+  recorded_at: 2021-07-08 14:50:55 GMT
+  recorded_with: vcr/1.0.2, webmockr/0.8.0
