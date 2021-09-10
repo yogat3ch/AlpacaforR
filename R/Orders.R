@@ -79,7 +79,7 @@ orders <-
       # if it's an order_id
       .o_id <- symbol_id
       .url <- get_url(
-        pacth = c("orders", .o_id),
+        path = c("orders", .o_id),
         query = list(nested = nested),
         live = live
       )
