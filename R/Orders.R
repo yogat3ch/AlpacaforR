@@ -75,7 +75,7 @@ orders <-
     status <- match_letters(status, o = "open", c = "closed", a = "all")
     # check if id
     .is_id <- is_id(symbol_id)
-    if (.is_id) {
+    if (isTRUE(.is_id)) {
       # if it's an order_id
       .o_id <- symbol_id
       .url <- get_url(
