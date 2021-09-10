@@ -68,36 +68,50 @@ orders <-
            nested = T,
            live = get_live()) {
     
-    #Set URL & Headers
+    # Reassign for cases where symbol_id needs to be changed to some new value
+    .s_id <- symbol_id
     
+    # Set URL & Headers
     headers = get_headers(live)
     # set status if abbreviated
     status <- match_letters(status, o = "open", c = "closed", a = "all")
     # check if id
     .is_id <- is_id(symbol_id)
-    if (.is_id) {
-      # if it's an order_id
-      .o_id <- symbol_id
-    } else {
-      # if its a ticker symbol
-      .o_id <- NULL
-      symbol_id <- toupper(symbol_id)
-    }
-    if (isTRUE(client_order_id)) {
-      .url <- get_url("orders:by_client_order_id", query = list(client_order_id = .o_id), live = live)
-    } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
-      .url <- get_url(c("orders", .o_id),
-                      list(status = status,
-                           limit = limit,
-                           after = after,
-                           until = until,
-                           direction = direction,
-                           nested = nested),
-                      live = live)
-      
-    }
-    # yogat3ch: Create Query 2020-01-11 2157
     
+    if (isTRUE(client_order_id)) {
+      # if it's a client order id
+      .url <- get_url(
+        path = "orders:by_client_order_id", 
+        query = list(client_order_id = symbol_id), 
+        live = live
+      )
+    } else if (isTRUE(.is_id)) {
+      # if it's an order_id
+      .url <- get_url(
+        path = c("orders", symbol_id),
+        query = list(nested = nested),
+        live = live
+      )
+    } else {
+      # if it's a ticker symbol(s)
+      .s_id <- toupper(.s_id)
+      if(length(.s_id) > 1) .s_id <- paste(.s_id, collapse = ',')
+      .url <- get_url(
+        path = "orders",
+        query = list(
+          status = status,
+          limit = limit,
+          after = after,
+          until = until,
+          direction = direction,
+          nested = nested,
+          symbols = .s_id
+        ),
+        live = live
+      )
+    }
+
+    # yogat3ch: Create Query 2020-01-11 2157
     
     if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
     # Query
@@ -105,10 +119,6 @@ orders <-
     # Clean
     out <- order_transform(out)
     
-    
-    if (isTRUE(inherits(symbol_id, "character") && nchar(symbol_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
-      out = dplyr::filter(out, symbol %in% symbol_id)
-    }
     return(out)
   }
 
