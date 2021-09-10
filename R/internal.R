@@ -258,7 +258,7 @@ check_response <- function(resp, query = NULL) {
 
 is_id <- function(.) {
   out <- tryCatch({
-    .out <- all(grepl("[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}", .)) && all(!is.na(.)) && !is.null(.) && is.character(.)
+    .out <- all(grepl("^[[:alnum:]]{8}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{4}\\-[[:alnum:]]{12}$", .)) && all(!is.na(.)) && !is.null(.) && is.character(.)
     isTRUE(.out)
   }, error = function(e) FALSE)
   return(out)
