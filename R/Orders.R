@@ -78,26 +78,37 @@ orders <-
     if (.is_id) {
       # if it's an order_id
       .o_id <- symbol_id
+      .url <- get_url(
+        pacth = c("orders", .o_id),
+        query = list(nested = nested),
+        live = live
+      )
+    } else if (isTRUE(client_order_id)) {
+      # if it's a client order id
+      .url <- get_url(
+        path = "orders:by_client_order_id", 
+        query = list(client_order_id = symbol_id), 
+        live = live
+      )
     } else {
-      # if its a ticker symbol
-      .o_id <- NULL
+      # if it's a ticker symbol(s)
       symbol_id <- toupper(symbol_id)
+      if(length(symbol_id) > 1) paste(symbol_id, collapse = ',')
+      .url <- get_url(
+        path = "orders",
+        query = list(
+          status = status,
+          limit = limit,
+          after = after,
+          until = until,
+          direction = direction,
+          nested = nested
+        ),
+        live = live
+      )
     }
-    if (isTRUE(client_order_id)) {
-      .url <- get_url("orders:by_client_order_id", query = list(client_order_id = .o_id), live = live)
-    } else if (isFALSE(client_order_id) || is.null(client_order_id)) {
-      .url <- get_url(c("orders", .o_id),
-                      list(status = status,
-                           limit = limit,
-                           after = after,
-                           until = until,
-                           direction = direction,
-                           nested = nested),
-                      live = live)
-      
-    }
+
     # yogat3ch: Create Query 2020-01-11 2157
-    
     
     if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
     # Query
@@ -105,10 +116,6 @@ orders <-
     # Clean
     out <- order_transform(out)
     
-    
-    if (isTRUE(inherits(symbol_id, "character") && nchar(symbol_id) > 0) && !.is_id && length(out) != 0){       #If the ticker is a character string but not an order id, and results came through then return the orders for the tickers specified.
-      out = dplyr::filter(out, symbol %in% symbol_id)
-    }
     return(out)
   }
 
