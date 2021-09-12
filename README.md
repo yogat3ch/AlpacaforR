@@ -52,6 +52,13 @@ this material later from within R, you can do so with
 
 -   Add support for Alpaca Websockets
 
+# Table of contents
+
+- [Installing AlpacaforR](#Installing `Alpacafor` 🦙𝘙)
+- [User Keys & URL](#User Keys & URL)
+  - [KEY-ID and SECRET-KEY](#KEY-ID and SECRET-KEY)
+- [Orders](#Orders)
+
 ## Installing `Alpacafor` 🦙𝘙
 
 `AlpacaforR` is available on CRAN and can be installed with
