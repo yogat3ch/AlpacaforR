@@ -52,6 +52,44 @@ this material later from within R, you can do so with
 
 -   Add support for Alpaca Websockets
 
+# Table of contents
+
+- [Installing AlpacaforR](#installing-alpacafor-𝘙)
+- [User Keys & URL](#user-content-user-keys--url)
+  - [KEY-ID and SECRET-KEY](#user-content-key-id-and-secret-key)
+    - [The `live` Option](#the-live-option)
+  - [Live or Paper URL](#live-or-paper-url)
+- [Account: Retrieve info & change settings for your account](#account-retrieve-info--change-settings-for-your-account)
+  - [`account`](#account)
+  - [`account_config`](#account_config)
+  - [`account_activities`](#account_activities)
+  - [`account_portfolio`](#account_portfolio)
+- [Assets: Retrieve all assets or info about a single asset](#assets-retrieve-all-assets-or-info-about-a-single-asset)
+- [Calendar: Retrieve a calendar of trading days & times](#calendar-retrieve-a-calendar-of-trading-days--times)
+  - [A Note on Timezones](#a-note-on-timezones)
+- [Clock: Retrieve current market status and info](#clock-retrieve-current-market-status-and-info)
+- [Watchlist: Store a list of assets of interest](#watchlist-store-a-list-of-assets-of-interest)
+- [Market Data](#market-data)
+  - [Arguments to `market_data` with the V1 API](#arguments-to-market_data-with-the-v1-api)
+  - [Arguments to `market_data` for the V2 API](#arguments-to-market_data-for-the-v2-api)
+    - [Additional endpoints](#additional-endpoints)
+  - [Arguments to `market_data` for the Polygon API](#arguments-to-market_data-for-the-polygon-api)
+  - [Additional details on the Polygon Aggregates Endpoint](#additional-details-on-the-polygon-aggregates-endpoint)
+  - [Minutes](#minutes)
+  - [Hours](#hours)
+  - [Days](#days)
+  - [Weeks](#weeks)
+  - [Months](#months)
+  - [Quarters](#quarters)
+  - [Year](#year)
+  - [Using `full = TRUE`](#using-full--true)
+- [Polygon](#polygon)
+- [Orders](#Orders)
+  - [`orders`](#orders-1)
+  - [`order_submit`](#order_submit)
+- [Positions](#positions)
+- [Websockets](#websockets)
+
 ## Installing `Alpacafor` 🦙𝘙
 
 `AlpacaforR` is available on CRAN and can be installed with
