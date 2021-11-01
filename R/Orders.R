@@ -251,7 +251,7 @@ order_submit <-
       .mc <- match.call()
       stop_price <- grep("^trail", names(.mc), value = TRUE)
       stopifnot(length(stop_price) == 1)
-      stop <- round(.mc[[stop_price]], 2)
+      stop <- round(eval(.mc[[stop_price]]), 2)
     } else {
       stop_price <- "stop_price"
     }
