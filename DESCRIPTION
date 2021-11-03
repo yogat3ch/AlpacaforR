@@ -26,7 +26,7 @@ Description: Interact with the Alpaca API and the
      like to provide feedback, submit an issue,
      express thanks, or donate to support the
      project, please do so on Github:
-     github.com/jagg19/AlpacaforR
+     github.com/yogat3ch/AlpacaforR
 Depends: R (>= 3.5.0)
 License: GPL-3
 Encoding: UTF-8
