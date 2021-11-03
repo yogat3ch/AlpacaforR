@@ -251,7 +251,7 @@ order_submit <-
       .ca <- rlang::call_args(rlang::trace_back(bottom = 1)$calls[[1]])
       stop_price <- grep("^trail", names(.ca), value = TRUE)
       stopifnot(length(stop_price) == 1)
-      stop <- round(.ca[[stop_price]], 2)
+      stop <- round(eval(.ca[[stop_price]]), 2)
     } else {
       stop_price <- "stop_price"
     }
