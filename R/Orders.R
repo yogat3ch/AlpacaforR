@@ -248,10 +248,10 @@ order_submit <-
     if (isTRUE(tolower(type) %in% c("trailing_stop", "ts")) || (!missing(trail_percent) || !missing(trail_price))) {
       if (is.null(type))
         type <- "trailing_stop"
-      .mc <- match.call()
-      stop_price <- grep("^trail", names(.mc), value = TRUE)
+      .ca <- rlang::call_args(rlang::trace_back(bottom = 1)$calls[[1]])
+      stop_price <- grep("^trail", names(.ca), value = TRUE)
       stopifnot(length(stop_price) == 1)
-      stop <- round(.mc[[stop_price]], 2)
+      stop <- round(.ca[[stop_price]], 2)
     } else {
       stop_price <- "stop_price"
     }
