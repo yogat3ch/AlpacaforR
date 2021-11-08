@@ -85,7 +85,7 @@
 
 # rlang::env_bind(environment(), symbol = "LOOP", v = 2, timeframe = "minute", multiplier = 5, from = lubridate::floor_date(Sys.Date(), "year"), after = NULL, until = NULL, limit = NULL, to = NULL, full = TRUE, unadjusted = FALSE)
 
-market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE) {
+market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE, v2adjust = 'raw') {
   evar <- environment()
   evar$.vn = list(
     symbol = "character",
@@ -101,6 +101,7 @@ market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from =
     limit = c("integer", "numeric", "NULL"),
     full = "logical",
     unadjusted = "logical",
+    v2adjust = "character",
     bounds = c("list"),
     cal = c("data.frame", "tibble"),
     tqs = "character",
@@ -297,6 +298,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
   .vn <- evar$.vn[c(
     "v",
     "unadjusted",
+    "v2adjust",
     "limit", 
     "timeframe",
     "multiplier",
@@ -369,6 +371,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         start = bounds$from %||% bounds$after,
         end = bounds$to %||% bounds$until,
         limit = limit,
+        adjustment = v2adjust,
         page_token = rlang::dots_list(...)$page_token,
         timeframe = paste0(multiplier, timeframe)
       )
