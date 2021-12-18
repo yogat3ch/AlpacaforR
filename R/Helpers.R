@@ -310,16 +310,21 @@ is_error <- function(x) inherits(x, "try-error")
 #' @export
 
 match_letters <- function(x, ..., n = 1, multiple = FALSE, ignore.case = FALSE, capitalize = FALSE) {
+  .x_e <- rlang::enexpr(x)
   if (!is.character(x)) return(x)
   if (!is.null(n))
     x <- substr(x, 0, n)
   if (is.null(x)) {
     out <- x
   } else {
-    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), unlist(rlang::dots_list(...), use.names = FALSE), perl = TRUE, value = TRUE, ignore.case = ignore.case),
+    .opts <- unlist(rlang::dots_list(...), use.names = FALSE)
+    out <- tryCatch(grep(ifelse(length(x) > 1, paste0("^",x, collapse = "|"), paste0("^" ,x)), .opts, perl = TRUE, value = TRUE, ignore.case = ignore.case),
                     error = function(e) {
-                      message(paste0(e))
+                      stop(x, " does not match any of ", paste0(.opts, collapse = ", "))
                     })
+    
+    if (rlang::is_empty(out))
+      stop("`", .x_e, "` does not match any of: ", paste0(.opts, collapse = ", "))
     if (!multiple)
       out <- out[1]
     
