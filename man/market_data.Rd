@@ -16,7 +16,7 @@ market_data(
   limit = NULL,
   full = FALSE,
   unadjusted = FALSE,
-  v2adjust = "raw"
+  adjustment = c("raw", "split", "dividend", "all")[1]
 )
 }
 \arguments{
@@ -76,7 +76,7 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
 
 \item{unadjusted}{\emph{polygon only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. \strong{Default} \code{FALSE}.}
 
-\item{v2adjust}{\emph{Alpaca API v2} \code{(character)} Alpaca v2 API adjustment, possible values: 'raw', 'split', 'dividend' or 'all'. \strong{Default} \code{raw}.}
+\item{adjustment}{\emph{v2 only} \code{(character)} Specifies the corporate action adjustment for the stocks. Possible values: 'raw', 'split', 'dividend' or 'all'. \strong{Default} \code{'raw'}.}
 }
 \value{
 \code{tsymble} object if just one symbol is requested, otherwise a \verb{named list} of \code{tsymble} objects for each ticker symbol.
