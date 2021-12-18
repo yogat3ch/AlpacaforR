@@ -15,7 +15,8 @@ market_data(
   until = NULL,
   limit = NULL,
   full = FALSE,
-  unadjusted = FALSE
+  unadjusted = FALSE,
+  adjustment = c("raw", "split", "dividend", "all")[1]
 )
 }
 \arguments{
@@ -74,6 +75,8 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
 \item{full}{\code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the \strong{full} dataset. If FALSE, the request will be submitted to the API as is. \emph{Note on rate limits:} The \code{v1} API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. The \code{polygon} API free tier has a call limit of 5 requests per minute, if the rate limit is reached, queries will pause for 1 minute. \strong{Default} FALSE.}
 
 \item{unadjusted}{\emph{polygon only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. \strong{Default} \code{FALSE}.}
+
+\item{adjustment}{\emph{v2 only} \code{(character)} Specifies the corporate action adjustment for the stocks. Possible values: 'raw', 'split', 'dividend' or 'all'. \strong{Default} \code{'raw'}.}
 }
 \value{
 \code{tsymble} object if just one symbol is requested, otherwise a \verb{named list} of \code{tsymble} objects for each ticker symbol.

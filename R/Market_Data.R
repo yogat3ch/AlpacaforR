@@ -51,6 +51,7 @@
 #' @param limit *v1 & v2* \code{(integer)} The amount of bars to return per symbol. This can range from `1` to `1000` for `v1` and `1` to `10000` for `v2`. **Default** 1000 (`v1`), 10000 (`v2`), 50000 (`p`). 
 #' @param full \code{(logical)} If TRUE, the function will attempt to return the entire expected dataset based on the range of dates provided and perform a data completeness check. If the requested from, to dates/times exceed that which can be returned in a single call, the API will be called repeatedly to return the **full** dataset. If FALSE, the request will be submitted to the API as is. *Note on rate limits:* The `v1` API has a call limit of 1000 bars and a rate limit of 200 requests per minute. If the rate limit is reached, queries will pause for 1 minute. The `polygon` API free tier has a call limit of 5 requests per minute, if the rate limit is reached, queries will pause for 1 minute. **Default** FALSE.
 #' @param unadjusted *polygon only* \code{(logical)} Set to `TRUE` if the results should **NOT** be adjusted for splits. **Default** `FALSE`.
+#' @param adjustment *v2 only* \code{(character)} Specifies the corporate action adjustment for the stocks. Possible values: 'raw', 'split', 'dividend' or 'all'. **Default** `'raw'`.
 #' @details All values to `from/after/to/until` will parse correctly if a numeric year, in `YYYY-MM-DD` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{RFC 3339} format or `(Datetime/POSIXct)`, `YYYY-MM-DD HH:MM` \href{https://www.iso.org/iso-8601-date-and-time-format.html}{ISO8601} format. Other formats will often work, but are not guaranteed to parse correctly. All Dates/Datetimes are forced to America/New York timezone (See \code{\link[lubridate]{force_tz}}) in which the NYSE operates. This means that if \code{\link[lubridate]{now}} is used to specify 3PM in the local timezone, it will be forced 3PM in the "America/New_York timezone. This eliminates needing to consistently account for timezone conversions when providing inputs. The `polygon` API only accepts Dates in YYYY-MM-DD format, any arguments passed to `start` or `end` will be coerced to Date automatically if using `polygon`. For the `polygon` API, queries with `timeframe`: `'year'` use `12/31` as an aggregate date for each year. Arguments passed to `from` & `to` will be coerced to their yearly \code{\link[lubridate]{round_date}} and \code{\link[lubridate]{ceiling_date}} respectively. 
 #' For a full overview of how the Polygon.io Aggregates endpoint behaves, check out \href{Aggregate Data API Improvements}{https://polygon.io/blog/aggs-api-updates/}.
 #' @return \code{tsymble} object if just one symbol is requested, otherwise a `named list` of `tsymble` objects for each ticker symbol.
@@ -85,7 +86,7 @@
 
 # rlang::env_bind(environment(), symbol = "LOOP", v = 2, timeframe = "minute", multiplier = 5, from = lubridate::floor_date(Sys.Date(), "year"), after = NULL, until = NULL, limit = NULL, to = NULL, full = TRUE, unadjusted = FALSE)
 
-market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE) {
+market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from = NULL, to = NULL, after = NULL, until = NULL, limit = NULL, full = FALSE, unadjusted =  FALSE, adjustment = c('raw', "split", "dividend", "all")[1]) {
   evar <- environment()
   evar$.vn = list(
     symbol = "character",
@@ -101,6 +102,7 @@ market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from =
     limit = c("integer", "numeric", "NULL"),
     full = "logical",
     unadjusted = "logical",
+    adjustment = "character",
     bounds = c("list"),
     cal = c("data.frame", "tibble"),
     tqs = "character",
@@ -109,7 +111,7 @@ market_data <- function(symbol, v = 2, timeframe = "day", multiplier = 1, from =
   
   evar$tqs <- c("lt", "tr", "lq", "qu", "ss")
   evar$is_tqs <- FALSE
-  
+  adjustment <- match_letters(adjustment, c('raw', "split", "dividend", "all"))
   
   # Process & Bind important variables:  Thu Mar 26 08:40:24 2020 ----
   evar_bind() 
@@ -297,6 +299,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
   .vn <- evar$.vn[c(
     "v",
     "unadjusted",
+    "adjustment",
     "limit", 
     "timeframe",
     "multiplier",
@@ -369,6 +372,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         start = bounds$from %||% bounds$after,
         end = bounds$to %||% bounds$until,
         limit = limit,
+        adjustment = adjustment,
         page_token = rlang::dots_list(...)$page_token,
         timeframe = paste0(multiplier, timeframe)
       )
