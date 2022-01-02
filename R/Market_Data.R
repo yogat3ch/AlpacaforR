@@ -379,6 +379,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
     ))
     if (v == 2 && timeframe %in% tqs)
       .query$timeframe = NULL
+      .query$adjustment = NULL
     # Build the url
     if (isTRUE(length(.symbol) == 1)) {
       .args <- list(path = .path,
