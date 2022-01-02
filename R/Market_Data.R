@@ -367,7 +367,7 @@ bars_url <- function(symbol, ..., evar = get0("evar", mode = "environment", envi
         end = bounds$to,
         until = bounds$until
       ),
-      . == 2 && timeframe == "ss" ~ list(symbols = .symbol),
+      . == 2 && timeframe == "ss" && length(symbol) > 1 ~ list(symbols = .symbol),
       . == 2 ~ list(
         start = bounds$from %||% bounds$after,
         end = bounds$to %||% bounds$until,
