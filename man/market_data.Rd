@@ -15,8 +15,7 @@ market_data(
   until = NULL,
   limit = NULL,
   full = FALSE,
-  unadjusted = FALSE,
-  adjustment = c("raw", "split", "dividend", "all")[1]
+  unadjusted = FALSE
 )
 }
 \arguments{
@@ -76,7 +75,7 @@ For the \code{"polygon"} API, this can be any positive \code{integer}. \strong{D
 
 \item{unadjusted}{\emph{polygon only} \code{(logical)} Set to \code{TRUE} if the results should \strong{NOT} be adjusted for splits. \strong{Default} \code{FALSE}.}
 
-\item{adjustment}{\emph{v2 only} \code{(character)} Specifies the corporate action adjustment for the stocks. Possible values: 'raw', 'split', 'dividend' or 'all'. \strong{Default} \code{'raw'}.}
+\item{adjustment}{\emph{Deprecated} \code{(character)} Specifies the corporate action adjustment for the stocks. Possible values: 'raw', 'split', 'dividend' or 'all'. \strong{Default} \code{'raw'}.}
 }
 \value{
 \code{tsymble} object if just one symbol is requested, otherwise a \verb{named list} of \code{tsymble} objects for each ticker symbol.
@@ -102,7 +101,7 @@ For a full overview of how the Polygon.io Aggregates endpoint behaves, check out
 }
 \examples{
 \dontrun{
-# Getting data for the last week from the v1 API: 
+# Getting data for the last week from the v1 API:
 market_data(symbol = c("INTC","MSFT"), v = 1, from = Sys.Date() - lubridate::weeks(1))
 # Getting price data with specific date ranges and timeframes with limit on the number of bars returned
 market_data(symbol = c("INTC","MSFT"), from = "2019-03-20", to = "2019-04-01", multiplier = 15, timeframe = "min", limit = 175, v = 1)

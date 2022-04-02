@@ -4,7 +4,7 @@
 \alias{clock}
 \title{Get Clock function}
 \usage{
-clock(tz = NULL)
+clock(tz = Sys.getenv("TZ"))
 }
 \arguments{
 \item{tz}{\code{(character)} A timezone (See \code{\link[base]{timezones}} or use \code{OlsonNames()})  to determine how the market hours compare to the \code{tz} hours. If no \code{tz} argument is provided, and the local timezone differs from "America/New_York", \code{clock} will automatically provide the local conversion and offset.}
