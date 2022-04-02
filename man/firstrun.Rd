@@ -5,9 +5,9 @@
 \title{First Run Credential Setup}
 \usage{
 firstrun(
-  paper_api,
-  live_api,
-  polygon_api,
+  paper_api = NULL,
+  live_api = NULL,
+  polygon_api = NULL,
   pro = FALSE,
   live = FALSE,
   scope = c("user", "project")

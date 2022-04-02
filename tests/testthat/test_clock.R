@@ -15,10 +15,9 @@ vcr::use_cassette("clock_timezone", {
 test_that("clock returns the appropriate response when timezone is different", {
   withr::with_envvar(c(TZ = "America/Los_Angeles"), {
     .c <- clock()
-    expect_s3_class(do.call(c, unlist(purrr::compact(purrr::map(.c, ~{if (length(.x) > 1) .x[1:2]})), recursive = F)), "POSIXct")
-    expect_s4_class(.c$next_close$offset, "Period")
-    expect_named(.c$next_close, c("market", "local", "offset"))
+    expect_s3_class(rlang::exec(c, !!!.c$local[c("timestamp", "next_open", "next_close")]), "POSIXct")
+    expect_s4_class(.c$local$offset, "Period")
   })
-  
+
 })
 })

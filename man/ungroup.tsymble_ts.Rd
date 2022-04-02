@@ -10,6 +10,10 @@
 \item{x}{A \code{\link[dplyr:tbl]{tbl()}}}
 
 \item{...}{In \code{group_by()}, variables or computations to group by.
+Computations are always done on the ungrouped data frame.
+To perform computations on the grouped data, you need to use
+a separate \code{mutate()} step before the \code{group_by()}.
+Computations are not allowed in \code{nest_by()}.
 In \code{ungroup()}, variables to remove from the grouping.}
 }
 \value{

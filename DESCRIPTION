@@ -30,8 +30,28 @@ Suggests: pkgload, testthat, withr, knitr, rmarkdown, qpdf, vcr,
         webmockr, RPushbullet
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Imports: cli, crayon, dplyr, generics, glue, httr, jsonlite, lubridate,
-        magrittr, purrr, R6, rlang, stats, stringr, tibble, tidyselect,
-        tsibble, utils, UU, vctrs, websocket
+Imports: 
+    cli,
+    crayon,
+    dplyr,
+    generics,
+    glue,
+    httr,
+    jsonlite,
+    lifecycle,
+    lubridate,
+    magrittr,
+    purrr,
+    R6,
+    rlang,
+    stats,
+    stringr,
+    tibble,
+    tidyselect,
+    tsibble,
+    utils,
+    UU,
+    vctrs,
+    websocket
 Remotes: yogat3ch/UU
 RdMacros: lifecycle

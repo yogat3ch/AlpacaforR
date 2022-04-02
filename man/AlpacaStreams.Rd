@@ -4,8 +4,7 @@
 \alias{AlpacaStreams}
 \title{Alpaca Websocket Streaming}
 \description{
-An \code{R6} class that allows interaction with \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca} and \href{https://polygon.io/sockets}{Polygon} websockets.
-\lifecycle{experimental}
+An \code{R6} class that allows interaction with \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca} and \href{https://polygon.io/sockets}{Polygon} websockets. \lifecycle{experimental}
 }
 \section{Channels}{
 Channels are joined by calling the \verb{$channel()} method. The socket is automatically detected based on the channel request.

@@ -30,7 +30,7 @@ auth.AlpacaSocket <- function(self, live) {
 auth.PolygonSocket <- function(self, live) {
   .auth <- jsonlite::toJSON(list(action = c("auth"),
                                  params = get_key("p")), complex = "string", auto_unbox = TRUE)
-  
+
   self$
     send(.auth)
 }
@@ -52,7 +52,7 @@ url_to_path <- function(url) {
 
 #' @title Prepare to record websocket data
 #' @description Create folders & files for recording based on inputs
-#' @param write_dir \code{(character/logical)} **Default: "AlpacaStreams"** top-level directory in which to store log files. 
+#' @param write_dir \code{(character/logical)} **Default: "AlpacaStreams"** top-level directory in which to store log files.
 #' @param url \code{(character)} the url of the stream for labelling the folder in which it's logs will reside
 #' @param channel \code{(character)} The name of the channel (will be used as the filename)
 #' @param overwrite \code{(logical)} **Default: `FALSE`** Indicator for whether to overwrite previous log files by making new files (`TRUE`) or to leave old files (`FALSE`)
@@ -61,7 +61,7 @@ url_to_path <- function(url) {
 
 write_prep <- function(write_dir, url, channel, overwrite, private) {
   # Prepare for msg writing to disk
-  
+
   if (is.character(write_dir)) {
     # check the private options to see if it's already been overwritten
     if (is.null(private$.opts[[channel]])) private$.opts[[channel]] <- list()
@@ -72,7 +72,7 @@ write_prep <- function(write_dir, url, channel, overwrite, private) {
       # if directory paths are provided, create them if need be
       if (grepl("\\/", logfile)) {
         .paths <- stringr::str_split(logfile, "/")[[1]] %>%
-          .[-length(.)] %>% 
+          .[-length(.)] %>%
           subset(subset = !. %in% stringr::str_split(getwd(), "/")[[1]])
         purrr::walk(purrr::accumulate(.paths, ~{
           .p <- paste0(.x,"/",.y)
@@ -86,8 +86,8 @@ write_prep <- function(write_dir, url, channel, overwrite, private) {
       private$.opts[[channel]]$overwrite <- FALSE
     }
     private$.opts[[channel]]$logfile <- logfile
-  } 
-  
+  }
+
 }
 
 #' @title Extract the socket name from class of object
@@ -148,7 +148,7 @@ event_channel.data.frame <- function(msg)
 {
   .type <- msg$ev %||% msg$`T`%||% msg$stream
   .sym <- msg$sym %||% msg$S
-  if (suppressWarnings(grepl("^T|^B|^Q|^A|(?:^AM)", .type, ignore.case = TRUE))) 
+  if (suppressWarnings(grepl("^T|^B|^Q|^A|(?:^AM)", .type, ignore.case = TRUE)))
     channel <- paste0(.type,".",.sym)
   else if (isTRUE(.type %in% c("status", "success", "error", "subscription", "authorization", "listening")))
     channel <- "status"
@@ -189,7 +189,7 @@ msg <- function(event, msg = NULL, channel = NULL) {
     ))),
     class = c("msg", "tbl_df", "tbl", "data.frame")
   )
-  
+
 }
 
 
@@ -233,10 +233,10 @@ console_msg = function(msg, opts) {
     )
     if (suppressWarnings(inherits(msg$msg, "ansi_string")))
       msg$msg
-    else 
+    else
       print(msg[-c(1:2)])
-    
-    
+
+
   }
 }
 
@@ -258,7 +258,7 @@ is_ws_bars <- function(msg) {
 #' @inheritParams console_msg
 #' @inheritParams write_prep
 #' @keywords Internal
- 
+
 log_msg <- function(msg, opts, private) {
   .channel <- unique(msg$channel)
   if (length(.channel) > 1) rlang::abort("Channel must be length 1")
@@ -271,7 +271,7 @@ log_msg <- function(msg, opts, private) {
         if (private$bars_warn) {
           cli::cli_text(cli::col_red("Bars limit reached, old bars will be deleted."))
           private$bars_warn <- FALSE
-        } 
+        }
         .bars <- .bars[-1,]
       }
       private$.bars[[.channel]] <- .bars
@@ -283,13 +283,13 @@ log_msg <- function(msg, opts, private) {
         if (private$limit_warn) {
           cli::cli_text(cli::col_red("Message limit reached, old messages will be deleted."))
           private$limit_warn <- FALSE
-        } 
+        }
         .log <- .log[-1,]
-      } 
+      }
       private$.log[[.channel]] <- .log
     }
   }
-    # Memory bailout 
+    # Memory bailout
     # Wed Jan 20 15:16:26 2021
   if(utils::memory.size() / utils::memory.limit() > .9) {
     if (utils::memory.size() / utils::memory.limit() > .98) stop("Memory at 98% capacity, stopping websocket.")
@@ -298,7 +298,7 @@ log_msg <- function(msg, opts, private) {
   }
 }
 
-#' @title Write messages to disk 
+#' @title Write messages to disk
 #' @description Write messages based on conditions supplied as options to *Socket object (stored as logfile in private fields).
 #' @inheritParams console_prefix
 #' @inheritParams write_prep
@@ -311,7 +311,7 @@ write_msg <- function(msg, private) {
     # remove superfluous columns if recording bars
     if (is_ws_bars(msg))
       msg <- msg[!names(msg) %in% c("channel", "socket", "ev")]
-    
+
     if (private$.opts[[.channel]]$do_label %||% TRUE) {
       .head <- readLines(.logfile)
       write(c(paste0(names(msg), collapse = ", "), .head),
@@ -332,7 +332,7 @@ channel_names <- function(channel) {
 channel_set <- function(channel, socket) {
   # Set channel if unspecified
   if (socket == "Alpaca") {
-    if (is.null(channel)) 
+    if (is.null(channel))
       .s <- list("trade_updates", "account_updates")
     else if (!any(.tbq %in% names(channel))) {
       .s <- as.list(match.arg(
@@ -345,10 +345,10 @@ channel_set <- function(channel, socket) {
       .s <- channel
     }
   } else if (socket == "Polygon") {
-    if (is.null(channel)) rlang::abort("Polygon requires a channel to be specified.\nSee ?AlpacaStreams") 
+    if (is.null(channel)) rlang::abort("Polygon requires a channel to be specified.\nSee ?AlpacaStreams")
     .s <- toupper(channel)
-  } 
- .s 
+  }
+ .s
 }
 
 
@@ -360,7 +360,7 @@ channel_set <- function(channel, socket) {
 socket_detect <- function(channel) {
   # Detect socket based on channel
   purrr::when(channel,
-              inherits(., "list") ~ "Alpaca", 
+              inherits(., "list") ~ "Alpaca",
               stringr::str_detect(., "^\\w{1,2}\\.") ~ "Polygon",
               ~ "Alpaca"
               )
@@ -388,9 +388,9 @@ channel_get <- function(channel, private) {
         rlang::warn(paste0(channel, " not found, returning all."))
         private$.log
       }))
-  
-  
-  
+
+
+
 }
 
 # Account information:
@@ -412,7 +412,7 @@ AlpacaSocket <- R6::R6Class(
   "AlpacaSocket",
   inherit = websocket::WebSocket,
   public = list(
-    #' @description Connect to an Alpaca websocket 
+    #' @description Connect to an Alpaca websocket
     #' @param opts passed from  \link[AlpacaforR]{AlpacaStreams}
     #' @param ... passed on to \link[websocket]{WebSocket}
     initialize = function(opts, ...) {
@@ -425,8 +425,8 @@ AlpacaSocket <- R6::R6Class(
         overwrite = opts$overwrite,
         private = private
       )
-      
-      
+
+
       super$onMessage(function(event) {
         .msg <- msg(event)
         private$message_handle(.msg)
@@ -437,21 +437,21 @@ AlpacaSocket <- R6::R6Class(
           .the_env <- rlang::env(attr(.user_quo, ".Environment"), msg = .msg, self = self)
           # eval the expression in that environment
           rlang::eval_bare(.the_expr, env = .the_env)
-          # grab the variables supplied by the user that ended up in the evaluation environment from the parent by negating the developer supplied variables from the `ls` results 
+          # grab the variables supplied by the user that ended up in the evaluation environment from the parent by negating the developer supplied variables from the `ls` results
           .vars <- rlang::env_get_list(.the_env, stringr::str_subset(ls(.the_env), "(?:msg)|(?:self)", negate = TRUE), default = NULL)
-          
+
           # add the env from the quosure to reassign them to
           .vars$.env <- attr(.user_quo, ".Environment")
           # reassign them
           rlang::exec(rlang::env_bind, !!!.vars)
         }
-          
-          
+
+
       })
-      
+
       super$onOpen(function(event) {
         if (class_prefix(event$target) == "Alpaca") {
-          
+
           .msg <- msg(event,
                       purrr::when(
                         self$readyState() == 1,
@@ -462,7 +462,7 @@ AlpacaSocket <- R6::R6Class(
           private$message_handle(.msg)
         }
       })
-      
+
       super$onClose(function(event) {
         .r <- switch(
           as.character(event$code),
@@ -480,7 +480,7 @@ AlpacaSocket <- R6::R6Class(
         .msg <- msg(event, .msg, channel = "status")
         private$message_handle(.msg)
       })
-      
+
       super$onError(function(event) {
         .msg <- cli::col_red(msg(event))
         private$message_handle(.msg, channel = "status")
@@ -498,7 +498,7 @@ AlpacaSocket <- R6::R6Class(
     logs = function(channel) {
       .socket <- class_prefix(self)
       .ch <- missing(channel)
-      
+
       purrr::when(.socket,
                   . == "Polygon" && .ch ~ list(log = private$.log, bars = private$.bars),
                   . == "Polygon" && !.ch ~ channel_get(channel, private),
@@ -506,7 +506,7 @@ AlpacaSocket <- R6::R6Class(
                   . == "Alpaca" && !.ch ~ channel_get(channel, private))
     },
     #' @description Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden. **Notes** 1. the Polygon website is only available to Polygon subscribers. 2. The `sip` data stream is only available to Alpaca PRO subscribers.
-    #' @param channel The channel to join. 
+    #' @param channel The channel to join.
 #' \itemize{
 #'   \item{For Alpaca v1: \code{(character)} vector of symbols}
 #'   \item{For Alpaca Data v2: \code{(named list)} Items with names `trades`, `quotes`, `bars` are accepted. See the \href{Alpaca v2 Data Streaming websocket docs}{https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time#subscribe} for details.}
@@ -516,10 +516,10 @@ AlpacaSocket <- R6::R6Class(
     #' @param overwrite \code{(logical)} **Default** `FALSE`. Set to `TRUE` to overwrite data from previous instances of this channel socket.
     #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}.
     #' @param ... Named arguments from \code{AlpacaStreams$new()}
-    #' @details 
+    #' @details
 
     #' If `log = TRUE` for a Polygon channel, all non-status messages will be stored as tibbles named according to their respective channel name and accessed via the `$logs()` method.
-    
+
     channel = function(
       channel = NULL,
       subscribe = TRUE,
@@ -527,7 +527,7 @@ AlpacaSocket <- R6::R6Class(
       msg_action = NULL,
       ...
     ) {
-  
+
       socket <- socket_detect(channel)
       # Save options
       .d <- rlang::dots_list(...)
@@ -537,7 +537,7 @@ AlpacaSocket <- R6::R6Class(
                       rlang::list2(self$opts,
                                    !!!.d,
                                     overwrite = overwrite))
-        
+
         write_prep(
           write_dir = self$opts[[.x]]$write_dir,
           channel = .x,
@@ -564,13 +564,13 @@ AlpacaSocket <- R6::R6Class(
         .listen <- purrr::map(toupper(channel), ~ jsonlite::toJSON(list(
           action = ifelse(subscribe, "subscribe", "unsubscribe"),
           params = .x
-        ), 
+        ),
         auto_unbox = TRUE))
       }
       # Send
       purrr::walk(.listen, ~self$send(.x))
-      
-      
+
+
     },
     #' @description Authorize the stream (this is done automatically when initializing via the `AlpacaStreams` class.)
     auth = function() auth(self)
@@ -592,7 +592,7 @@ AlpacaSocket <- R6::R6Class(
       # log msg history, if requested
       log_msg(msg, self$opts, private = private)
       # write msg history, if requested
-      write_msg(msg, private) 
+      write_msg(msg, private)
     },
     .bars = list()
   )
@@ -610,9 +610,8 @@ PolygonSocket <- R6::R6Class(
 )
 
 #' @title Alpaca Websocket Streaming
-#' @description An `R6` class that allows interaction with \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca} and \href{https://polygon.io/sockets}{Polygon} websockets. 
-#' \lifecycle{experimental}
-#' @details 
+#' @description An `R6` class that allows interaction with \href{https://alpaca.markets/docs/api-documentation/api-v2/streaming/}{Alpaca} and \href{https://polygon.io/sockets}{Polygon} websockets. \lifecycle{experimental}
+#' @details
 #' # Channels
 #' Channels are joined by calling the `$channel()` method. The socket is automatically detected based on the channel request.
 #' ## [Available Alpaca Channels](https://alpaca.markets/docs/api-documentation/api-v2):
@@ -648,7 +647,7 @@ PolygonSocket <- R6::R6Class(
 #'   \item{`s`}{ Trade Size}
 #'   \item{`c`}{ Trade Conditions}
 #'   \item{`t`}{ Trade Timestamp ( Unix MS )}
-#' } 
+#' }
 #' ### Quote
 #' \itemize{
 #'   \item{`ev`}{ Event Type}
@@ -661,7 +660,7 @@ PolygonSocket <- R6::R6Class(
 #'   \item{`as`}{ Ask Size}
 #'   \item{`c`}{ Quote Condition}
 #'   \item{`t`}{ Quote Timestamp ( Unix MS )}
-#' } 
+#' }
 #' ### Agg
 #' \itemize{
 #'   \item{`ev`}{ Event Type ( A = Second Agg, AM = Minute Agg )}
@@ -678,7 +677,7 @@ PolygonSocket <- R6::R6Class(
 #'   \item{`s`}{ Tick Start Timestamp ( Unix MS )}
 #'   \item{`e`}{ Tick End Timestamp ( Unix MS )}
 #' }
-#' @examples 
+#' @examples
 #' \dontrun{
 #' AS <- AlpacaStreams$new()
 #' AS$channel()
@@ -701,18 +700,18 @@ AlpacaStreams <- R6::R6Class(
     #'   \item{\code{`"data_alpaca"/"a"`}}{ Alpaca real-time data websockets}
     #'   \item{\code{`"polygon"/"p"`}}{ Polygon websockets **Polygon Subscription Required**}
     #' }
-   
+
     #' @param toConsole \code{(logical)} flag for whether to report websocket messages to the console. **Default** `TRUE`.
     #' @param log \code{(logical)} flag for whether to retain a log of messages (from Alpaca) or messages & bars from symbol feeds from Polygon. **Default** `TRUE` to store logs.
     #' @param log_limit \code{(numeric)} indicating the number of previous messages to retain in the log. **Default** `5000`. See Details for memory handling specifics.
     #' @param bars_limit \code{(numeric)} indicating the number of previous bars (per subscription feed) to retain in the log. **Default** `5000`. See Details for memory handling specifics.
     #' @param write_dir \code{(character/logical)} The directory in which to store logs on disk. Use `FALSE` to disable logging to disk. Folders will be created. **Default** `"AlpacaStreams"`.
     #' @param overwrite \code{(logical)} indicating whether to overwrite data from previous instances of a websocket connection. **Default** `TRUE`.
-    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}. 
+    #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}.
     #' @param live Whether to connect to the live or paper API. See ?account for details.
     #' @param pro \code{(logical)} Whether to use a Pro account. See \link{get_pro}
     #' @param ... Passed on to \link[websocket]{WebSocket}
-     
+
      initialize = function(socket = c("account_alpaca", "data_alpaca", "polygon")[1:2],
                           toConsole = TRUE,
                           log = TRUE,
@@ -724,17 +723,17 @@ AlpacaStreams <- R6::R6Class(
                           live = get_live(),
                           pro = get_pro(),
                           ...) {
-      
+
       socket <- match_letters(socket, "account_alpaca", "data_alpaca", "polygon", multiple = TRUE)
       force(write_dir)
       # Set default opts
-      .opts <- ls() 
+      .opts <- ls()
       .opts <- rlang::env_get_list(nms = .opts[!.opts %in% c("self", "socket", "msg_action")], default = NULL)
-      
+
       if (!is.null(msg_action) && !rlang::is_quosure(msg_action))
         msg_action <- rlang::enquo(msg_action)
       .opts$msg_action <- msg_action
-      
+
       if (any("Polygon" %in% socket)) {
         self$Polygon <- PolygonSocket$new(
           opts = .opts,
@@ -742,9 +741,9 @@ AlpacaStreams <- R6::R6Class(
           autoConnect = FALSE,
           ...
         )
-        
+
       }
-      
+
       # fetch subscription
       if (any(grepl("alpaca", socket))) {
         .dots <- rlang::dots_list(...)
@@ -763,7 +762,7 @@ AlpacaStreams <- R6::R6Class(
               !!!.dots
             ))
           })
-        
+
       }
 
       on.exit({
@@ -779,7 +778,7 @@ AlpacaStreams <- R6::R6Class(
     #' @param msg_action \code{(expression)} An expression that performs a user-specified action on the receipt of websocket message. These act on the `msg` object seen printed to the console when a message is received (if `toConsole = TRUE`). The `msg` object also contains a `$ts` column with the timestamp as a `POSIXct` and a `$socket` column with the socket name of origin (`"Alpaca"/"Polygon"`) that are not visible in what is printed to the console but accessible to `msg_action`. The expression can also reference the `self` internal environment of this \code{\link[R6]{R6Class}}.
     #' @param ... Named parameters of \code{AlpacaStreams$new()} to be applied to this particular channel.
     #' @details If `log = TRUE` for a Polygon channel, all non-status messages will be stored as tibbles named according to their respective channel name and accessed via the `$logs()` method.
-    #' @export 
+    #' @export
     channel = function(channel = NULL,
                        subscribe = TRUE,
                        overwrite = FALSE,
@@ -788,9 +787,9 @@ AlpacaStreams <- R6::R6Class(
     ) {
       # set the channel
       socket <- socket_detect(channel)
-      if (!missing(msg_action)) 
+      if (!missing(msg_action))
         msg_action <- rlang::enquo(msg_action)
-      
+
       .list <- rlang::dots_list(...)
       # Detect socket based on channel
       ws <- purrr::when(socket,
@@ -800,8 +799,8 @@ AlpacaStreams <- R6::R6Class(
       if (is.null(channel))
         channel <- "trade_updates"
       rlang::exec(ws$channel, channel = channel, subscribe = subscribe, overwrite = overwrite, msg_action = msg_action, !!!.list)
-      
-        
+
+
     },
     #' @description Retrieve *Socket Logs/Bars
     #' @param channel \code{(character)} The name of the channel for which to retrieve logs. The socket is auto-filled if a matching channel is available. If blank, all logs are returned.

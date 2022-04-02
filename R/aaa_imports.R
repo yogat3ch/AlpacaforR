@@ -48,7 +48,6 @@
 #' @importFrom vctrs vec_is vec_ptype
 
 # R/FirstRun.R
-#' @importFrom usethis proj_get
 #' @importFrom purrr compact map_dbl iwalk
 #' @importFrom rlang set_names list2 is_empty
 #' @importFrom stringr str_which str_detect
