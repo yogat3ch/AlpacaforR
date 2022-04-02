@@ -1,8 +1,5 @@
 
 
-glubort <- function(..., .sep = "", .envir = parent.frame()) {
-  rlang::abort(glue(..., .sep = .sep, .envir = .envir))
-}
 
 
 
@@ -15,7 +12,7 @@ is_inf <- function(.x) {
   out
 }
 
-#' @title fetch variables 
+#' @title fetch variables
 #' @description Fetches variables from environment of containing function for use in internal function
 #' @keywords internal
 #' @param .vn named vector of variable names with their corresponding classes - to be tested with \link[base]{inherits}
@@ -47,7 +44,7 @@ fetch_vars <- function(.vn,
                                # if the variables in cenv are not of appropriate type, then keep them in the search.
                                `[`(!purrr::imap_lgl(
                                  ., ~ inherits(get0(.y, cenv), .x)
-                               )), 
+                               )),
                              # if the variables are absent in cenv then search for them
                              .vn[!names(.vn) %in% ls(cenv)]))
   if (rlang::is_empty(.vn)) return(NULL)
@@ -67,7 +64,7 @@ fetch_vars <- function(.vn,
 
 tf_as_duration <- function(multiplier, timeframe) {
   if (timeframe == "quarter") {
-    .tf_dur <- lubridate::duration(3 * multiplier, ifelse(timeframe == "quarter", "months", timeframe))  
+    .tf_dur <- lubridate::duration(3 * multiplier, ifelse(timeframe == "quarter", "months", timeframe))
   } else {
     .tf_dur <- lubridate::duration(multiplier, timeframe)
   }
@@ -78,7 +75,7 @@ tf_as_duration <- function(multiplier, timeframe) {
 
 
 # get_headers Get Headers for Server Request function  ----
-# Sun Mar 29 16:05:32 2020  
+# Sun Mar 29 16:05:32 2020
 #' @title return headers for API calls
 #'
 #' @keywords internal
@@ -96,7 +93,7 @@ get_headers <- function(live = get_live()){
 # get_url for Server Request ----
 # Sun Mar 29 16:02:51 2020
 #' @title Return the Alpaca URL
-#' 
+#'
 #' @description  Get the correct URL for the Server Request that is sent to interact with the API. If the user is on a paper account, then the paper account URL will be returned.  See \link[httr]{parse_url} & \link[httr]{build_url} for details.
 #' @param path \code{(character)} of values to append to the url path ie  `c("p1","p2")` become `url/p1/p2`
 #' @param query \code{(named list)} of values to add as query parameters
@@ -117,7 +114,7 @@ get_url <-
            poly = FALSE,
            api = c("api", "ws")[1]
   ) {
-  
+
   if (poly) {
     .url <- list(
       scheme = ifelse(api == "ws", "wss", "https"),
@@ -155,7 +152,7 @@ get_url <-
   # Don't add version to path if:
   # - Using polygon websocket or Alpaca v1 websocket
   # and only if the input url doesn't already have vX
-  
+
   .url$path <- purrr::compact(list(purrr::when(isTRUE(grepl("v\\d", path)),
                                 !. && api == "ws" && isFALSE(data) ~ NULL,
                                 !. ~ paste0("v", v)
@@ -164,13 +161,13 @@ get_url <-
               isTRUE(.) && api == "ws" ~ "stocks",
               isFALSE(.) && v == 1 && api == "ws" ~ "stream",
               ~ NULL)))
-  
+
   if (!is.null(path))
     .url$path <- append(.url$path, path)
 
   # Add dots
-  
-    
+
+
   # Add polygon apiKey to end of query for Polygon EPs
   if (!missing(query)) {
     if (rlang::dots_n(...) > 0)
@@ -180,7 +177,7 @@ get_url <-
     #.url$query <- purrr::map_if(query, is.character, utils::URLencode, reserved = TRUE)
     .url$query <- query
   }
-    
+
   return(httr::build_url(.url))
 }
 
@@ -188,9 +185,9 @@ get_url <-
 # response_text_clean Clean data from Server Response function  ----
 # Sun Mar 29 16:02:00 2020
 #' @title Clean API responses
-#' 
-#' @description Clean the response text (usually in unreadable json) and convert to a readable format using \link[jsonlite]{fromJSON}. 
-#' @param x The response from our server GET request 
+#'
+#' @description Clean the response text (usually in unreadable json) and convert to a readable format using \link[jsonlite]{fromJSON}.
+#' @param x The response from our server GET request
 #' @keywords internal
 #' @return The response in a readable format as a list.
 response_text_clean <- function(x){
@@ -208,8 +205,8 @@ response_text_clean <- function(x){
         tzone = "America/New_York"
       )
     )
-  } 
-  
+  }
+
   if (length(x$content) == 0) {
     # If empty, return empty list
     out <- list()
@@ -217,20 +214,20 @@ response_text_clean <- function(x){
     if (inherits(x, "response"))
       x = httr::content(x, as = "text", encoding = "UTF-8")
     # if it's just text, return as is, otherwise fromJSON will throw an error.
-    
-    out <- tryCatch(jsonlite::fromJSON(x), error = rlang::as_function(~{x})) 
+
+    out <- tryCatch(jsonlite::fromJSON(x), error = rlang::as_function(~{x}))
   }
-  
-  
-  
+
+
+
   if (grepl("aggs|(?:v2/stocks)", query$url)) {
     query <- append(query, out[!names(out) %in% c("results", "bars")])
     out <- suppressWarnings(out$results %||% out$bars %||% out)
   }
-  
+
   attr(out, "query") <- query
   check_response(out)
-  
+
   return(out)
 }
 
@@ -241,11 +238,11 @@ check_response <- function(resp, query = NULL) {
   } else if(grepl(pattern = "^4", x = query$status_code)) {
     if (is_legit(resp))
       .m <- tryCatch(resp$message, error = rlang::as_function(~{resp}))
-    glubort("code: {query$status_code}\nmessage: {.m}")
+    UU::gbort("code: {query$status_code}\nmessage: {.m}")
   }
-  
+
   .warn <- try({NROW(resp) > 0})
-  if (is_error(.warn)) 
+  if (is_error(.warn))
     rlang::warn(paste0(query$symbol, " returned no data."))
 
 }
@@ -267,9 +264,9 @@ is_id <- function(.) {
 
 # Format orders to workable and readable format before returning
 #' @title Convert money strings to numeric
-#' 
+#'
 #' @description remove $ from cash quantity strings and convert to numeric
-#' @keywords internal 
+#' @keywords internal
 toNum <- function(x) {
   out <- as.numeric(stringr::str_replace_all(x, "\\$|\\,", ""))
   if (all(is.na(out)))
