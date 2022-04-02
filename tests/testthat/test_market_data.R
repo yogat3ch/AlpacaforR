@@ -11,7 +11,7 @@ test_that("bars_bounds returns NA when unexpected parameters are provided", {
 
 
 test_that("market_data_errors_when_incompatible_arguments_are_requested", {
-  
+
   expect_error(
     market_data(
       "BYND",
@@ -56,14 +56,14 @@ test_that("bars_bounds returns boundaries as anticipated", {
       list(bounds = evar$bounds,
            cal = evar$cal)
     })
-    
+
   }) %>%
     tibble::as_tibble()
   .object <- tibble::as_tibble(purrr::map_depth(setNames(.bounds, paste0(.pre, "_bounds")), 2, ~ {
     .x$bounds
   }))
-  
-  expect_identical(.object, dplyr::ungroup(dplyr::select(test_market_data$bars, dplyr::ends_with("_bounds")))) 
+
+  expect_identical(.object, dplyr::ungroup(dplyr::select(test_market_data$bars, dplyr::ends_with("_bounds"))))
 })
 
 
@@ -76,13 +76,13 @@ test_that("bars_bounds returns boundaries as anticipated", {
     rlang::exec(evar_bind, !!!.vars, bounds = .vars[[paste0(.pre, "_bounds")]])
     .url <- bars_url("AMZN", evar = evar)
     .lab <- paste0("bars_get_",.sym,"_",..1,..2)
-    
+
     .expected <- test_market_data$bars %>%
       dplyr::filter(multiplier == .vars$multiplier &
                       timeframe == .vars$timeframe) %>%
-      {.[[paste0(.pre, "_data")]]} %>% 
+      {.[[paste0(.pre, "_data")]]} %>%
       get_tibble()
-    
+
     vcr::use_cassette(.lab, allow_playback_repeats = TRUE, {
       # added if since 1-day lower-bound returns no data
       if (is_legit(.expected)) {
@@ -119,10 +119,10 @@ test_that("bars_bounds returns boundaries as anticipated", {
         dplyr::filter(multiplier == .vars$multiplier & timeframe == .vars$timeframe) %>%
         dplyr::pull(paste0(.pre, "_complete")) %>%
         get_tibble()
-      
+
       if (is_legit(.expected)) {
         vcr::use_cassette(.lab, match_requests_on = "uri", {
-          
+
           test_that(.lab, {
             testthat::skip_on_cran()
             .object <- bars_complete(bars = .bars, evar = evar)
@@ -223,10 +223,10 @@ test_that("v2_trades_latest_trades_quotes_latest_quotes", {
         })
       .res
       })
-    
+
     purrr::walk2(results, test$timeframe, ~{
       res <- get_tibble(.x)
-      .nms <- switch(.y, 
+      .nms <- switch(.y,
              t = ,
              lt = nms$t,
              q = ,
@@ -234,7 +234,7 @@ test_that("v2_trades_latest_trades_quotes_latest_quotes", {
       expect_identical(names(res), .nms)
       expect_s3_class(time_index(res, "v"), "POSIXct")
     })
-  
+
 })
 
 
@@ -249,7 +249,7 @@ testthat::test_that("v2_ss", {
     .res
   })
   test <- rlang::as_function(~{
-    .nms <- switch(stringr::str_extract(.y, stringr::regex("trade|quote|bar", ignore_case = TRUE)), 
+    .nms <- switch(stringr::str_extract(.y, stringr::regex("trade|quote|bar", ignore_case = TRUE)),
                    Trade = nms$t,
                    Quote = nms$q,
                    Bar = nms$b)
@@ -257,7 +257,7 @@ testthat::test_that("v2_ss", {
     expect_s3_class(time_index(.x, "v"), "POSIXct")
   })
   purrr::iwalk(results[[1]], test)
-  
+
   purrr::walk(results[[2]], ~{
     purrr::iwalk(.x, test)
   })
