@@ -7,7 +7,7 @@ test_that("clock returns the appropriate response", {
   expect_type(.c$is_open, "logical")
   expect_s3_class(do.call(c, .c[c(1,3:4)]), "POSIXct")
   expect_true(is.list(.c))
-  expect_length(.c, 4)
+  expect_length(.c, 5)
 })
 })
 
