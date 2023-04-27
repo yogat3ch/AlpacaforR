@@ -237,8 +237,8 @@ check_response <- function(resp, query = NULL) {
     rlang::abort(paste("code:", resp$status, "\nmessage:", resp$error))
   } else if(grepl(pattern = "^4", x = query$status_code)) {
     if (is_legit(resp))
-      .m <- tryCatch(resp$message, error = rlang::as_function(~{resp}))
-    UU::gbort("code: {query$status_code}\nmessage: {.m}")
+      m <- tryCatch(resp$message, error = rlang::as_function(~{resp}))
+    UU::gbort("code: {query$status_code}\nmessage: {m}")
   }
 
   .warn <- try({NROW(resp) > 0})
