@@ -7,7 +7,7 @@
 # Wed Apr 22 20:23:46 2020
 #' @family Orders
 #' @title Get Orders
-#' 
+#'
 #' @description The orders API allows a user to monitor, place and cancel their orders with Alpaca. Times are returned as yyyy-mm-dd hh-mm-ss POSIXct, quantity and price as numeric, and all others as a string. See [Orders GET](https://alpaca.markets/docs/api-documentation/api-v2/orders#get-a-list-of-orders)for more details.
 #' @param symbol_id \code{(character)} Specify symbol, order ID, or client_order_id (must set `client_order_id = TRUE`).
 #' @param status \code{(character)} Order status to be queried. \code{open}, \code{closed} or \code{all}. Defaults to open as a string.
@@ -50,7 +50,7 @@
 #'  \item{\code{extended_hours}}{`(logical)` If true, eligible for execution outside regular trading hours}.
 #'  \item{\code{legs}}{`(character)` When querying non-simple order_class orders in a nested style, an array of Order entities associated with this order. Otherwise, null.}
 #' }
-#' @examples 
+#' @examples
 #' orders(live = FALSE)
 #' orders(status = "all")
 #' # For a specific symbol:
@@ -67,22 +67,22 @@ orders <-
            client_order_id = NULL,
            nested = T,
            live = get_live()) {
-    
+
     # Reassign for cases where symbol_id needs to be changed to some new value
     .s_id <- symbol_id
-    
+
     # Set URL & Headers
     headers = get_headers(live)
     # set status if abbreviated
     status <- match_letters(status, o = "open", c = "closed", a = "all")
     # check if id
     .is_id <- is_id(symbol_id)
-    
+
     if (isTRUE(client_order_id)) {
       # if it's a client order id
       .url <- get_url(
-        path = "orders:by_client_order_id", 
-        query = list(client_order_id = symbol_id), 
+        path = "orders:by_client_order_id",
+        query = list(client_order_id = symbol_id),
         live = live
       )
     } else if (isTRUE(.is_id)) {
@@ -112,13 +112,13 @@ orders <-
     }
 
     # yogat3ch: Create Query 2020-01-11 2157
-    
+
     if (isTRUE(get0(".dbg", envir = .GlobalEnv, mode = "logical", inherits = F))) message(paste0(.url))
     # Query
     out <- httr::GET(.url, headers)
     # Clean
     out <- order_transform(out)
-    
+
     return(out)
   }
 
@@ -126,7 +126,7 @@ orders <-
 # order_submit ----
 # Wed Apr 22 20:23:21 2020
 #' @family Orders
-#' @title Submit, Cancel & Replace Orders, 
+#' @title Submit, Cancel & Replace Orders,
 #' @description Places/Replaces/Cancels an order, or cancels all orders depending on argument to `action`. See parameter documentation and [Orders](https://alpaca.markets/docs/api-documentation/api-v2/orders) for details.Depending on the `action` specified, some arguments are required:
 #' \itemize{
 #'  \item{\code{action = 'submit'}}{ All arguments can be submitted. See Arguments for which are *required*.}
@@ -134,7 +134,7 @@ orders <-
 #'  \item{\code{action = 'cancel'}}{ Only `symbol_id` is *required*.}
 #'  \item{\code{action = 'cancel_all'}}{ No arguments necessary.}
 #'  }
-#' @param symbol_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object (single row tibble) (*Required* when `action = "cancel"/"replace"`). 
+#' @param symbol_id \code{(character)}  The stock symbol (*Required* when `action = "submit"`) or Order object (single row tibble) (*Required* when `action = "cancel"/"replace"`).
 #' To expedite the setting of stops and limits for open positions, an Order ID from a `'buy'` order can be provided when `action = "submit"` to place a `'sell'` order with the following parameters such that they do not need to be set manually:
 #' \itemize{
 #'   \item{\code{side = 'sell'}}
@@ -151,7 +151,7 @@ orders <-
 #'  \item{\code{"cancel_all"}}{ [Cancel all orders](https://alpaca.markets/docs/api-documentation/api-v2/orders/#cancel-all-orders)}
 #' }
 #' @param qty \code{(integer)} The amount of shares to trade (*required* when `action = "submit"`, *optional* when `action = 'replace'`).
-#' @param side \code{(character)} The side of the trade. I.E `"buy"/"b"` or `"sell"/"s"`. (*required* when `action = "submit"`). Assumed to be `"buy"` if `order_class = "bracket"`. 
+#' @param side \code{(character)} The side of the trade. I.E `"buy"/"b"` or `"sell"/"s"`. (*required* when `action = "submit"`). Assumed to be `"buy"` if `order_class = "bracket"`.
 #' @param type \code{(character)} The type of trade order. I.E `"market"/"m"`,`"limit"/"l"`,`"stop"/"s"`,`"stop_limit"/"sl"`, `"trailing_stop"/"ts"` etc. Default `NULL`. Typically *required* except in certain situations where the value can be assumed:
 #' \itemize{
 #'   \item{\code{stop} is set (and `type` is unset)}{ `type = "stop"/"s"`}
@@ -164,16 +164,16 @@ orders <-
 #'   \item{\code{trail_percent} is set}{ `type = "trailing_stop"`}
 #' }
 #' See [Understand Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders) for details.
-#' @param time_in_force \code{(character)} The time in force for the order. *Optional* when `action = "replace"`. Args can be `"day"`, `"gtc"`, `"opg"` etc. Default `"day"`. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders). 
-#' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`. 
+#' @param time_in_force \code{(character)} The time in force for the order. *Optional* when `action = "replace"`. Args can be `"day"`, `"gtc"`, `"opg"` etc. Default `"day"`. Please see [Understand Orders: Time in Force](https://alpaca.markets/docs/trading-on-alpaca/orders/#time-in-force) for all types and more info. Must be `"day"` or `"gtc"` for [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders).
+#' @param limit \code{(numeric)} limit price. *Required* if type is `"limit"` or `"stop_limit"` for `action = 'replace'/'submit'`.
 #' @param stop \code{(numeric)} stop price. *Required* if type is `"stop"` or `"stop_limit"` for `action = 'replace'/'submit'`.
 #' @param extended_hours \code{(logical)} Default \code{FALSE}. If \code{TRUE}, order will be eligible to execute in premarket/afterhours. Currently supported hours are: Pre-market: 9:00 - 9:30am, After-hours: 4:00 - 6:00pm ET. Only works with `type = 'limit'` and `time_in_force = 'day'` on the V2 API.
-#' @param client_order_id \code{(character/logical)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent. 
+#' @param client_order_id \code{(character/logical)}  <= 48 Characters.  A unique identifier for the order. Automatically generated if not sent.
 #' \itemize{
 #'   \item{\code{`action = 'replace'/'submit'`}}{ *Optional* character vector}
 #'  \item{\code{`action = 'submit'`}}{ If an Order object is provided to `symbol_id`, `TRUE` will set the `client_order_id` for the sell order to Order ID in `symbol_id`. Used to link buy & sell orders for your records.}
-#' } 
-#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'/'oto'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all advanced order types. 
+#' }
+#' @param order_class \code{(character)} `'simple'`, `'bracket'`, `'oco'` or `'oto'`. *Required for advanced orders.* For details of non-simple order classes, please see [Advanced Orders](https://alpaca.markets/docs/trading-on-alpaca/orders#bracket-orders). If `order_class = 'bracket'/'oto'`, `type` can be omitted as it will always be `'market'`, this is also true with `order_class = "oco"` as `type` will always be `'limit'`. *Note* that order replacement is not supported for all advanced order types.
 #' @param take_profit \code{(named list)} Additional parameters for take-profit leg of advanced orders:
 #' \itemize{
 #'  \item{\code{'limit_price'/'l'}}{ \code{numeric} **required** for `'bracket'` & `'oco'` order classes.}
@@ -187,9 +187,9 @@ orders <-
 #' @param trail_percent \code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99. Values less than 1 are assumed to be percentages, ie .07 = 7%, values must be less than 100.
 #' @inheritParams account
 #' @inherit orders return
-#' @examples 
+#' @examples
 #' \dontrun{
-#' # most orders (except limit) must be placed during market hours or they will not be filled until the next trading day. 
+#' # most orders (except limit) must be placed during market hours or they will not be filled until the next trading day.
 #' .c <- clock()
 #' if (.c$is_open) {
 #' #' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))
@@ -224,7 +224,7 @@ orders <-
 #' # all open orders can be canceled with `action = "cancel_all"`
 #' order_submit(action = "cancel_all")
 #' }
-#' 
+#'
 #' @export
 
 order_submit <-
@@ -244,25 +244,34 @@ order_submit <-
            trail_price,
            trail_percent,
            live = get_live()) {
-    
-    if (isTRUE(tolower(type) %in% c("trailing_stop", "ts")) || (!missing(trail_percent) || !missing(trail_price))) {
+
+    trail <- list(percent = !missing(trail_percent),
+                  price = !missing(trail_price))
+    if (isTRUE(tolower(type) %in% c("trailing_stop", "ts")) || do.call(`||`, trail)) {
       if (is.null(type))
         type <- "trailing_stop"
-      .ca <- rlang::call_args(tail(rlang::trace_back(bottom = 1)$calls, 1)[[1]])
-      stop_price <- grep("^trail", names(.ca), value = TRUE)
-      stopifnot(length(stop_price) == 1)
-      stop <- round(eval(.ca[[stop_price]]), 2)
+      val <- if (trail$percent) {
+        trail_percent
+      } else if (trail$price) {
+        trail_price
+      }
+      i <- which(unlist(trail))
+      stopifnot(length(val) == 1)
+      # The name of the argument that needs to be passed to the API - either trail_percent/price
+      stop_price <- paste0("trail_", names(i))
+      stop <- round(val, 2)
+      side = "sell"
     } else {
       stop_price <- "stop_price"
     }
-    
+
     ovar <- environment()
     ovar$.vn <-
       list(
         symbol_id = "character",
         action = "character",
         side = c("character", "NULL"),
-        type = c("character", "NULL"), 
+        type = c("character", "NULL"),
         qty = c("numeric", "integer", "NULL"),
         time_in_force = "character",
         limit = c("numeric", "integer", "NULL"),
@@ -277,7 +286,7 @@ order_submit <-
         trail_percent = c("numeric", "integer"),
         live = "logical"
       )
-    
+
     .cancel_all <- any(grepl("cancel_all", as.character(match.call()), ignore.case = T))
     if (!.cancel_all) {
       action <- substr(tolower(action), 0, 1)
@@ -285,24 +294,24 @@ order_submit <-
       order_symbol_id(symbol_id)
     } else {
       action = "c"
-    } 
-    
-    
-    
+    }
+
+
+
     rlang::env_bind(ovar, type = type, action = action)
-    
+
     # smart detect: type, order_class, extended_hours
     # fix names for take_profit, stop_loss if partialed
     # or throw errors/warnings for specific criteria
     if (any(action %in% c("s", "r", "c")) && !.cancel_all) {
-      order_check() 
+      order_check()
     }
-    
+
     if (!.cancel_all)
       .is_id <- is_id(symbol_id)
     # detect the argument provided to symbol_id
     if (action == "s") {
-      
+
       #Create body with order details if action is submit or replace
       bodyl <-
         append(purrr::modify_depth(purrr::compact(
@@ -320,7 +329,7 @@ order_submit <-
         ),-1, .f = as.character, .ragged = TRUE),
         purrr::modify_depth(purrr::compact(list(take_profit = take_profit,
                                                 stop_loss = stop_loss)), -1, .f = as.character, .ragged = TRUE))
-      
+
       bodyl$extended_hours <- extended_hours
       bodyl <- jsonlite::toJSON(bodyl, auto_unbox = TRUE)
     } else if (action == "r") {
@@ -337,7 +346,7 @@ order_submit <-
           ),-2, .f = as.character),
           auto_unbox = TRUE)
     }
-    
+
     #Set URL & Headers
     headers = get_headers(live)
     .path <- c("orders")
@@ -370,7 +379,7 @@ o_transform <- function(.o) {
 }
 
 #' @title Transform order responses
-#' 
+#'
 #' @description Parses order type responses and replaces plain text quantities and dates with respective R objects
 #' @param orders A dataframe returned from any orders_* endpoint
 #' @return \code{(tibble)}  with respective R compliant objects (numeric, POSIXct/Datetime, character)
@@ -396,12 +405,12 @@ order_transform <- function(o) {
     .code <- 200
     .o <- o
   }
-  
+
   if (grepl("^4", .code)) {
     rlang::warn(paste0("Code: ",.code,",\nMessage:", .message))
     return(.o)
   }
-  
+
   if ((is.list(.o) && length(.o) > 0) || ("body" %in% names(.o) && grepl("DELETE", .method, ignore.case = TRUE))) {
     if (grepl("DELETE", .method, ignore.case = TRUE) && "body" %in% names(.o)) {.o <- .o$body;.q <- .o[1:2]}
     .o <- tibble::as_tibble(purrr::map(.o, rlang::`%||%`, NA))
@@ -421,9 +430,9 @@ order_transform <- function(o) {
             .o$legs <- o_transform(.o$legs)
           }
         }
-        out <- o_transform(.o) 
+        out <- o_transform(.o)
       })})
-    
+
   } else if (length(.o) == 0 && grepl("GET", .method, ignore.case = TRUE)) {
     message(paste("No orders for the selected query/filter criteria.","\nCheck `symbol_id` or set status = 'all' to see all orders."))
     out <- .o
@@ -439,13 +448,13 @@ order_transform <- function(o) {
 #' @title order_check
 #' @description smart detect: type, order_class, extended_hours. Fix names for take_profit, stop_loss if partialled. Throw errors/warnings for specific criteria
 #' @param penv \code{environment} the parent environment, otherwise a named list of arguments from the parent environment
-#' @param ... named arguments. Will automatically get arguments from enclosing environment. 
+#' @param ... named arguments. Will automatically get arguments from enclosing environment.
 #' @return \code{(list)} returns list with appropriate arguments, to be merged with parent environment via `list2env`
 #' @keywords internal
 order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = rlang::caller_env())) {
   force(ovar)
   fetch_vars(ovar$.vn[!names(ovar$.vn) %in% c("trail_price", "trail_percent")], ..., evar = ovar)
-  
+
   #  smart detect order_class ----
   # Fri May 15 13:48:32 2020
   if (!is.null(order_class)) {
@@ -456,11 +465,11 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
       rlang::abort(paste0(order_class, "is invalid `order_class`. See ?order_submit for help."))
     }
   }
-  
+
   # if side is partialled or missing ----
   # Thu Apr 30 20:32:52 2020
   if (action == "s") {
-    
+
     # set type if partialled and order_class is NULL  ----
     # Thu Apr 30 20:20:16 2020
     if (!is.null(type) && is.null(order_class)){
@@ -471,7 +480,7 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         type <- match_letters(type, n = 3, "trailing_stop", "stop", "limit", "market")
       }
     }
-    
+
     if (!is.null(side)) {
       side <- match_letters(side, "buy", "sell", ignore.case = TRUE)
       if (class(side) == "try-error") rlang::abort("Invalid value for `side`")
@@ -486,22 +495,22 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         rlang::abort("`side` is required for order submissions.")
       }
     }
-    
+
     # Short sell/stop buy warning
     if (side == "sell") {
       .pos <- suppressMessages(try(positions(symbol_id, live = live), silent = TRUE))
-      
+
       if (is_error(.pos) && grepl("position does not exist", attributes(.pos)$condition$message)) {
         cli::cli_alert_warning(paste0("No positions exist for ",paste0(symbol_id, collapse = ", "),". This order will be a short sell."))
       }
     } else if (side == "buy" && (!is.null(stop))) {
-      .warn_msg <- switch(stop_price, 
+      .warn_msg <- switch(stop_price,
                           stop_price = paste0("reaches ", stop),
                           trail_price = paste0("decreases by ", stop),
                           trail_percent = paste0("decreases by ", stop, " percent"))
       cli::cli_alert_warning(paste0("This stop buy order will execute when the price ", .warn_msg))
     }
-    
+
     # if quantity is missing ----
     # Thu Apr 30 20:17:38 2020
     if (is.null(qty)) {
@@ -519,15 +528,15 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
       message("order_class: 'bracket' requires type = 'market'. `type` set to 'market'.")
       type <- "market"
     } else if ((order_class %||% "none") == "oco" && (type %||% "none") != "limit") {
-      
+
       message("order_class: 'oco' requires type = 'limit'. `type` set to 'limit'.")
       type <- "limit"
     } else if ((order_class %||% "none") == "oto" && (type %||% "none") != 'market') {
       message("order_class: 'oto' requires type = 'market'. `type` set to 'market'.")
       type <- "market"
     }
-    
-    
+
+
     if (is.null(order_class)) {
       # smart detect type in the absence of order_class
       if (is.null(type) && !is.null(limit) && is.null(stop)) {
@@ -535,7 +544,7 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         if (is.null(stop) && is.null(type)) {
           type <- "limit";message("`type` set to 'limit'")
         }
-      } else if (is.null(type) && !is.null(stop) && is.null(limit)) { 
+      } else if (is.null(type) && !is.null(stop) && is.null(limit)) {
         # if just stop is provided
         if (is.null(limit) && is.null(type)) {
           type <- "stop";message("`type` set to 'stop'")
@@ -546,7 +555,7 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         rlang::abort("`type` must be set.")
       }
       # throw errors if not detected or arguments don't match
-      if (type == "limit" && is.null(limit)){ 
+      if (type == "limit" && is.null(limit)){
         rlang::abort(paste0("Please set limit price."))
       } else if (type == "stop" && is.null(stop)) {
         rlang::abort(paste0("Please set value for `stop` argument when `type = ", type,"`."))
@@ -560,11 +569,11 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         stop <- stop * 100
       } else if (stop_price == "trail_percent" && stop > 100) {
         rlang::abort("`trail_percent` must be < 100")
-      } 
+      }
     } else if (!is.null(order_class)) {
       # if order class is specified, set required arguments accordingly or throw errors
       # order_class Advanced orders ----
-      # Thu Apr 30 15:05:26 2020  
+      # Thu Apr 30 15:05:26 2020
       if ((is.null(take_profit) && is.null(stop_loss)) && order_class == "oto") {
         rlang::abort("`take_profit` or `stop_loss` must have at least one parameter set when order_class = 'oto'")
       } else if ((is.null(take_profit) || is.null(stop_loss)) && order_class %in% c('oco','bracket')) {
@@ -575,13 +584,13 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
         if (!time_in_force %in% c("day","gtc")) {
           rlang::abort("time_in_force must be 'day' or 'gtc' when `order_class = 'bracket'. See documentation for details.")
         }
-      } 
+      }
     }
     if (isTRUE(extended_hours) && (type != "limit" || time_in_force != "day" || order_class %in% c("oco","oto", "bracket"))) rlang::abort(paste0("Extended hours only supports simple 'limit' orders and `time_in_force = 'day'`"))
   } else if (action == "c") {
     if (is.null(symbol_id)) rlang::abort("`symbol_id` is NULL, the order may not have been placed successfully?")
-  } 
-  
+  }
+
   out <- list(
     symbol_id = symbol_id,
     action = action,
@@ -613,7 +622,7 @@ order_symbol_id <- function(symbol_id, ..., ovar = get0("ovar", mode = "environm
   # Check if ticker is an id or order tbl
   if (is_id(symbol_id))
     symbol_id <- orders(symbol_id)
-  
+
   if (inherits(symbol_id, "data.frame")) {
     if (is_id(symbol_id$id)) {
       if (action == "s") {
@@ -625,7 +634,7 @@ order_symbol_id <- function(symbol_id, ..., ovar = get0("ovar", mode = "environm
             paste0("`symbol_id` set to ", symbol_id$symbol),
             ifelse(isTRUE(client_order_id), paste0("`client_order_id` set to ", symbol_id$id), 1)
           ), is.character)
-          
+
           if (isTRUE(client_order_id)) client_order_id <- symbol_id$id
           side <- "sell"
           #if symbol_id is ID, action is submit and qty is NULL, populate qty from previous order
@@ -637,10 +646,10 @@ order_symbol_id <- function(symbol_id, ..., ovar = get0("ovar", mode = "environm
         symbol_id <- unique(symbol_id$id)
         if (length(symbol_id) > 1) rlang::abort("`symbol_id` must contain a single order")
       }
-    } else 
+    } else
       rlang::abort(paste0("The order object provided as `symbol_id` is invalid.\norder code: ",symbol_id$code,"\nmessage: ", symbol_id$message))
-    
-    
+
+
   } else {
     symbol_id <- unique(toupper(symbol_id))
     # If client_order_id is TRUE but the symbol_id is not an order, change it back to NULL

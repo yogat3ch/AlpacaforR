@@ -205,6 +205,51 @@ bars_bounds <- function(..., evar = get0("evar", mode = "environment", envir = r
                      . == "to" ~ .fills["from"],
                      . == "until" ~ .fills["after"]
            ))
+    bounds1 <- function(bounds) {
+      next_time <- purrr::when(names(bounds),
+                  rlang::is_empty(.) ~ c("from", "to"),
+                  . == "from" ~ "to",
+                  . == "after" ~ "until",
+                  . == "to" ~ "from",
+                  . == "until" ~ "after"
+      )
+      if (next_time == "from") {
+        bounds <- c(bounds, "a")
+      } else if (next_time == "after") {
+        bounds <- c(bounds, "b")
+      } else if (next_time == "to") {
+        bounds <- c(bounds, "c")
+      } else if (next_time == "until") {
+        bounds <- c(bounds, "d")
+      } else {
+        bounds <- c(bounds, "e")
+      }
+      x <- c()
+      for (i in seq_along(bounds)) {
+        x[i] <- paste(bounds[i], "y")
+      }
+      return(x)
+    }
+
+    bounds2 <- function(bounds) {
+      next_time <- switch(names(bounds),
+                          from ="to",
+                          after = "until",
+                          to = "from",
+                          until = "after",
+                          c("from", "to")
+      )
+      bounds <- c(bounds, switch(
+        next_time,
+        from = "a",
+        after = "b",
+        to = "c",
+        until = "d",
+        "e"
+      ))
+      paste(bounds, "y")
+    }
+
     # sort them into order
     bounds <- bounds[order(names(bounds))]
     # message
