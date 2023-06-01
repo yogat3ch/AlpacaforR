@@ -183,6 +183,7 @@ orders <-
 #'   \item{\code{stop_price/s}}{ \code{numeric} **required** for bracket orders}
 #'   \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. **Required** for `'bracket'` & `'oco'` order classes}
 #' }
+#' @param notional \code{num} dollar amount to trade. Cannot work with qty. Can only work for market order types and day for time in force.
 #' @param trail_price \code{(numeric)} a dollar value away from the highest water mark (hwm). If you set this to 2.00 for a sell trailing stop, the stop price is always hwm - 2.00
 #' @param trail_percent \code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99. Values less than 1 are assumed to be percentages, ie .07 = 7%, values must be less than 100.
 #' @inheritParams account
@@ -241,6 +242,7 @@ order_submit <-
            order_class = NULL,
            take_profit = NULL,
            stop_loss = NULL,
+           notional = NULL,
            trail_price,
            trail_percent,
            live = get_live()) {
@@ -281,6 +283,7 @@ order_submit <-
         client_order_id = c("logical","character", "NULL"),
         order_class = c("character", "NULL"),
         take_profit = c("list", "NULL"),
+        notional = c("numeric", "NULL"),
         stop_loss = c("list", "NULL"),
         trail_price = c("numeric", "integer"),
         trail_percent = c("numeric", "integer"),
@@ -323,6 +326,7 @@ order_submit <-
             time_in_force = time_in_force,
             limit_price = limit,
             !!stop_price := stop,
+            notional = notional,
             client_order_id = client_order_id,
             order_class = order_class
           )
@@ -513,8 +517,8 @@ order_check <- function(..., ovar = get0("ovar", mode = "environment", envir = r
 
     # if quantity is missing ----
     # Thu Apr 30 20:17:38 2020
-    if (is.null(qty)) {
-      rlang::abort("qty must be set.")
+    if (is.null(qty) && is.null(notional)) {
+      rlang::abort("`qty` or `notional` must be set.")
     }
     # fix names for take_profit and stop_loss
     if (!is.null(take_profit)) names(take_profit) <- "limit_price"
