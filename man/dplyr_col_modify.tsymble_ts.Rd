@@ -8,9 +8,9 @@
 }
 \arguments{
 \item{data}{A tibble. We use tibbles because they avoid some inconsistent
-subset-assignment use cases}
+subset-assignment use cases.}
 
-\item{cols}{A named list used modify columns. A \code{NULL} value should remove
+\item{cols}{A named list used to modify columns. A \code{NULL} value should remove
 an existing column.}
 }
 \description{

@@ -24,7 +24,7 @@ Encoding: UTF-8
 URL: https://yogat3ch.github.io/AlpacaforR
 BugReports: https://github.com/yogat3ch/AlpacaforR/issues
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
 Suggests: pkgload, testthat, withr, knitr, rmarkdown, qpdf, vcr,
         webmockr, RPushbullet

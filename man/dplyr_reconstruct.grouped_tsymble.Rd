@@ -8,9 +8,9 @@
 }
 \arguments{
 \item{data}{A tibble. We use tibbles because they avoid some inconsistent
-subset-assignment use cases}
+subset-assignment use cases.}
 
-\item{template}{Template to use for restoring attributes}
+\item{template}{Template data frame to use for restoring attributes.}
 }
 \description{
 An S3 method for reconstructing a \code{tsymble_ts} object

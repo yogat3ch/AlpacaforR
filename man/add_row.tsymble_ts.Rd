@@ -12,13 +12,11 @@ add_row.tsymble_ts(.data, ..., .before = NULL, .after = NULL)
 \item{...}{
   Arguments passed on to \code{\link[tibble:add_row]{tibble::add_row}}
   \describe{
-    \item{\code{}}{}
+    \item{\code{.before,.after}}{One-based row index where to add the new rows,
+default: after last row.}
   }}
 
-\item{.before}{One-based row index where to add the new rows,
-default: after last row.}
-
-\item{.after}{One-based row index where to add the new rows,
+\item{.before, .after}{One-based row index where to add the new rows,
 default: after last row.}
 }
 \description{

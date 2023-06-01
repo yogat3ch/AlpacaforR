@@ -40,7 +40,7 @@ frame is supplied, the argument \code{key} will be ignored.}
 then index from past to future. \code{TRUE} suggests to skip the ordering as \code{x} in
 the correct order. \code{FALSE} checks the ordering and may give a warning.}
     \item{\code{interval}}{\code{TRUE} automatically calculates the interval, and \code{FALSE} for
-irregular interval. Use the specified interval via \code{\link[tsibble:new-interval]{new_interval()}} as is.}
+irregular interval. Use the specified interval via \code{\link[tsibble:new_interval]{new_interval()}} as is.}
     \item{\code{.drop}}{If \code{TRUE}, empty key groups are dropped.}
   }}
 }

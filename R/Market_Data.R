@@ -331,8 +331,6 @@ bounds_format <- function(bounds) {
 # bars_url ----
 # Sun Mar 29 16:07:34 2020
 #' @title Create URLs for market_data endpoints
-#'
-#'
 #' @description Internal function for generating query urls. The function is intended for use in an environment where its parameters already exist. See notes on specifying arguments in the *Details* section for \code{\link[AlpacaforR]{bars_complete}}.
 #' @inheritParams market_data
 #' @param symbol \code{(character)} Ticker symbol
@@ -632,8 +630,6 @@ bars_getv2 <- function(.url, v, evar = get0("evar", mode = "environment", envir 
 # bars_transform ----
 # Sun Mar 29 16:09:30 2020
 #' @title Transform bars objects
-#'
-#'
 #' @description Internal function for transforming data from Alpaca API to a human-readable TTR/quantmod compatible format
 #' @keywords internal
 

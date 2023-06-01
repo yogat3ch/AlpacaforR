@@ -112,17 +112,17 @@ AS$Alpaca$data$opts$b.BYND$toConsole <- FALSE
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{AlpacaStreams$new()}}
-\item \href{#method-channel}{\code{AlpacaStreams$channel()}}
-\item \href{#method-logs}{\code{AlpacaStreams$logs()}}
-\item \href{#method-connect}{\code{AlpacaStreams$connect()}}
-\item \href{#method-close}{\code{AlpacaStreams$close()}}
-\item \href{#method-clone}{\code{AlpacaStreams$clone()}}
+\item \href{#method-AlpacaStreams-new}{\code{AlpacaStreams$new()}}
+\item \href{#method-AlpacaStreams-channel}{\code{AlpacaStreams$channel()}}
+\item \href{#method-AlpacaStreams-logs}{\code{AlpacaStreams$logs()}}
+\item \href{#method-AlpacaStreams-connect}{\code{AlpacaStreams$connect()}}
+\item \href{#method-AlpacaStreams-close}{\code{AlpacaStreams$close()}}
+\item \href{#method-AlpacaStreams-clone}{\code{AlpacaStreams$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-new"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-new}{}}}
 \subsection{Method \code{new()}}{
 Connect to and authorize Alpaca and Polygon websocket streams and set default options for these websockets.
 \subsection{Usage}{
@@ -175,8 +175,8 @@ Connect to and authorize Alpaca and Polygon websocket streams and set default op
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-channel"></a>}}
-\if{latex}{\out{\hypertarget{method-channel}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-channel"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-channel}{}}}
 \subsection{Method \code{channel()}}{
 Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in  \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden.
 \subsection{Usage}{
@@ -210,8 +210,8 @@ If \code{log = TRUE} for a Polygon channel, all non-status messages will be stor
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-logs"></a>}}
-\if{latex}{\out{\hypertarget{method-logs}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-logs"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-logs}{}}}
 \subsection{Method \code{logs()}}{
 Retrieve *Socket Logs/Bars
 \subsection{Usage}{
@@ -227,8 +227,8 @@ Retrieve *Socket Logs/Bars
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-connect"></a>}}
-\if{latex}{\out{\hypertarget{method-connect}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-connect"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-connect}{}}}
 \subsection{Method \code{connect()}}{
 Connects both \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}} & \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}} to their respective server-side sockets.
 \subsection{Usage}{
@@ -244,8 +244,8 @@ Connects both \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-close"></a>}}
-\if{latex}{\out{\hypertarget{method-close}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-close"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-close}{}}}
 \subsection{Method \code{close()}}{
 Closes connections for both \href{../../AlpacaforR/html/AlpacaSocket.html}{\code{AlpacaSocket}} & \href{../../AlpacaforR/html/PolygonSocket.html}{\code{PolygonSocket}}.
 \subsection{Usage}{
@@ -254,8 +254,8 @@ Closes connections for both \href{../../AlpacaforR/html/AlpacaSocket.html}{\code
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-AlpacaStreams-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaStreams-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

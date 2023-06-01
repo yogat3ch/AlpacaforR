@@ -18,6 +18,7 @@ order_submit(
   order_class = NULL,
   take_profit = NULL,
   stop_loss = NULL,
+  notional = NULL,
   trail_price,
   trail_percent,
   live = get_live()
@@ -86,6 +87,8 @@ See \href{https://alpaca.markets/docs/trading-on-alpaca/orders/#bracket-orders}{
 \item{\code{limit_price/l}}{ \code{numeric} The stop-loss order becomes a stop-limit order if specified. \strong{Required} for \code{'bracket'} & \code{'oco'} order classes}
 }}
 
+\item{notional}{\code{num} dollar amount to trade. Cannot work with qty. Can only work for market order types and day for time in force.}
+
 \item{trail_price}{\code{(numeric)} a dollar value away from the highest water mark (hwm). If you set this to 2.00 for a sell trailing stop, the stop price is always hwm - 2.00}
 
 \item{trail_percent}{\code{(numeric)} a percent value away from the highest water mark. If you set this to 1.0 for a sell trailing stop, the stop price is always hwm * 0.99. Values less than 1 are assumed to be percentages, ie .07 = 7\%, values must be less than 100.}
@@ -137,7 +140,7 @@ Places/Replaces/Cancels an order, or cancels all orders depending on argument to
 }
 \examples{
 \dontrun{
-# most orders (except limit) must be placed during market hours or they will not be filled until the next trading day. 
+# most orders (except limit) must be placed during market hours or they will not be filled until the next trading day.
 .c <- clock()
 if (.c$is_open) {
 #' (bo <- order_submit("AAPL", qty = 1, side = "buy", type = "market"))

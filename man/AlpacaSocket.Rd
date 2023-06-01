@@ -21,36 +21,36 @@ A \link[websocket]{WebSocket} with modifications for Alpaca/Polygon websocket st
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{AlpacaSocket$new()}}
-\item \href{#method-lastmessage}{\code{AlpacaSocket$lastmessage()}}
-\item \href{#method-logs}{\code{AlpacaSocket$logs()}}
-\item \href{#method-channel}{\code{AlpacaSocket$channel()}}
-\item \href{#method-auth}{\code{AlpacaSocket$auth()}}
-\item \href{#method-clone}{\code{AlpacaSocket$clone()}}
+\item \href{#method-AlpacaSocket-new}{\code{AlpacaSocket$new()}}
+\item \href{#method-AlpacaSocket-lastmessage}{\code{AlpacaSocket$lastmessage()}}
+\item \href{#method-AlpacaSocket-logs}{\code{AlpacaSocket$logs()}}
+\item \href{#method-AlpacaSocket-channel}{\code{AlpacaSocket$channel()}}
+\item \href{#method-AlpacaSocket-auth}{\code{AlpacaSocket$auth()}}
+\item \href{#method-AlpacaSocket-clone}{\code{AlpacaSocket$clone()}}
 }
 }
-\if{html}{
-\out{<details ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearAccessLogChannels">}\href{../../websocket/html/WebSocket.html#method-clearAccessLogChannels}{\code{websocket::WebSocket$clearAccessLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearErrorLogChannels">}\href{../../websocket/html/WebSocket.html#method-clearErrorLogChannels}{\code{websocket::WebSocket$clearErrorLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="close">}\href{../../websocket/html/WebSocket.html#method-close}{\code{websocket::WebSocket$close()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="connect">}\href{../../websocket/html/WebSocket.html#method-connect}{\code{websocket::WebSocket$connect()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onClose">}\href{../../websocket/html/WebSocket.html#method-onClose}{\code{websocket::WebSocket$onClose()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onError">}\href{../../websocket/html/WebSocket.html#method-onError}{\code{websocket::WebSocket$onError()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onMessage">}\href{../../websocket/html/WebSocket.html#method-onMessage}{\code{websocket::WebSocket$onMessage()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onOpen">}\href{../../websocket/html/WebSocket.html#method-onOpen}{\code{websocket::WebSocket$onOpen()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="protocol">}\href{../../websocket/html/WebSocket.html#method-protocol}{\code{websocket::WebSocket$protocol()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="readyState">}\href{../../websocket/html/WebSocket.html#method-readyState}{\code{websocket::WebSocket$readyState()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="send">}\href{../../websocket/html/WebSocket.html#method-send}{\code{websocket::WebSocket$send()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setAccessLogChannels">}\href{../../websocket/html/WebSocket.html#method-setAccessLogChannels}{\code{websocket::WebSocket$setAccessLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setErrorLogChannels">}\href{../../websocket/html/WebSocket.html#method-setErrorLogChannels}{\code{websocket::WebSocket$setErrorLogChannels()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{
+<details><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearAccessLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-clearAccessLogChannels'><code>websocket::WebSocket$clearAccessLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearErrorLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-clearErrorLogChannels'><code>websocket::WebSocket$clearErrorLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="close"><a href='../../websocket/html/WebSocket.html#method-WebSocket-close'><code>websocket::WebSocket$close()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="connect"><a href='../../websocket/html/WebSocket.html#method-WebSocket-connect'><code>websocket::WebSocket$connect()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onClose"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onClose'><code>websocket::WebSocket$onClose()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onError"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onError'><code>websocket::WebSocket$onError()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onMessage"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onMessage'><code>websocket::WebSocket$onMessage()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onOpen"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onOpen'><code>websocket::WebSocket$onOpen()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="protocol"><a href='../../websocket/html/WebSocket.html#method-WebSocket-protocol'><code>websocket::WebSocket$protocol()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="readyState"><a href='../../websocket/html/WebSocket.html#method-WebSocket-readyState'><code>websocket::WebSocket$readyState()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="send"><a href='../../websocket/html/WebSocket.html#method-WebSocket-send'><code>websocket::WebSocket$send()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setAccessLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-setAccessLogChannels'><code>websocket::WebSocket$setAccessLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setErrorLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-setErrorLogChannels'><code>websocket::WebSocket$setErrorLogChannels()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-new"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-new}{}}}
 \subsection{Method \code{new()}}{
 Connect to an Alpaca websocket
 \subsection{Usage}{
@@ -68,8 +68,8 @@ Connect to an Alpaca websocket
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-lastmessage"></a>}}
-\if{latex}{\out{\hypertarget{method-lastmessage}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-lastmessage"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-lastmessage}{}}}
 \subsection{Method \code{lastmessage()}}{
 Returns the last message received by the socket
 \subsection{Usage}{
@@ -78,8 +78,8 @@ Returns the last message received by the socket
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-logs"></a>}}
-\if{latex}{\out{\hypertarget{method-logs}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-logs"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-logs}{}}}
 \subsection{Method \code{logs()}}{
 Returns the message log
 \subsection{Usage}{
@@ -95,8 +95,8 @@ Returns the message log
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-channel"></a>}}
-\if{latex}{\out{\hypertarget{method-channel}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-channel"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-channel}{}}}
 \subsection{Method \code{channel()}}{
 Sends request to websocket to join the specified channel. Channel options are inherited from defaults set in \code{\link[AlpacaforR]{AlpacaStreams}$initialize} unless overridden. \strong{Notes} 1. the Polygon website is only available to Polygon subscribers. 2. The \code{sip} data stream is only available to Alpaca PRO subscribers.
 \subsection{Usage}{
@@ -135,8 +135,8 @@ If \code{log = TRUE} for a Polygon channel, all non-status messages will be stor
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-auth"></a>}}
-\if{latex}{\out{\hypertarget{method-auth}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-auth"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-auth}{}}}
 \subsection{Method \code{auth()}}{
 Authorize the stream (this is done automatically when initializing via the \code{AlpacaStreams} class.)
 \subsection{Usage}{
@@ -145,8 +145,8 @@ Authorize the stream (this is done automatically when initializing via the \code
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-AlpacaSocket-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-AlpacaSocket-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
@@ -168,36 +168,36 @@ The objects of this class are cloneable with this method.
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-clone}{\code{PolygonSocket$clone()}}
+\item \href{#method-PolygonSocket-clone}{\code{PolygonSocket$clone()}}
 }
 }
-\if{html}{
-\out{<details ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearAccessLogChannels">}\href{../../websocket/html/WebSocket.html#method-clearAccessLogChannels}{\code{websocket::WebSocket$clearAccessLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearErrorLogChannels">}\href{../../websocket/html/WebSocket.html#method-clearErrorLogChannels}{\code{websocket::WebSocket$clearErrorLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="close">}\href{../../websocket/html/WebSocket.html#method-close}{\code{websocket::WebSocket$close()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="connect">}\href{../../websocket/html/WebSocket.html#method-connect}{\code{websocket::WebSocket$connect()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onClose">}\href{../../websocket/html/WebSocket.html#method-onClose}{\code{websocket::WebSocket$onClose()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onError">}\href{../../websocket/html/WebSocket.html#method-onError}{\code{websocket::WebSocket$onError()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onMessage">}\href{../../websocket/html/WebSocket.html#method-onMessage}{\code{websocket::WebSocket$onMessage()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onOpen">}\href{../../websocket/html/WebSocket.html#method-onOpen}{\code{websocket::WebSocket$onOpen()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="protocol">}\href{../../websocket/html/WebSocket.html#method-protocol}{\code{websocket::WebSocket$protocol()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="readyState">}\href{../../websocket/html/WebSocket.html#method-readyState}{\code{websocket::WebSocket$readyState()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="send">}\href{../../websocket/html/WebSocket.html#method-send}{\code{websocket::WebSocket$send()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setAccessLogChannels">}\href{../../websocket/html/WebSocket.html#method-setAccessLogChannels}{\code{websocket::WebSocket$setAccessLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setErrorLogChannels">}\href{../../websocket/html/WebSocket.html#method-setErrorLogChannels}{\code{websocket::WebSocket$setErrorLogChannels()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="auth">}\href{../../AlpacaforR/html/AlpacaSocket.html#method-auth}{\code{AlpacaforR::AlpacaSocket$auth()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="channel">}\href{../../AlpacaforR/html/AlpacaSocket.html#method-channel}{\code{AlpacaforR::AlpacaSocket$channel()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="initialize">}\href{../../AlpacaforR/html/AlpacaSocket.html#method-initialize}{\code{AlpacaforR::AlpacaSocket$initialize()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="lastmessage">}\href{../../AlpacaforR/html/AlpacaSocket.html#method-lastmessage}{\code{AlpacaforR::AlpacaSocket$lastmessage()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="logs">}\href{../../AlpacaforR/html/AlpacaSocket.html#method-logs}{\code{AlpacaforR::AlpacaSocket$logs()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{
+<details><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearAccessLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-clearAccessLogChannels'><code>websocket::WebSocket$clearAccessLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="clearErrorLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-clearErrorLogChannels'><code>websocket::WebSocket$clearErrorLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="close"><a href='../../websocket/html/WebSocket.html#method-WebSocket-close'><code>websocket::WebSocket$close()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="connect"><a href='../../websocket/html/WebSocket.html#method-WebSocket-connect'><code>websocket::WebSocket$connect()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onClose"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onClose'><code>websocket::WebSocket$onClose()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onError"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onError'><code>websocket::WebSocket$onError()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onMessage"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onMessage'><code>websocket::WebSocket$onMessage()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="onOpen"><a href='../../websocket/html/WebSocket.html#method-WebSocket-onOpen'><code>websocket::WebSocket$onOpen()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="protocol"><a href='../../websocket/html/WebSocket.html#method-WebSocket-protocol'><code>websocket::WebSocket$protocol()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="readyState"><a href='../../websocket/html/WebSocket.html#method-WebSocket-readyState'><code>websocket::WebSocket$readyState()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="send"><a href='../../websocket/html/WebSocket.html#method-WebSocket-send'><code>websocket::WebSocket$send()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setAccessLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-setAccessLogChannels'><code>websocket::WebSocket$setAccessLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="websocket" data-topic="WebSocket" data-id="setErrorLogChannels"><a href='../../websocket/html/WebSocket.html#method-WebSocket-setErrorLogChannels'><code>websocket::WebSocket$setErrorLogChannels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="auth"><a href='../../AlpacaforR/html/AlpacaSocket.html#method-AlpacaSocket-auth'><code>AlpacaforR::AlpacaSocket$auth()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="channel"><a href='../../AlpacaforR/html/AlpacaSocket.html#method-AlpacaSocket-channel'><code>AlpacaforR::AlpacaSocket$channel()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="initialize"><a href='../../AlpacaforR/html/AlpacaSocket.html#method-AlpacaSocket-initialize'><code>AlpacaforR::AlpacaSocket$initialize()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="lastmessage"><a href='../../AlpacaforR/html/AlpacaSocket.html#method-AlpacaSocket-lastmessage'><code>AlpacaforR::AlpacaSocket$lastmessage()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="AlpacaforR" data-topic="AlpacaSocket" data-id="logs"><a href='../../AlpacaforR/html/AlpacaSocket.html#method-AlpacaSocket-logs'><code>AlpacaforR::AlpacaSocket$logs()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-PolygonSocket-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-PolygonSocket-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

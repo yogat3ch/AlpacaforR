@@ -8,9 +8,7 @@
 x \%||\% y
 }
 \arguments{
-\item{x}{If \code{x} is NULL, will return \code{y}; otherwise returns \code{x}.}
-
-\item{y}{If \code{x} is NULL, will return \code{y}; otherwise returns \code{x}.}
+\item{x, y}{If \code{x} is NULL, will return \code{y}; otherwise returns \code{x}.}
 }
 \description{
 This infix function makes it easy to replace \code{NULL}s with a default

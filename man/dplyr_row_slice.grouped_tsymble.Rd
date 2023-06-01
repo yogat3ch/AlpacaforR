@@ -8,9 +8,9 @@
 }
 \arguments{
 \item{data}{A tibble. We use tibbles because they avoid some inconsistent
-subset-assignment use cases}
+subset-assignment use cases.}
 
-\item{i}{A numeric or logical vector that indexes the rows of \code{.data}.}
+\item{i}{A numeric or logical vector that indexes the rows of \code{data}.}
 
 \item{...}{
   Arguments passed on to \code{\link[dplyr:dplyr_extending]{dplyr::dplyr_row_slice}}
